@@ -1,0 +1,322 @@
+[
+  {
+    "id": "h1",
+    "category": "history",
+    "q": "F1世界選手権が初めて開催された年は？ / In which year was the first F1 World Championship held?",
+    "options": ["1946", "1950", "1958", "1962"],
+    "answer": 1,
+    "explain": "1950年、イギリス・シルバーストンで第1戦が開催されました。/ The first race was held at Silverstone in 1950."
+  },
+  {
+    "id": "h2",
+    "category": "history",
+    "q": "F1史上最多世界タイトルのドライバーは？ / Which driver has the most F1 world titles?",
+    "options": ["アーノン・シューマッハとルイス・ハミルトン / Schumacher & Hamilton", "ミカ・ハッキネン / Mika Häkkinen", "フェルナンド・アロンソ / Fernando Alonso", "マックス・フェルスタッペン / Max Verstappen"],
+    "answer": 0,
+    "explain": "シューマッハとハミルトンが7回で最多（2024年终了時）。/ Schumacher and Hamilton share the record with 7."
+  },
+  {
+    "id": "h3",
+    "category": "history",
+    "q": "2024年のドライバーズチャンピオンは？ / Who won the 2024 drivers' championship?",
+    "options": ["マックス・フェルスタッペン / Max Verstappen", "ランド・ノリス / Lando Norris", "シャルル・ルクレール / Charles Leclerc", "オスカー・ピアストリ / Oscar Piastri"],
+    "answer": 1,
+    "explain": "ノリスが2024年ラスベガスGPでタイトルを確定させました。/ Norris clinched it at the Las Vegas GP."
+  },
+  {
+    "id": "h4",
+    "category": "history",
+    "q": "2024年のコンストラクターズチャンピオンは？ / Who won the 2024 constructors' championship?",
+    "options": ["レッドブル / Red Bull", "マクラーレン / McLaren", "フェラーリ / Ferrari", "メルセデス / Mercedes"],
+    "answer": 1,
+    "explain": "マクラーレンが1998年以来のタイトルを取り戻しました。/ McLaren's first since 1998."
+  },
+  {
+    "id": "h5",
+    "category": "history",
+    "q": "最多連勝記録（10连胜）を持つドライバーは？ / Who holds the record for most consecutive wins (10)?",
+    "options": ["セバスチャン・ベッテル / Sebastian Vettel", "マックス・フェルスタッペン / Max Verstappen", "ミハエル・シューマッハ / Michael Schumacher", "ニコ・ロズベルグ / Nico Rosberg"],
+    "answer": 1,
+    "explain": "フェルスタッペンが2023年に10連勝を達成。/ Verstappen won 10 in a row in 2023."
+  },
+  {
+    "id": "h6",
+    "category": "history",
+    "q": "ルイス・ハミルトンが Ferrari に移籍したのは何年？ / In which year did Lewis Hamilton move to Ferrari?",
+    "options": ["2023", "2024", "2025", "2026"],
+    "answer": 2,
+    "explain": "2025年シーズンからフェラーリのユニフォームに。/ He races for Ferrari from the 2025 season."
+  },
+  {
+    "id": "h7",
+    "category": "history",
+    "q": "2025年シーズンの開幕戦は？ / Which race opened the 2025 season?",
+    "options": ["バーレーンGP / Bahrain", "オーストラリアGP / Australia", "サウジアラビアGP / Saudi Arabia", "中国GP / China"],
+    "answer": 1,
+    "explain": "オーストラリアGP（アルバート・パーク）が開幕戦でした。/ The Australian GP at Albert Park opened the season."
+  },
+  {
+    "id": "h8",
+    "category": "history",
+    "q": "F1に最も古くから参戦し続けているチームは？ / The longest-serving F1 team is?",
+    "options": ["フェラーリ / Ferrari", "マクラーレン / McLaren", "ウィリアムズ / Williams", "アストンマルティン / Aston Martin"],
+    "answer": 0,
+    "explain": "フェラーリは1950年から途切れなく参戦。/ Ferrari has competed since the inaugural 1950 season."
+  },
+  {
+    "id": "d1",
+    "category": "driver",
+    "q": "背番号1番の2025年ドライバーは？ / Who races with number 1 in 2025?",
+    "options": ["ランド・ノリス / Lando Norris", "マックス・フェルスタッペン / Max Verstappen", "シャルル・ルクレール / Charles Leclerc", "ルイス・ハミルトン / Lewis Hamilton"],
+    "answer": 1,
+    "explain": "チャンピオンの権利で1番を着るフェルスタッペン。/ Verstappen uses number 1 as defending champion."
+  },
+  {
+    "id": "d2",
+    "category": "driver",
+    "q": "2025年シートを獲得したイタリア人ルーキーは？ / Which Italian rookie landed a 2025 seat?",
+    "options": ["アンドレア・キミ・アントネッリ / Andrea Kimi Antonelli", "ガブリエル・ボルトレト / Gabriel Bortoleto", "リアム・ローソン / Liam Lawson", "アイサック・ハジール / Isack Hadjar"],
+    "answer": 0,
+    "explain": "メルセデスのアントネッリが2025年デビュー。/ Mercedes junior Antonelli debuted in 2025."
+  },
+  {
+    "id": "d3",
+    "category": "driver",
+    "q": "2025年、角田裕毅が所属するチームは？ / Which team does Yuki Tsunoda race for in 2025?",
+    "options": ["レッドブル / Red Bull", "RB / Racing Bulls", "マクラーレン / McLaren", "ウィリアムズ / Williams"],
+    "answer": 1,
+    "explain": "角田はRB（レーシングブルズ）の中心選手。/ Tsunoda is RB's lead driver."
+  },
+  {
+    "id": "d4",
+    "category": "driver",
+    "q": "2度の世界チャンピオンで、2025年アストンマルティンにいる driver は？ / The two-time champion at Aston Martin in 2025?",
+    "options": ["フェルナンド・アロンソ / Fernando Alonso", "ルイス・ハミルトン / Lewis Hamilton", "セバスチャン・ベッテル / Sebastian Vettel", "キムミ・ライコネン / Kimi Räikkönen"],
+    "answer": 0,
+    "explain": "アロンソがアストンマルティンで走り続けています。/ Alonso continues at Aston Martin."
+  },
+  {
+    "id": "d5",
+    "category": "driver",
+    "q": "2021年ハンガリーGPで初優勝したのは？ / Who took a maiden win at the 2021 Hungarian GP?",
+    "options": ["エステバン・オコン / Esteban Ocon", "ピエール・ガスリー / Pierre Gasly", "カルロス・サインス / Carlos Sainz", "ジョージ・ラッセル / George Russell"],
+    "answer": 0,
+    "explain": "オコンがアルピーヌ（当時レノー）で劇的な初星。/ Ocon's emotional first win for Alpine."
+  },
+  {
+    "id": "d6",
+    "category": "driver",
+    "q": "2024年シーズンの初優勝をミアミで決めた driver は？ / Who took a maiden win in Miami in 2024?",
+    "options": ["ランド・ノリス / Lando Norris", "オスカー・ピアストリ / Oscar Piastri", "ジョージ・ラッセル / George Russell", "シャルル・ルクレール / Charles Leclerc"],
+    "answer": 0,
+    "explain": "ノリスがマイアミで初優勝を突破。/ Norris broke his duck in Miami."
+  },
+  {
+    "id": "d7",
+    "category": "driver",
+    "q": "2025年、フェラーリのガレージに並ぶのはレクレールと？ / Who partners Leclerc at Ferrari in 2025?",
+    "options": ["ルイス・ハミルトン / Lewis Hamilton", "カルロス・サインス / Carlos Sainz", "ジョージ・ラッセル / George Russell", "ランド・ノリス / Lando Norris"],
+    "answer": 0,
+    "explain": "ハミルトンのフェラーリ移籍が2025年実現。/ Hamilton's move to Ferrari became reality."
+  },
+  {
+    "id": "d8",
+    "category": "driver",
+    "q": "2025年の日本GP開催地・鈴鹿に最も縁が深い driver は？ / Which driver is most associated with Suzuka?",
+    "options": ["角田裕毅 / Yuki Tsunoda", "マックス・フェルスタッペン / Max Verstappen", "ルイス・ハミルトン / Lewis Hamilton", "ミハエル・シューマッハ / Michael Schumacher"],
+    "answer": 0,
+    "explain": "角田のヒーローたちが鈴鹿から生まれた。/ Tsunoda's heroes raced at Suzuka."
+  },
+  {
+    "id": "t1",
+    "category": "team",
+    "q": "2025年、メルセデスのパワーユニットを供給するのは？ / Who supplies Mercedes with power units in 2025?",
+    "options": ["メルセデス自身 / Mercedes themselves", "フェラーリ / Ferrari", "レノー / Renault", "ホンダ / Honda"],
+    "answer": 0,
+    "explain": "メルセデスは自社PU。/ Mercedes builds its own power units."
+  },
+  {
+    "id": "t2",
+    "category": "team",
+    "q": "マクラーレンのチームカラーの通称は？ / What is McLaren's famous colour called?",
+    "options": ["パパイヤ・オレンジ / Papaya Orange", "イギリス・グリーン / British Green", "ロス・イエロー / Rosso Yellow", "マルサンブルー / Bleu de France"],
+    "answer": 0,
+    "explain": "パパイヤ・オレンジはデニス時代の伝統。/ Papaya has been McLaren's signature since the Dennis era."
+  },
+  {
+    "id": "t3",
+    "category": "team",
+    "q": "2026年に新規参戦が決まっているメーカーは？ / Which manufacturer joins F1 as a new team in 2026?",
+    "options": ["キャデラック / Cadillac", "ヒュンダイ / Hyundai", "ポルシェ / Porsche", "フォード / Ford"],
+    "answer": 0,
+    "explain": "キャデラック（GM）が11チーム目として参戦。/ Cadillac (GM) joins as the 11th team."
+  },
+  {
+    "id": "t4",
+    "category": "team",
+    "q": "ザウバーが2026年に冠になるチーム名は？ / What will Sauber be called from 2026?",
+    "options": ["アウディ / Audi", "ポルシェ / Porsche", "アルピーヌ / Alpine", "フォード / Ford"],
+    "answer": 0,
+    "explain": "アウディが正式にワークスチームとして参戦。/ Audi enters as a full works team."
+  },
+  {
+    "id": "t5",
+    "category": "team",
+    "q": "レッドブルのPUサプライヤーは？ / Red Bull's power unit supplier is?",
+    "options": ["ホンダ / Honda", "フェラーリ / Ferrari", "メルセデス / Mercedes", "ルノー / Renault"],
+    "answer": 0,
+    "explain": "ホンダRBPT（ホンダ・レーシング・パワートレイン・テクノロジー）。/ Honda RBPT."
+  },
+  {
+    "id": "t6",
+    "category": "team",
+    "q": "タイトル数16回の最多保持チームは？ / Which team has the most constructors' titles (16)?",
+    "options": ["フェラーリ / Ferrari", "ウィリアムズ / Williams", "マクラーレン / McLaren", "メルセデス / Mercedes"],
+    "answer": 0,
+    "explain": "フェラーリが16回で最多。/ Ferrari leads with 16."
+  },
+  {
+    "id": "t7",
+    "category": "team",
+    "q": "2014-2021のコンストラクターズ8連覇を果たしたチームは？ / Who won 8 straight constructors' titles from 2014?",
+    "options": ["メルセデス / Mercedes", "レッドブル / Red Bull", "フェラーリ / Ferrari", "マクラーレン / McLaren"],
+    "answer": 0,
+    "explain": "メルセデス・AMGのハイブリッド全盛期。/ Mercedes' hybrid-era dominance."
+  },
+  {
+    "id": "t8",
+    "category": "team",
+    "q": "2025年、ハースのPUサプライヤーは？ / Haas' power unit supplier in 2025?",
+    "options": ["フェラーリ / Ferrari", "メルセデス / Mercedes", "ルノー / Renault", "ホンダ / Honda"],
+    "answer": 0,
+    "explain": "ハースはフェラーリPU。/ Haas uses Ferrari power units."
+  },
+  {
+    "id": "c1",
+    "category": "circuit",
+    "q": "F1で最もコーナー数が多いサーキットは？ / Which F1 circuit has the most corners?",
+    "options": ["ジェダ / Jeddah", "バクー / Baku", "モンテカルロ / Monaco", "上海 / Shanghai"],
+    "answer": 0,
+    "explain": "ジェダは27コーナー。/ Jeddah has 27 corners."
+  },
+  {
+    "id": "c2",
+    "category": "circuit",
+    "q": "モナコGPのラップレコード保持者は？ / Who holds the Monaco lap record?",
+    "options": ["ルイス・ハミルトン / Lewis Hamilton", "マックス・フェルスタッペン / Max Verstappen", "アイルトン・セナ / Ayrton Senna", "ミハエル・シューマッハ / Michael Schumacher"],
+    "answer": 0,
+    "explain": "ハミルトンが2021年に1:12.909。/ Hamilton set 1:12.909 in 2021."
+  },
+  {
+    "id": "c3",
+    "category": "circuit",
+    "q": "モンツァのラップレコード（1:21.046）保持者は？ / Who holds Monza's 1:21.046 lap record?",
+    "options": ["ルビンス・バリチェロ / Rubens Barrichello", "ミハエル・シューマッハ / Michael Schumacher", "アイルトン・セナ / Ayrton Senna", "キミ・ライコネン / Kimi Räikkönen"],
+    "answer": 0,
+    "explain": "バリチェロが2004年に刻んだ記録は今も残る。/ Barrichello's 2004 record still stands."
+  },
+  {
+    "id": "c4",
+    "category": "circuit",
+    "q": "F1史上最も長いサーキットは？ / The longest circuit on the F1 calendar?",
+    "options": ["スパ・フランコシャン / Spa-Francorchamps", "ジェダ / Jeddah", "ルサイル / Lusail", "バクー / Baku"],
+    "answer": 0,
+    "explain": "スパは7.004km。/ Spa is 7.004 km long."
+  },
+  {
+    "id": "c5",
+    "category": "circuit",
+    "q": "日本GPが開催される鈴鹿サーキットの特徴は？ / Suzuka is famous for being?",
+    "options": ["3つの図形が重なった「8の字」レイアウト / A figure-eight layout", "完全な楕円形 / A pure oval", "高低差ゼロの平坦コース / A totally flat track", "直角コーナーのみ / Only right-angle corners"],
+    "answer": 0,
+    "explain": "鈴鹿は日本唯一の8の字レイアウト。/ Suzuka is Japan's figure-eight circuit."
+  },
+  {
+    "id": "c6",
+    "category": "circuit",
+    "q": "2025年シーズンの揭幕戦となったサーキットは？ / Which circuit opened the 2025 season?",
+    "options": ["アルバート・パーク / Albert Park", "上海 / Shanghai", "バーレーン / Sakhir", "ルサイル / Lusail"],
+    "answer": 0,
+    "explain": "3年ぶりにオーストラリアが開幕戦。/ Australia opened the season."
+  },
+  {
+    "id": "c7",
+    "category": "circuit",
+    "q": "「テクニカルで低速」の代表格とされるサーキットは？ / Which track is famously slow and technical?",
+    "options": ["モンテカルロ / Monaco", "モンツァ / Monza", "スパ / Spa", "レッドブル・リング / Red Bull Ring"],
+    "answer": 0,
+    "explain": "モナコは平均時速が最も低い。/ Monaco has the lowest average speed."
+  },
+  {
+    "id": "c8",
+    "category": "circuit",
+    "q": "シーズン最終戦の定番・ヨーロッパ以外で行われるサーキットは？ / The season finale is traditionally held at which non-European circuit?",
+    "options": ["ヤス・マリーナ / Yas Marina", "スパ / Spa", "Hungaroring / ハンガロリンク", "モンツァ / Monza"],
+    "answer": 0,
+    "explain": "アブダビのヤス・マリーナが最终戦。/ Yas Marina hosts the Abu Dhabi finale."
+  },
+  {
+    "id": "r1",
+    "category": "rule",
+    "q": "DRSの使用が認められるのは前の車との差が？ / DRS may be used within what gap to the car ahead?",
+    "options": ["1秒以内 / within 1 second", "2秒以内 / within 2 seconds", "3秒以内 / within 3 seconds", "5秒以内 / within 5 seconds"],
+    "answer": 0,
+    "explain": "1秒以内でのみ使用可能。/ Only within one second."
+  },
+  {
+    "id": "r2",
+    "category": "rule",
+    "q": "予選は何から構成される？ / Qualifying is made up of?",
+    "options": ["Q1・Q2・Q3", "Q1・Q2", "Q1・Q2・Q3・Q4", "セッションは1本のみ / One single session"],
+    "answer": 0,
+    "explain": "3部制で下位から脱落。/ Three knockout segments."
+  },
+  {
+    "id": "r3",
+    "category": "rule",
+    "q": "レース中のタイヤ交換は最低何セット必要？ / How many tyre sets must a driver use in a dry race?",
+    "options": ["2種類のコンパウンド / Two compounds", "1セット / One set", "3セット / Three sets", "制限なし / No requirement"],
+    "answer": 0,
+    "explain": "ドライレースでは2種類のコンパウンドが義務。/ Two compounds are mandatory in dry races."
+  },
+  {
+    "id": "r4",
+    "category": "rule",
+    "q": "ファステストラップのポイント（10位以内）は？ / Fastest lap bonus point requires finishing in?",
+    "options": ["トップ10 / Top 10", "トップ5 / Top 5", "トップ3 / Top 3", "何位でも / Any position"],
+    "answer": 0,
+    "explain": "10位以内に完走が条件。/ Must finish in the top 10."
+  },
+  {
+    "id": "r5",
+    "category": "rule",
+    "q": "表彰台ポイントでP1は何ポイント？ / How many points for a win?",
+    "options": ["25", "18", "15", "10"],
+    "answer": 0,
+    "explain": "勝ちは25ポイント。/ A win is worth 25 points."
+  },
+  {
+    "id": "r6",
+    "category": "rule",
+    "q": "惩罚の一つ「グリッドピナルティ」の対象は？ / A grid penalty affects?",
+    "options": ["次のレースのスタート順 / The next race start order", "選手生命 / The driver's licence", "チームのタイトル / The team's title", "PUの排出 / Engine allocation only"],
+    "answer": 0,
+    "explain": "次戦のグリッドから降格。/ Drop on the next race grid."
+  },
+  {
+    "id": "r7",
+    "category": "rule",
+    "q": "スプリントレースのポイント（1位）は？ / Sprint race win points?",
+    "options": ["8", "25", "15", "10"],
+    "answer": 0,
+    "explain": "スプリント1位は8ポイント。/ Sprint wins award 8 points."
+  },
+  {
+    "id": "r8",
+    "category": "rule",
+    "q": "黄色旗（シングル）の意味は？ / A single yellow flag means?",
+    "options": ["コースに危険あり・追い越し禁止 / Danger, no overtaking", "レース中断 / Race stopped", "安全車出動 / Safety car deployed", "青旗と同義 / Same as blue flag"],
+    "answer": 0,
+    "explain": "黄旗では追い越し禁止。/ No overtaking under yellow."
+  }
+]

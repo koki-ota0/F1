@@ -1,0 +1,11 @@
+[
+  { "id": "most-wins", "label": "Most Grand Prix wins", "labelJa": "最多グランプリ優勝", "value": "105", "holder": "Lewis Hamilton", "holderJa": "ルイス・ハミルトン", "asOf": "2024年シーズン終了時" },
+  { "id": "most-poles", "label": "Most pole positions", "labelJa": "最多ポールポジション", "value": "104", "holder": "Lewis Hamilton", "holderJa": "ルイス・ハミルトン", "asOf": "2024年シーズン終了時" },
+  { "id": "most-podiums", "label": "Most podiums", "labelJa": "最多表彰台", "value": "202", "holder": "Lewis Hamilton", "holderJa": "ルイス・ハミルトン", "asOf": "2024年シーズン終了時" },
+  { "id": "most-titles", "label": "Most world titles", "labelJa": "最多世界タイトル", "value": "7", "holder": "Lewis Hamilton / Michael Schumacher", "holderJa": "ルイス・ハミルトン / ミハエル・シューマッハ", "asOf": "2024年シーズン終了時" },
+  { "id": "consecutive-wins", "label": "Most consecutive wins", "labelJa": "最多連勝", "value": "10", "holder": "Max Verstappen (2023)", "holderJa": "マックス・フェルスタッペン（2023年）", "asOf": "2024年シーズン終了時" },
+  { "id": "wins-in-season", "label": "Most wins in a season", "labelJa": "1シーズン最多優勝", "value": "19 / 22 races", "holder": "Max Verstappen (2023)", "holderJa": "マックス・フェルスタッペン（2023年）", "asOf": "2024年シーズン終了時" },
+  { "id": "youngest-champion", "label": "Youngest champion", "labelJa": "最年少チャンピオン", "value": "23歳143日", "holder": "Sebastian Vettel (2010)", "holderJa": "セバスチャン・ベッテル（2010年）", "asOf": "2024年シーズン終了時" },
+  { "id": "youngest-winner", "label": "Youngest race winner", "labelJa": "最年少グランプリ勝者", "value": "18歳228日", "holder": "Max Verstappen (2016 Spanish GP)", "holderJa": "マックス・フェルスタッペン（2016年スペインGP）", "asOf": "2024年シーズン終了時" },
+  { "id": "most-points", "label": "Most career points", "labelJa": "最多通算ポイント", "value": "4800+", "holder": "Lewis Hamilton", "holderJa": "ルイス・ハミルトン", "asOf": "2024年シーズン終了時（暫定）" }
+]
