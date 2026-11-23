@@ -44,6 +44,14 @@ export const dict = {
 
     'standings.title': '順位表', 'standings.sub': 'ドライバー / コンストラクターズの今季順位と歴代記録',
     'standings.showingSeason': (s) => `${s}年シーズンを表示中`,
+    'garage.title': 'ガレージ（3Dマシン）', 'garage.sub': 'チームカラーのF1マシンを3Dで观赏。ドラッグで回転、＋/−でズーム。',
+    'garage.hint': 'ドラッグ: 回転 / ＋−: ズーム', 'garage.unsupported': 'この環境ではWebGLが使えないため静的表示です',
+    'results.title': 'レース結果', 'results.sub': 'ラウンド別の優勝・ポール・ファステストラップ。クリックで全順位表。',
+    'results.live': 'ライブ取得', 'results.archive': 'アーカイブ（2025）', 'results.seasonSuffix': '年',
+    'results.archiveBanner': 'オフラインバンドル', 'results.archiveMsg': '2025年シーズンの公式結果を同梱しています。最新は「🔄 最新に更新」または Jolpica 到達時に自動切替。',
+    'results.winner': '優勝', 'results.pole': 'ポールポジション', 'results.fastestLap': 'ファステストラップ',
+    'results.detail': '全順位を見る', 'results.hideDetail': '閉じる', 'results.empty': '結果がありません',
+    'results.noDetail': 'このラウンドの全順位はライブAPI接続時のみ取得できます。', 'results.archiveNoDetail': 'アーカイブには全順位表は含まれません。',
     'standings.drivers': 'ドライバーズ', 'standings.constructors': 'コンストラクターズ', 'standings.position': '順位',
     'standings.driver': 'ドライバー', 'standings.team': 'チーム', 'standings.points': 'ポイント', 'standings.wins': '優勝',
     'standings.allTime': '歴代チャンピオン', 'standings.champions': '歴代チャンピオン', 'standings.records': 'オールタイム記録',
@@ -116,7 +124,7 @@ export const dict = {
     'glossary.degradation': 'タイヤ劣化（デグラデーション）', 'glossary.degradation.d': '走るほどタイヤが減ってグリップが落ちること。ピット戦略の要。',
     'home.glossary': 'F1用語ミニ辞典',
 
-    'nav.social': 'ファンSNS', 'nav.league': '予測リーグ',
+    'nav.social': 'ファンSNS', 'nav.league': '予測リーグ', 'nav.results': 'レース結果', 'nav.garage': 'ガレージ3D',
     'nav.refresh': '最新に更新', 'nav.refreshing': '更新中…', 'nav.lastRefresh': (t) => `最終更新 ${t}`,
     'nav.refreshHint': '公共F1 APIからカレンダー/順位を取得してキャッシュに保存します',
     'nav.refreshOffline': 'オフライン（キャッシュ/バンドル表示）', 'nav.fanLevel': 'ファンレベル',
@@ -191,6 +199,14 @@ export const dict = {
 
     'standings.title': 'Standings', 'standings.sub': 'This season’s drivers & constructors, plus the history books.',
     'standings.showingSeason': (s) => `Showing ${s} season`,
+    'garage.title': 'The Garage (3D car)', 'garage.sub': 'A stylised F1 car in team colours, rendered in 3D. Drag to rotate, +/− to zoom.',
+    'garage.hint': 'Drag: rotate · +/−: zoom', 'garage.unsupported': 'WebGL is unavailable here — showing a static view',
+    'results.title': 'Race results', 'results.sub': 'Winners, poles and fastest laps by round. Click a card for the full classification.',
+    'results.live': 'Live', 'results.archive': 'Archive (2025)', 'results.seasonSuffix': '',
+    'results.archiveBanner': 'Offline bundle', 'results.archiveMsg': 'Bundled official 2025 results. Latest data loads automatically when Jolpica is reachable or via the Refresh button.',
+    'results.winner': 'Winner', 'results.pole': 'Pole position', 'results.fastestLap': 'Fastest lap',
+    'results.detail': 'Full classification', 'results.hideDetail': 'Close', 'results.empty': 'No results',
+    'results.noDetail': 'Full classifications need the live API.', 'results.archiveNoDetail': 'The archive does not include per-race classifications.',
     'standings.drivers': 'Drivers', 'standings.constructors': 'Constructors', 'standings.position': 'Pos',
     'standings.driver': 'Driver', 'standings.team': 'Team', 'standings.points': 'Points', 'standings.wins': 'Wins',
     'standings.allTime': 'Champions', 'standings.champions': 'Champions', 'standings.records': 'All-time records',
@@ -262,7 +278,7 @@ export const dict = {
     'glossary.safetycar': 'Safety car', 'glossary.safetycar.d': 'Leads the field at reduced speed when there is danger. A golden pit-stop window.',
     'glossary.degradation': 'Tyre degradation', 'glossary.degradation.d': 'Tyres wear and lose grip — the key to pit strategy.',
 
-    'nav.social': 'Fan SNS', 'nav.league': 'Leagues',
+    'nav.social': 'Fan SNS', 'nav.league': 'Leagues', 'nav.results': 'Results', 'nav.garage': '3D Garage',
     'nav.refresh': 'Refresh', 'nav.refreshing': 'Refreshing…', 'nav.lastRefresh': (t) => `Updated ${t}`,
     'nav.refreshHint': 'Fetch calendar & standings from the public F1 APIs and cache them',
     'nav.refreshOffline': 'Offline (showing cached/bundled data)', 'nav.fanLevel': 'Fan level',
@@ -302,9 +318,15 @@ export function LangProvider({ children }) {
   useEffect(() => { localStorage.setItem('pitwall.lang', lang) }, [lang])
   useEffect(() => { document.documentElement.lang = lang === 'ja' ? 'ja' : 'en' }, [lang])
   const t = useCallback((key, vars) => {
-    let s = (dict[lang] && dict[lang][key]) ?? dict.ja[key] ?? key
-    if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v))
-    return s
+    const raw = (dict[lang] && dict[lang][key]) ?? dict.ja[key] ?? key
+    // some entries are template functions: t('x', arg) === t('x')(arg)
+    if (typeof raw === 'function') return raw(vars)
+    if (vars && typeof vars === 'object') {
+      let s = raw
+      for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v))
+      return s
+    }
+    return raw
   }, [lang])
   return <LangContext.Provider value={{ lang, setLang, t }}>{children}</LangContext.Provider>
 }

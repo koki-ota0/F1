@@ -18,6 +18,10 @@ const drivers = [
 const constructors = [
   { constructor_name: 'Mock Team', points: 120, wins: 1, position: 1 }
 ]
+const raceResult = [
+  { position: 1, driver_name: 'QA Racer', team_name: 'Mock Team', points: 25, status: 'Finished' },
+  { position: 2, driver_name: 'Second Place', team_name: 'Other Team', points: 18, status: 'Finished' }
+]
 
 http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${port}`)
@@ -28,6 +32,7 @@ http.createServer((req, res) => {
     res.end(JSON.stringify({ results: body }))
   }
   if (empty) return json([])
+  if (/\/results\/?$/.test(url.pathname)) return json(raceResult)
   if (url.pathname.endsWith('/races/')) return json(races)
   if (url.pathname.endsWith('/drivers/')) return json(drivers)
   if (url.pathname.endsWith('/constructors/')) return json(constructors)

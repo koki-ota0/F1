@@ -7,7 +7,9 @@ import staticRecords from './static/records.json'
 import staticTrivia from './static/trivia.json'
 import staticNews from './static/news.json'
 import staticSeason from './static/season.json'
-import { readLive, writeLive, LIVE_BASES } from './live.js'
+import { readLive, writeLive, readCacheRaw, writeCacheRaw, LIVE_BASES } from './live.js'
+import staticResults2025 from './static/results-2025.json'
+import staticStandings2025 from './static/standings-2025.json'
 
 export async function getJSON(path) {
   const res = await fetch(path, { headers: { Accept: 'application/json' } })
@@ -52,6 +54,7 @@ const STATIC = {
     lastSyncAt: null,
     refreshMode: 'manual'
   }),
+  '/api/results': () => ({ season: staticResults2025.season, source: 'archive', rounds: staticResults2025.rounds }),
   '/api/predictions': () => ({ leaderboard: [] }),
   '/api/posts': () => ({ items: [] }),
   '/api/sync': () => ({ lastSyncAt: null, note: 'static host' })
@@ -175,5 +178,61 @@ export async function getStandings(year, type) {
     const s = cached.season || year
     return { source: 'cache', season: s, standings: cached.standings, updatedAt: cached.at }
   }
+  // last resort: bundled archive of the last completed season (never an empty table)
+  if (staticStandings2025?.[type]?.length) {
+    return { source: 'bundle', season: staticStandings2025.season, requestedSeason: year, standings: staticStandings2025[type] }
+  }
   try { return await getJSON(`/api/standings?year=${year}&type=${type}`) } catch { return { source: 'offline', season: year, standings: [] } }
+}
+
+// ---------------------------------------------------------------------------
+// Race results: server → browser-direct → manual cache → bundled archive.
+// ---------------------------------------------------------------------------
+const mapResultRow = (r, i) => ({
+  position: r.position ?? i + 1,
+  driver: r.driver_name ?? r.full_name ?? r.name ?? r.Driver?.givenName + ' ' + r.Driver?.familyName ?? '—',
+  team: r.team_name ?? r.constructor_name ?? r.Constructor?.name ?? '',
+  points: r.points ?? 0,
+  time: r.time ?? r.Time ?? null,
+  status: r.status ?? r.Status ?? ''
+})
+
+/**
+ * Season summary (round winners / pole / fastest lap).
+ * @returns {season, source, rounds}
+ */
+export async function getResults(year) {
+  const y = Number(year) || new Date().getFullYear()
+  try {
+    const srv = await getJSON(`/api/results?year=${y}`)
+    // only accept a live summary when it actually carries result columns
+    if (srv?.rounds?.length && srv.rounds.some((r) => r.winner || r.winningDriver)) return srv
+  } catch { /* fall through */ }
+  // bundled archive covers the most recent completed season
+  if (y >= staticResults2025.season && staticResults2025.rounds?.length) {
+    return { season: staticResults2025.season, source: 'archive', rounds: staticResults2025.rounds }
+  }
+  return { season: y, source: 'offline', rounds: [] }
+}
+
+/** Full classification for one race (live API only; archive has no per-race table). */
+export async function getRaceResult(year, round) {
+  const slot = `results.${year}.${round}`
+  const cached = readCacheRaw(slot)
+  try {
+    const srv = await getJSON(`/api/results?year=${year}&round=${round}`)
+    if (srv?.classification?.length) {
+      writeCacheRaw(slot, { classification: srv.classification })
+      return { source: 'live', season: year, classification: srv.classification }
+    }
+  } catch { /* fall through */ }
+  if (cached?.classification?.length) return { source: 'cache', season: year, classification: cached.classification }
+  const direct = await tryBrowser(`${LIVE_BASES.f1}/${year}/${round}/results/?limit=100`, 6000)
+  const rows = Array.isArray(direct) ? direct : direct?.results
+  if (Array.isArray(rows) && rows.length) {
+    const classification = rows.map(mapResultRow)
+    writeCacheRaw(slot, { classification })
+    return { source: 'live', season: year, classification }
+  }
+  return { source: 'offline', season: year, classification: [] }
 }

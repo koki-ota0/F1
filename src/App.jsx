@@ -7,6 +7,7 @@ import { RefreshProvider } from './components/RefreshProvider.jsx'
 import Home from './pages/Home.jsx'
 import Live from './pages/Live.jsx'
 import Standings from './pages/Standings.jsx'
+import Results from './pages/Results.jsx'
 import CalendarPage from './pages/Calendar.jsx'
 import Drivers from './pages/Drivers.jsx'
 import DriverDetail from './pages/DriverDetail.jsx'
@@ -15,6 +16,7 @@ import TeamDetail from './pages/TeamDetail.jsx'
 import Predict from './pages/Predict.jsx'
 import Sim from './pages/Sim.jsx'
 import Quiz from './pages/Quiz.jsx'
+import Garage from './pages/Garage.jsx'
 import News from './pages/News.jsx'
 import Social from './pages/Social.jsx'
 import League from './pages/League.jsx'
@@ -38,6 +40,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/live" element={<Live />} />
           <Route path="/standings" element={<Standings />} />
+          <Route path="/results" element={<Results />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/drivers" element={<Drivers />} />
           <Route path="/drivers/:id" element={<DriverDetail />} />
@@ -46,6 +49,7 @@ export default function App() {
           <Route path="/predict" element={<Predict />} />
           <Route path="/sim" element={<Sim />} />
           <Route path="/quiz" element={<Quiz />} />
+          <Route path="/garage" element={<Garage />} />
           <Route path="/news" element={<News />} />
           <Route path="/social" element={<Social />} />
           <Route path="/league" element={<League />} />
