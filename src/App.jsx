@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import { FanProvider } from './components/FanProvider.jsx'
+import { RefreshProvider } from './components/RefreshProvider.jsx'
 import Home from './pages/Home.jsx'
 import Live from './pages/Live.jsx'
 import Standings from './pages/Standings.jsx'
@@ -28,8 +29,9 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <FanProvider>
-      <ScrollToTop />
+    <RefreshProvider>
+      <FanProvider>
+        <ScrollToTop />
       <Navbar />
       <main>
         <Routes>
@@ -52,6 +54,7 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
-    </FanProvider>
+      </FanProvider>
+    </RefreshProvider>
   )
 }

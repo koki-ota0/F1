@@ -287,3 +287,15 @@ UIは source に応じて「LIVE / CACHE / OFFLINE」バッジを表示。
 
 ### v2 データ鮮度メモ
 - カノニカルなシーズンデータは **2026**（OpenF1 API から取得した25戦カレンダー＋11チーム/22ドライバーのグリッド）。過去シーズンへの参照は Jolpica 経由（到達時のみ）。
+
+## 16. 手動ライブ更新（GitHub Pages / 静的ホスト）
+
+- **方針**: 静的ホストには Express が無いため、ブラウザが公共F1 APIを直接叩く。**常時ポーリングはせず**、ナビの「🔄 最新に更新」ボタン押下時にカレンダー＋両順位を一括取得する（ユーザー要件）。
+- **モジュール**: `src/lib/live.js`
+  - `refreshLive(year)` → calendar / standings.drivers / standings.constructors の3タスクを並列実行し、成功分を `localStorage['pitwall.live.<kind>.<year>']` にキャッシュ、実施結果を `pitwall.live.status` に保存
+  - 各タスクは timeout 8s・失敗はそのタスクだけ不合格（部分成功を許容）
+- **配線**: `src/components/RefreshProvider.jsx` が `busy / status / message / refresh` を提供し、成功時に `pitwall:live-refreshed` イベントを発火。Calendar / Standings / Home はこれを購読して再取得。
+- **表示**: ナビのバッジが `LIVE ✓ 3/3`（全成功）/ `LIVE n/3`（部分）/ `オフライン（キャッシュ/バンドル表示）`。Home の鮮度行は「最終更新 = サーバ最終同期 or 手動リフレッシュ時刻」。
+- **読み取り経路**（`src/lib/api.js`）: サーバ `/api/*` → ブラウザ直接 Jolpica → **手動キャッシュ** → クライアント同梱2026データ → offline。つまりオフラインでも直近の更新結果が残る。
+- **バックグラウンド定期取得**: サーバがある環境のみ（`meta.mode !== 'static-host'`）5分間隔。静的ホストでは手動のみ。
+- **ビルド時オーバーライド**: `VITE_F1_BASE`（Jolpica系）、`VITE_OPENF1_BASE`（OpenF1）でプロキシ/ミラーに向きられる（検閲環境対応）。

@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLang } from '../lib/i18n.jsx'
-import { getStandings, getJSON } from '../lib/api.js'
+import { getStandings, getJSON, usePolled } from '../lib/api.js'
 import { SectionHead, Loading, EmptyState, LiveBadge } from '../components/common.jsx'
 import { useFan } from '../components/FanProvider.jsx'
+import { useLiveRefresh } from '../components/RefreshProvider.jsx'
 
 export default function Standings() {
   const { t, lang } = useLang()
   const { fan } = useFan()
+  const meta = usePolled('/api/meta', 60000)
   const [tab, setTab] = useState('drivers')
   const [data, setData] = useState(null)
   const [champions, setChampions] = useState([])
@@ -19,13 +21,24 @@ export default function Standings() {
     getJSON('/api/records').then(setRecords).catch(() => {})
   }, [])
 
-  useEffect(() => {
+  const run = useCallback(() => {
     setLoading(true)
     getStandings(year, tab).then((d) => { setData(d); setLoading(false) })
-  }, [tab, year])
+  }, [year, tab])
+
+  // manual refresh on static hosts; 5-min background sync where an API exists
+  const isStatic = meta?.mode === 'static-host'
+  useEffect(() => {
+    if (isStatic) return undefined
+    const id = setInterval(run, 300000)
+    return () => clearInterval(id)
+  }, [run, isStatic])
+
+  useLiveRefresh(run)
+  useEffect(() => { run() }, [run])
 
   const rows = data?.standings || []
-  const isLive = data?.source === 'live' && rows.length > 0
+  const isLive = (data?.source === 'live' || data?.source === 'cache') && rows.length > 0
 
   return (
     <section className="section">

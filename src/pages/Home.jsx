@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 import { useApi, usePolled, getJSON, getCalendar } from '../lib/api.js'
 import { useFan } from '../components/FanProvider.jsx'
+import { useRefresh, useLiveRefresh } from '../components/RefreshProvider.jsx'
 import { SectionHead, Countdown, Ticker, LiveBadge, Loading, Badge } from '../components/common.jsx'
 import { DriverCard, TeamCard } from '../components/Cards.jsx'
 import { nextRace, fmtDate } from '../lib/utils.js'
@@ -12,23 +13,29 @@ export default function Home() {
   const { fan, teams } = useFan()
   const { data: drivers, loading: dLoading } = useApi('/api/drivers', [], { refreshMs: 120000 })
   const meta = usePolled('/api/meta', 60000)
+  const { status } = useRefresh()
   const [cal, setCal] = useState(null)
   const [news, setNews] = useState([])
   const [records, setRecords] = useState([])
   const [champions, setChampions] = useState([])
 
-  useEffect(() => {
+  const run = useCallback(() => {
     let alive = true
-    const run = () => {
-      getCalendar(new Date().getFullYear()).then((d) => alive && setCal(d))
-      getJSON('/api/news').then((d) => alive && setNews(d.items || [])).catch(() => {})
-      getJSON('/api/records').then((d) => alive && setRecords(d)).catch(() => {})
-      getJSON('/api/champions').then((d) => alive && setChampions(d)).catch(() => {})
-    }
-    run()
-    const id = setInterval(run, 120000)
-    return () => { alive = false; clearInterval(id) }
+    getCalendar(new Date().getFullYear()).then((d) => alive && setCal(d))
+    getJSON('/api/news').then((d) => alive && setNews(d.items || [])).catch(() => {})
+    getJSON('/api/records').then((d) => alive && setRecords(d)).catch(() => {})
+    getJSON('/api/champions').then((d) => alive && setChampions(d)).catch(() => {})
+    return () => { alive = false }
   }, [])
+
+  useEffect(() => {
+    const cleanup = run()
+    const isStatic = meta?.mode === 'static-host'
+    const id = isStatic ? null : setInterval(run, 300000)
+    return () => { cleanup(); if (id) clearInterval(id) }
+  }, [run, meta?.mode])
+
+  useLiveRefresh(run)
 
   const races = cal?.races || []
   const next = nextRace(races)
@@ -99,7 +106,7 @@ export default function Home() {
         </div>
         <div className="note" style={{ marginTop: 18, display: 'flex', gap: 10, alignItems: 'center' }}>
           <Badge kind="ok">{t('fresh.live')}</Badge>
-          {t('fresh.updated')}: {meta?.lastSyncAt ? new Date(meta.lastSyncAt).toLocaleTimeString() : '—'} · {t('fresh.auto')}
+          {t('fresh.updated')}: {(meta?.lastSyncAt || status?.at) ? new Date(meta?.lastSyncAt || status.at).toLocaleTimeString() : '—'} · {meta?.mode === 'static-host' ? t('fresh.manual') : t('fresh.auto')}
         </div>
       </section>
 

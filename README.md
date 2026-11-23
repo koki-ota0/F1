@@ -41,9 +41,13 @@ node scripts/update-data.mjs        # ネット接続できる環境で実行 �
 ```
 
 - URL: `https://<owner>.github.io/F1/`
-- 20等の**ライブAPI**はブラウザから直接Jolpica/OpenF1へ取得を試行（CORSが通れば最新版に自動切替）
+- **最新情報の更新**: ナビ右上の「🔄 最新に更新」ボタンを押すと、ブラウザから直接 Jolpica/OpenF1 を取得しカレンダー＋順位をキャッシュ（常時ポーリングなし。オフラインなら直近キャッシュ→同梱2026データを表示）
+- ネットワークで直接アクセス出来ない場合はビルド時のベースURL差し替えが使えます:
+  ```bash
+  VITE_F1_BASE=https://your-proxy.example.com/f1 VITE_OPENF1_BASE=https://your-proxy.example.com/openf1 npm run build
+  ```
 - 深いリンク（`/live` など）は `dist/404.html` でSPAフォールバック
-- サーバ依存機能（ファンSNS共有・予測リーダーボード）は静的ホストではローカル動作に退化します
+- サーバ依存機能（ファンSNS共有・予測リーダーボード）は静的ホストではローカル動作に退化します（返信・リーグ・学習は localStorage で完全動作）
 
 ## AI予測のLLM連携（任意）
 

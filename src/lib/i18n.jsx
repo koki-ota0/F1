@@ -116,6 +116,9 @@ export const dict = {
     'home.glossary': 'F1用語ミニ辞典',
 
     'nav.social': 'ファンSNS', 'nav.league': '予測リーグ',
+    'nav.refresh': '最新に更新', 'nav.refreshing': '更新中…', 'nav.lastRefresh': (t) => `最終更新 ${t}`,
+    'nav.refreshHint': '公共F1 APIからカレンダー/順位を取得してキャッシュに保存します',
+    'nav.refreshOffline': 'オフライン（キャッシュ/バンドル表示）', 'nav.fanLevel': 'ファンレベル',
 
     'social.title': 'ファンSNS', 'social.sub': 'F1ファン同士のつぶやき場。推し、名シーン、予測を自由に。',
     'social.compose': '今どうしてる？', 'social.placeholder': 'F1についてつぶやく（280文字まで）',
@@ -139,7 +142,7 @@ export const dict = {
     'ai.mae': '平均誤差（位置）', 'ai.biasApplied': '学習済みバイアス', 'ai.resetLearning': '学習リセット',
     'ai.noLearning': 'まだ学習データがありません。予測→採点で学習が始まります。',
 
-    'fresh.updated': '最終更新', 'fresh.auto': '自動更新', 'fresh.live': 'ライブ取得中',
+    'fresh.updated': '最終更新', 'fresh.auto': '自動更新', 'fresh.manual': '更新ボタンで最新化（GitHub Pages）', 'fresh.live': 'ライブ取得中',
     'fresh.archiveBanner': 'アーカイブ表示中',
     'fresh.archiveMsg': 'いま表示しているのはバンドルデータ（{season}年シーズン）です。接続可能な環境では現シーズンのライブデータに自動切替わります。'
   },
@@ -258,6 +261,9 @@ export const dict = {
     'glossary.degradation': 'Tyre degradation', 'glossary.degradation.d': 'Tyres wear and lose grip — the key to pit strategy.',
 
     'nav.social': 'Fan SNS', 'nav.league': 'Leagues',
+    'nav.refresh': 'Refresh', 'nav.refreshing': 'Refreshing…', 'nav.lastRefresh': (t) => `Updated ${t}`,
+    'nav.refreshHint': 'Fetch calendar & standings from the public F1 APIs and cache them',
+    'nav.refreshOffline': 'Offline (showing cached/bundled data)', 'nav.fanLevel': 'Fan level',
 
     'social.title': 'Fan SNS', 'social.sub': 'A hangout for F1 fans. Talk favourites, moments and predictions.',
     'social.compose': 'What’s on your mind?', 'social.placeholder': 'Post about F1 (up to 280 chars)',
@@ -281,7 +287,7 @@ export const dict = {
     'ai.mae': 'Mean abs. error (pos)', 'ai.biasApplied': 'Learned bias', 'ai.resetLearning': 'Reset learning',
     'ai.noLearning': 'No learning data yet — predict, then score to start learning.',
 
-    'fresh.updated': 'Updated', 'fresh.auto': 'Auto-refresh', 'fresh.live': 'Live data',
+    'fresh.updated': 'Updated', 'fresh.auto': 'Auto-refresh', 'fresh.manual': 'Refreshed on demand (GitHub Pages)', 'fresh.live': 'Live data',
     'fresh.archiveBanner': 'Archive view',
     'fresh.archiveMsg': 'You are viewing bundled archive data ({season}). In a connected environment the current season loads automatically.'
   }

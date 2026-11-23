@@ -1,23 +1,33 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLang } from '../lib/i18n.jsx'
-import { getCalendar } from '../lib/api.js'
+import { getCalendar, usePolled } from '../lib/api.js'
 import { SectionHead, Loading, Badge, Countdown } from '../components/common.jsx'
+import { useLiveRefresh } from '../components/RefreshProvider.jsx'
 import { fmtDate, nextRace } from '../lib/utils.js'
 
 export default function CalendarPage() {
   const { t, lang } = useLang()
   const [cal, setCal] = useState(null)
+  const meta = usePolled('/api/meta', 60000)
   const races = cal?.races || []
   const next = nextRace(races)
   const hasUpcoming = races.some((r) => new Date(r.date + 'T23:59:59') >= new Date())
 
-  useEffect(() => {
+  const run = useCallback(() => {
     let alive = true
-    const run = () => getCalendar(new Date().getFullYear()).then((d) => alive && setCal(d))
-    run()
-    const id = setInterval(run, 120000)
-    return () => { alive = false; clearInterval(id) }
+    getCalendar(new Date().getFullYear()).then((d) => alive && setCal(d))
+    return () => { alive = false }
   }, [])
+
+  useEffect(() => {
+    const cleanup = run()
+    // background polling only where an API server exists (GitHub Pages = manual)
+    const isStatic = meta?.mode === 'static-host'
+    const id = isStatic ? null : setInterval(run, 120000)
+    return () => { cleanup(); if (id) clearInterval(id) }
+  }, [run, meta?.mode])
+
+  useLiveRefresh(run)
   if (!cal) return <div className="section container"><Loading /></div>
 
   return (
