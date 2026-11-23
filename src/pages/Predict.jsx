@@ -5,6 +5,7 @@ import { SectionHead, Loading, EmptyState } from '../components/common.jsx'
 import { useFan } from '../components/FanProvider.jsx'
 import { simulateRace } from '../lib/sim.js'
 import { predictRace, predictionTable } from '../lib/model.js'
+import { loadLearning, learnFromResults, biasMovers, resetLearning } from '../lib/learning.js'
 import { computeScore, nextRace, fmtDate, teamById } from '../lib/utils.js'
 import { load, save } from '../lib/store.js'
 import { Badge } from '../components/common.jsx'
@@ -25,6 +26,7 @@ export default function Predict() {
   const [scoring, setScoring] = useState(null)
   const [ai, setAi] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
+  const [learn, setLearn] = useState(() => loadLearning())
 
   const races = cal?.races || []
   const race = useMemo(() => {
@@ -43,7 +45,8 @@ export default function Predict() {
     // let the spinner paint before the 1,500-iteration Monte Carlo runs
     setTimeout(() => {
       try {
-        setAi(predictRace(drivers, teams, race))
+        const bias = loadLearning().bias
+        setAi(predictRace(drivers, teams, race, { bias }))
       } finally {
         setAiLoading(false)
       }
@@ -82,9 +85,12 @@ export default function Predict() {
       total += score
       return { ...p, score }
     })
-    // persist scores
+    // persist scores + feed the local learning loop
     setPreds(next)
     setScoring({ result, total })
+    try {
+      setLearn(learnFromResults(next, result))
+    } catch { /* learning is best-effort */ }
     getJSON('/api/predictions').then((d) => setLeaderboard(d.leaderboard || [])).catch(() => {})
     fetch('/api/predictions', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -160,6 +166,35 @@ export default function Predict() {
             </>
           )}
           {!ai && !aiLoading && <p className="note" style={{ margin: '12px 0 0' }}>{t('ai.offlineNote')}</p>}
+
+          <hr className="divider" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <h4 style={{ fontFamily: 'var(--font-display)', margin: 0, fontSize: 15, letterSpacing: '.06em' }}>🧠 {t('ai.learning')}</h4>
+            <button className="btn sm ghost" onClick={() => setLearn(resetLearning())}>{t('ai.resetLearning')}</button>
+          </div>
+          {learn.samples > 0 ? (
+            <div style={{ marginTop: 12 }}>
+              <div className="grid grid-3" style={{ gap: 12, marginBottom: 12 }}>
+                <div><div className="num" style={{ fontSize: 22 }}>{learn.samples}</div><div className="note">{t('ai.samples')}</div></div>
+                <div><div className="num" style={{ fontSize: 22 }}>{((learn.accuracy || 0) * 100).toFixed(0)}%</div><div className="note">{t('ai.accuracy')}</div></div>
+                <div><div className="num" style={{ fontSize: 22 }}>{(learn.mae || 0).toFixed(2)}</div><div className="note">{t('ai.mae')}</div></div>
+              </div>
+              <div className="note" style={{ fontWeight: 700, marginBottom: 8 }}>{t('ai.biasApplied')}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {biasMovers(learn).map(({ id, b }) => {
+                  const d = drivers?.find((x) => x.id === id)
+                  return (
+                    <div key={id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                      <span>#{d?.number} {d?.name}</span>
+                      <span className="num" style={{ color: b >= 0 ? 'var(--ok)' : 'var(--accent-2)' }}>{b >= 0 ? '+' : ''}{Number(b).toFixed(2)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <p className="note" style={{ marginTop: 12, marginBottom: 0 }}>{t('ai.noLearning')}</p>
+          )}
         </div>
 
         <div className="grid grid-2" style={{ alignItems: 'start' }}>

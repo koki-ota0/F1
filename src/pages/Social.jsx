@@ -30,6 +30,8 @@ export default function Social() {
   const [text, setText] = useState('')
   const [tagsInput, setTagsInput] = useState('')
   const [busy, setBusy] = useState(false)
+  const [openReplies, setOpenReplies] = useState({})   // postId -> [replies]
+  const [replyDrafts, setReplyDrafts] = useState({})    // postId -> draft text
 
   const load = () => getJSON('/api/posts').then((d) => setPosts(d.items || [])).catch(() => {})
   useEffect(() => {
@@ -74,6 +76,33 @@ export default function Social() {
       const r = await fetch(`/api/posts/${id}/like`, { method: 'POST' })
       const d = await r.json()
       if (d.ok) setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, likes: d.likes } : p)))
+    } catch { /* ignore */ }
+  }
+
+  const toggleReplies = async (post) => {
+    if (openReplies[post.id]) return setOpenReplies((o) => ({ ...o, [post.id]: null }))
+    try {
+      const d = await getJSON(`/api/posts/${post.id}/replies`)
+      setOpenReplies((o) => ({ ...o, [post.id]: d.replies || [] }))
+    } catch {
+      setOpenReplies((o) => ({ ...o, [post.id]: post.replies || [] }))
+    }
+  }
+
+  const sendReply = async (postId) => {
+    const text = (replyDrafts[postId] || '').trim()
+    if (!text) return
+    try {
+      const r = await fetch(`/api/posts/${postId}/replies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: fan.name || 'YOU', text })
+      })
+      const d = await r.json()
+      if (d.ok) {
+        setOpenReplies((o) => ({ ...o, [postId]: [...(o[postId] || []), d.reply] }))
+        setReplyDrafts((o) => ({ ...o, [postId]: '' }))
+      }
     } catch { /* ignore */ }
   }
 
@@ -140,9 +169,44 @@ export default function Social() {
                         {p.tags.map((tg) => <span className="tag" key={tg}>{tg}</span>)}
                       </div>
                     )}
-                    <div style={{ marginTop: 10 }}>
+                    <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap' }}>
                       <button className="btn sm ghost" onClick={() => like(p.id)}>♥ {p.likes} {t('social.likes')}</button>
+                      <button className="btn sm ghost" onClick={() => toggleReplies(p)}>
+                        💬 {t('social.replyCount')((openReplies[p.id] || p.replies || []).length)}
+                      </button>
                     </div>
+                    {openReplies[p.id] && (
+                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
+                        {openReplies[p.id].length === 0 ? (
+                          <p className="note" style={{ marginBottom: 8 }}>{t('social.noReplies')}</p>
+                        ) : openReplies[p.id].map((r) => (
+                          <div key={r.id} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                            <div style={{
+                              width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                              display: 'grid', placeItems: 'center', color: '#fff', fontSize: 13, fontWeight: 800,
+                              background: colorFor(r.name)
+                            }}>{(r.name || '?').slice(0, 1).toUpperCase()}</div>
+                            <div>
+                              <b style={{ fontSize: 13 }}>{r.name}</b>
+                              <p style={{ margin: '2px 0 0', fontSize: 13.5, whiteSpace: 'pre-wrap' }}>{r.text}</p>
+                            </div>
+                          </div>
+                        ))}
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input
+                            className="input"
+                            style={{ flex: 1 }}
+                            placeholder={t('social.replyPlaceholder')}
+                            value={replyDrafts[p.id] || ''}
+                            onChange={(e) => setReplyDrafts((o) => ({ ...o, [p.id]: e.target.value }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') sendReply(p.id) }}
+                          />
+                          <button className="btn sm primary" onClick={() => sendReply(p.id)} disabled={!(replyDrafts[p.id] || '').trim()}>
+                            {t('social.sendReply')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

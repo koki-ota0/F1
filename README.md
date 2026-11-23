@@ -27,7 +27,7 @@
 node scripts/update-data.mjs        # ネット接続できる環境で実行 → server/data/snapshot.json
 ```
 
-- サイトは**現シーズンを最優先**で表示（Jolpica/OpenF1ライブ → snapshot → 2025アーカイブ）
+- サイトは**現シーズン（2026: 25戦・11チーム/22人グリッド）を最優先**で表示（Jolpica/OpenF1ライブ → snapshot → バンドル2026データ）
 - アーカイブ表示時は画面上に金色バナーでシーズンを明示します
 - オフライン環境では生成AI（LLM）連携なしでも APEX 統計モデルが動作します
 
@@ -60,7 +60,7 @@ npm run serve
 
 1. **ライブ**: [OpenF1 API](https://openf1.org)（ポジション/ラップ/天気）
 2. **履歴・現シーズン**: [Jolpica F1 API](https://api.jolpica.org)（Ergast後継）
-3. **オフライン**: `server/data/*.json` のバンドルデータ（2025カレンダー/グリッド、歴代記録、クイズ40問）
+3. **オフライン**: `server/data/*.json` のバンドルデータ（2026カレンダー/グリッド、歴代記録、クイズ40問）
 
 > ネットワークからライブAPIに届かない環境でも、**サイトは完全に動作**します（`source` バッジで表示）。
 
@@ -99,9 +99,9 @@ server/
   api.js             # /api ルート（ライブ取得・キャッシュ・フォールバック）
   data/*.json        # オフラインバンドルデータ
 src/
-  pages/             # 13画面
+  pages/             # 15画面（/league 含む）
   components/        # Navbar / Cards / common / FanProvider
-  lib/               # i18n / api / store / sim / utils
+  lib/               # i18n / api / store / sim / model(APEX) / learning / league / utils
 scripts/smoke.mjs    # ランタイム QA
 docs/DESIGN.md       # 設計ドキュメント
 ```
@@ -109,4 +109,5 @@ docs/DESIGN.md       # 設計ドキュメント
 ## ロードマップ
 
 - v1.5: SNSシェア用カード画像出力、ライブgapグラフ、予選セグメント表示
-- v2: ユーザー間マルチ予測リーグ、ファンタジーチーム、コミュニティ機能
+- v2: AIフォーム学習（結果から自律補正）、ファンSNS返信スレッド、マルチ予測リーグ（フロントランナー賞 / TOP3チャレンジ / FL賞）→ **実装済み**
+- v2.1+: フォロー/フォロワー、リーグ作成・カスタムルール、招待共有、ファンタジーチーム

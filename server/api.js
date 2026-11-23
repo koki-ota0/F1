@@ -348,6 +348,31 @@ router.post('/posts/:id/like', (req, res) => {
   res.json({ ok: true, likes: post.likes })
 })
 
+router.get('/posts/:id/replies', (req, res) => {
+  const post = loadPosts().find((p) => p.id === req.params.id)
+  if (!post) return res.status(404).json({ error: 'not found' })
+  res.json({ replies: post.replies || [] })
+})
+
+router.post('/posts/:id/replies', (req, res) => {
+  const { name = 'F1 FAN', text = '' } = req.body || {}
+  if (typeof text !== 'string' || !text.trim()) return res.status(400).json({ error: 'text required' })
+  if (text.length > 280) return res.status(400).json({ error: 'too long (max 280)' })
+  const list = loadPosts()
+  const post = list.find((p) => p.id === req.params.id)
+  if (!post) return res.status(404).json({ error: 'not found' })
+  if (!Array.isArray(post.replies)) post.replies = []
+  const reply = {
+    id: `r-${Date.now()}`,
+    name: String(name).slice(0, 24),
+    text: text.trim(),
+    at: new Date().toISOString()
+  }
+  post.replies.push(reply)
+  savePosts(list)
+  res.json({ ok: true, reply, count: post.replies.length })
+})
+
 // ---------- data freshness / sync ----------
 router.get('/sync', (_req, res) => {
   res.json({
