@@ -1,0 +1,98 @@
+[
+  {
+    "id": "seed-1",
+    "name": "PapayaPower",
+    "color": "#FF8000",
+    "text": "マクラーレンの今年の伸びは半端ない。ノリスとピアストリ、どっちがチャンピオンかワクワクする！",
+    "tags": [
+      "#McLaren",
+      "#F1"
+    ],
+    "likes": 42,
+    "at": "2026-11-20T18:24:00Z"
+  },
+  {
+    "id": "seed-2",
+    "name": "SuzukaSage",
+    "color": "#e10600",
+    "text": "来シーズンも鈴鹿は外さずに見てます。角田のホーム戦、今年こそ大物撃破してほしい。",
+    "tags": [
+      "#JapaneseGP",
+      "#Tsunoda"
+    ],
+    "likes": 87,
+    "at": "2026-11-20T21:05:00Z"
+  },
+  {
+    "id": "seed-3",
+    "name": "DRS_Judy",
+    "color": "#3671C6",
+    "text": "AI予測くん、今季のダークホースを誰にする？ 俺はアルボンを推す。",
+    "tags": [
+      "#APEX",
+      "#Predictions"
+    ],
+    "likes": 31,
+    "at": "2026-11-21T09:40:00Z"
+  },
+  {
+    "id": "seed-4",
+    "name": "FerrariTifosi",
+    "color": "#E8002D",
+    "text": "ハミルトン×レクレールのコンビ、やっと来た。フェラーリの壁を越えられるか。",
+    "tags": [
+      "#Ferrari",
+      "#Hamilton"
+    ],
+    "likes": 64,
+    "at": "2026-11-21T12:15:00Z"
+  },
+  {
+    "id": "seed-5",
+    "name": "GridGai",
+    "color": "#52E252",
+    "text": "新チームのキャデラック、初年度は頑張れ。アメリカ市場のためにも。",
+    "tags": [
+      "#Cadillac",
+      "#NewTeam"
+    ],
+    "likes": 23,
+    "at": "2026-11-21T15:50:00Z"
+  },
+  {
+    "id": "seed-6",
+    "name": "ApexAce",
+    "color": "#f5c044",
+    "text": "Spa 2025 was a masterclass. Weather, DRS train, everything. F1 never misses.",
+    "tags": [
+      "#BelgianGP",
+      "#Classic"
+    ],
+    "likes": 55,
+    "at": "2026-11-21T19:30:00Z"
+  },
+  {
+    "id": "seed-7",
+    "name": "NorrisFanJP",
+    "color": "#FF8000",
+    "text": "チャンピオンなのはノリス！ オフシーズンも練習あるのみ。",
+    "tags": [
+      "#Norris",
+      "#Champion"
+    ],
+    "likes": 71,
+    "at": "2026-11-22T01:10:00Z"
+  },
+  {
+    "id": "seed-8",
+    "name": "QuizMaster",
+    "color": "#27F4D2",
+    "text": "クイズベストストリーク12更新した。ルールカテゴリは取れるもんです。",
+    "tags": [
+      "#PITWALLQuiz",
+      "#Streak"
+    ],
+    "likes": 19,
+    "at": "2026-11-22T08:00:00Z"
+  }
+]

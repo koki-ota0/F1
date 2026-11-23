@@ -103,7 +103,30 @@ export const dict = {
     'glossary.slipstream': 'スリップストリーム', 'glossary.slipstream.d': '前の車の陰で空気抵抗が減り、直線上で速く走れる现象。',
     'glossary.safetycar': '安全車（セーフティカー）', 'glossary.safetycar.d': 'コースに危険があるとき先導して速度を落とす。ピットの好機。',
     'glossary.degradation': 'タイヤ劣化（デグラデーション）', 'glossary.degradation.d': '走るほどタイヤが減ってグリップが落ちること。ピット戦略の要。',
-    'home.glossary': 'F1用語ミニ辞典'
+    'home.glossary': 'F1用語ミニ辞典',
+
+    'nav.social': 'ファンSNS',
+
+    'social.title': 'ファンSNS', 'social.sub': 'F1ファン同士のつぶやき場。推し、名シーン、予測を自由に。',
+    'social.compose': '今どうしてる？', 'social.placeholder': 'F1についてつぶやく（280文字まで）',
+    'social.post': '投稿する', 'social.timeline': 'タイムライン', 'social.myPosts': '自分の投稿',
+    'social.all': 'すべて', 'social.like': 'いいね', 'social.likes': 'いいね',
+    'social.trends': 'トレンドタグ', 'social.noPosts': 'まだ投稿がありません。最初の一人に！',
+    'social.charCount': '/280', 'social.members': 'ファン参加中', 'social.you': 'あなた',
+    'social.justNow': 'たった今', 'social.minAgo': '分前', 'social.hourAgo': '時間前',
+    'social.tagsHint': '#タグをスペース区切りで',
+
+    'ai.title': 'AI予測（PITWALL APEX）', 'ai.sub': 'ドライバー/チーム/コース適性をモンテカルロ1500回で演算。統計モデル＋任意LLM連携。',
+    'ai.run': 'AI予測を実行', 'ai.running': '演算中…', 'ai.winProb': '勝率', 'ai.podiumProb': '表彰台率',
+    'ai.top10Prob': 'TOP10率', 'ai.expectedPoints': '期待ポイント', 'ai.recommended': 'AIおすすめ',
+    'ai.usePrediction': 'この予測を採用', 'ai.insight': 'AIインサイト', 'ai.confidence': '確信度',
+    'ai.source': '予測エンジン', 'ai.model': 'モデル', 'ai.table': '予測テーブル',
+    'ai.upsetPick': '番狂わせ候補', 'ai.llmBadge': 'LLM連携', 'ai.offlineNote': 'オフラインでは APEX 統計モデルで演算します。',
+    'ai.applied': '予測フォームに反映しました',
+
+    'fresh.updated': '最終更新', 'fresh.auto': '自動更新', 'fresh.live': 'ライブ取得中',
+    'fresh.archiveBanner': 'アーカイブ表示中',
+    'fresh.archiveMsg': 'いま表示しているのはバンドルデータ（{season}年シーズン）です。接続可能な環境では現シーズンのライブデータに自動切替わります。'
   },
   en: {
     'nav.home': 'Home', 'nav.live': 'Live', 'nav.standings': 'Standings', 'nav.calendar': 'Calendar',
@@ -207,7 +230,30 @@ export const dict = {
     'glossary.overtake': 'Overtake', 'glossary.overtake.d': 'Passing the car ahead — via DRS, tyre offset or sheer driver attack.',
     'glossary.slipstream': 'Slipstream', 'glossary.slipstream.d': 'Less air resistance behind another car, giving extra straight-line speed.',
     'glossary.safetycar': 'Safety car', 'glossary.safetycar.d': 'Leads the field at reduced speed when there is danger. A golden pit-stop window.',
-    'glossary.degradation': 'Tyre degradation', 'glossary.degradation.d': 'Tyres wear and lose grip — the key to pit strategy.'
+    'glossary.degradation': 'Tyre degradation', 'glossary.degradation.d': 'Tyres wear and lose grip — the key to pit strategy.',
+
+    'nav.social': 'Fan SNS',
+
+    'social.title': 'Fan SNS', 'social.sub': 'A hangout for F1 fans. Talk favourites, moments and predictions.',
+    'social.compose': 'What’s on your mind?', 'social.placeholder': 'Post about F1 (up to 280 chars)',
+    'social.post': 'Post', 'social.timeline': 'Timeline', 'social.myPosts': 'My posts',
+    'social.all': 'All', 'social.like': 'Like', 'social.likes': 'Likes',
+    'social.trends': 'Trending tags', 'social.noPosts': 'No posts yet — be the first!',
+    'social.charCount': '/280', 'social.members': 'fans online', 'social.you': 'you',
+    'social.justNow': 'just now', 'social.minAgo': 'm ago', 'social.hourAgo': 'h ago',
+    'social.tagsHint': 'space-separated #tags',
+
+    'ai.title': 'AI Prediction (PITWALL APEX)', 'ai.sub': '1,500 Monte Carlo runs over driver/team/circuit priors. Statistical model + optional LLM.',
+    'ai.run': 'Run AI prediction', 'ai.running': 'Computing…', 'ai.winProb': 'Win %', 'ai.podiumProb': 'Podium %',
+    'ai.top10Prob': 'Top-10 %', 'ai.expectedPoints': 'Expected pts', 'ai.recommended': 'AI picks',
+    'ai.usePrediction': 'Use this prediction', 'ai.insight': 'AI insights', 'ai.confidence': 'Confidence',
+    'ai.source': 'Engine', 'ai.model': 'Model', 'ai.table': 'Prediction table',
+    'ai.upsetPick': 'Upset pick', 'ai.llmBadge': 'LLM link', 'ai.offlineNote': 'Offline: computed by the APEX statistical model.',
+    'ai.applied': 'Applied to the prediction form',
+
+    'fresh.updated': 'Updated', 'fresh.auto': 'Auto-refresh', 'fresh.live': 'Live data',
+    'fresh.archiveBanner': 'Archive view',
+    'fresh.archiveMsg': 'You are viewing bundled archive data ({season}). In a connected environment the current season loads automatically.'
   }
 }
 

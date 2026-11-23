@@ -20,7 +20,7 @@ await build({
 })
 const bundle = fs.readFileSync(outfile, 'utf8')
 
-const routes = ['/', '/live', '/standings', '/calendar', '/drivers', '/drivers/verstappen', '/teams', '/teams/ferrari', '/predict', '/sim', '/quiz', '/news', '/fan', '/nope']
+const routes = ['/', '/live', '/standings', '/calendar', '/drivers', '/drivers/verstappen', '/teams', '/teams/ferrari', '/predict', '/sim', '/quiz', '/news', '/social', '/fan', '/nope']
 
 let failures = 0
 for (const route of routes) {

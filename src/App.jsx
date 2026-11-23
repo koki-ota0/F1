@@ -15,6 +15,7 @@ import Predict from './pages/Predict.jsx'
 import Sim from './pages/Sim.jsx'
 import Quiz from './pages/Quiz.jsx'
 import News from './pages/News.jsx'
+import Social from './pages/Social.jsx'
 import Fan from './pages/Fan.jsx'
 import NotFound from './pages/NotFound.jsx'
 
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/sim" element={<Sim />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/news" element={<News />} />
+          <Route path="/social" element={<Social />} />
           <Route path="/fan" element={<Fan />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

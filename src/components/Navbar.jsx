@@ -37,6 +37,7 @@ export default function Navbar() {
             </div>
           </div>
           <NavLink to="/news">{t('nav.news')}</NavLink>
+          <NavLink to="/social">{t('nav.social')}</NavLink>
           <NavLink to="/fan">{t('nav.fan')}</NavLink>
         </nav>
         <div className="nav-right">
@@ -54,6 +55,7 @@ export default function Navbar() {
           {links.map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)}>{label}</NavLink>)}
           {games.map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)}>{label}</NavLink>)}
           <NavLink to="/news" onClick={() => setOpen(false)}>{t('nav.news')}</NavLink>
+          <NavLink to="/social" onClick={() => setOpen(false)}>{t('nav.social')}</NavLink>
           <NavLink to="/fan" onClick={() => setOpen(false)}>{t('nav.fan')}</NavLink>
         </div>
       )}

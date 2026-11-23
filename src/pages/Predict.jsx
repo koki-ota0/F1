@@ -4,8 +4,10 @@ import { useApi, getJSON, getCalendar } from '../lib/api.js'
 import { SectionHead, Loading, EmptyState } from '../components/common.jsx'
 import { useFan } from '../components/FanProvider.jsx'
 import { simulateRace } from '../lib/sim.js'
-import { computeScore, nextRace, fmtDate } from '../lib/utils.js'
+import { predictRace, predictionTable } from '../lib/model.js'
+import { computeScore, nextRace, fmtDate, teamById } from '../lib/utils.js'
 import { load, save } from '../lib/store.js'
+import { Badge } from '../components/common.jsx'
 
 export default function Predict() {
   const { t, lang } = useLang()
@@ -21,6 +23,8 @@ export default function Predict() {
   const [leaderboard, setLeaderboard] = useState([])
   const [toast, setToast] = useState('')
   const [scoring, setScoring] = useState(null)
+  const [ai, setAi] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
 
   const races = cal?.races || []
   const race = useMemo(() => {
@@ -31,6 +35,33 @@ export default function Predict() {
   useEffect(() => { getCalendar(new Date().getFullYear()).then(setCal) }, [])
   useEffect(() => { getJSON('/api/predictions').then((d) => setLeaderboard(d.leaderboard || [])).catch(() => {}) }, [])
   useEffect(() => { save('pitwall.name', name) }, [name])
+  useEffect(() => { setAi(null); setScoring(null) }, [raceRound])
+
+  const runAI = () => {
+    if (!drivers || !race) return
+    setAiLoading(true)
+    // let the spinner paint before the 1,500-iteration Monte Carlo runs
+    setTimeout(() => {
+      try {
+        setAi(predictRace(drivers, teams, race))
+      } finally {
+        setAiLoading(false)
+      }
+    }, 40)
+  }
+
+  const applyAI = () => {
+    if (!ai?.recommended) return
+    setP1(ai.recommended.p1); setP2(ai.recommended.p2); setP3(ai.recommended.p3); setFl(ai.recommended.fl)
+    setToast(t('ai.applied'))
+    setTimeout(() => setToast(''), 2200)
+  }
+
+  const aiRows = ai ? predictionTable(ai, 8).map((r) => ({
+    ...r,
+    driver: drivers.find((d) => d.id === r.id),
+    team: teamById(teams, drivers.find((d) => d.id === r.id)?.team)
+  })) : []
 
   const dName = (id) => drivers?.find((d) => d.id === id)?.name || '—'
   const canSubmit = race && p1 && p2 && p3 && fl && new Set([p1, p2, p3]).size === 3
@@ -70,6 +101,66 @@ export default function Predict() {
     <section className="section">
       <div className="container">
         <SectionHead eyebrow="PICK 'EM" title={t('predict.title')} sub={t('predict.sub')} />
+
+        <div className="card" style={{ marginBottom: 22, borderColor: 'rgba(225,6,0,.35)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div>
+              <div className="eyebrow" style={{ fontFamily: 'var(--font-num)', letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--accent-2)', fontSize: 12, fontWeight: 700 }}>PITWALL APEX</div>
+              <h3 style={{ fontFamily: 'var(--font-display)', margin: '6px 0 4px', fontSize: 21 }}>{t('ai.title')}</h3>
+              <p className="note" style={{ margin: 0 }}>{t('ai.sub')}</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Badge kind={ai?.source === 'llm+apex' ? 'live' : 'offline'}>{ai?.source === 'llm+apex' ? t('ai.llmBadge') : 'APEX'}</Badge>
+              <button className="btn primary" onClick={runAI} disabled={aiLoading || !race}>{aiLoading ? t('ai.running') : t('ai.run')}</button>
+            </div>
+          </div>
+
+          {ai && (
+            <>
+              <hr className="divider" />
+              <div className="grid grid-2" style={{ gap: 22, alignItems: 'start' }}>
+                <div>
+                  <div className="note" style={{ fontWeight: 700, marginBottom: 10 }}>{t('ai.winProb')}</div>
+                  {aiRows.map((r) => (
+                    <div key={r.id} style={{ marginBottom: 9 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 3 }}>
+                        <span style={{ fontWeight: 700 }}>#{r.driver?.number} {r.driver?.name}</span>
+                        <span className="num" style={{ color: 'var(--accent-2)' }}>{(r.win * 100).toFixed(1)}%</span>
+                      </div>
+                      <div className="progress" style={{ height: 7 }}>
+                        <i style={{ width: `${Math.max(2, r.win * 100)}%`, background: r.team?.color || 'var(--accent)' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <div className="note" style={{ fontWeight: 700, marginBottom: 10 }}>{t('ai.recommended')} · {t('ai.confidence')}: {(ai.confidence * 100).toFixed(0)}%</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+                    {[['P1', ai.recommended.p1], ['P2', ai.recommended.p2], ['P3', ai.recommended.p3], ['FL', ai.recommended.fl]].map(([pos, id]) => {
+                      const d = drivers.find((x) => x.id === id)
+                      return (
+                        <div key={pos} style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px' }}>
+                          <span className="tag">{pos}</span>
+                          <b>#{d?.number} {d?.name}</b>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <button className="btn sm" onClick={applyAI}>{t('ai.usePrediction')}</button>
+                  <div style={{ marginTop: 18 }}>
+                    <div className="note" style={{ fontWeight: 700, marginBottom: 8 }}>{t('ai.insight')}</div>
+                    {ai.insights.map((ins, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 13.5, color: 'var(--muted)' }}>
+                        <span>{ins.icon}</span><span>{lang === 'ja' ? ins.text : ins.textEn}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          {!ai && !aiLoading && <p className="note" style={{ margin: '12px 0 0' }}>{t('ai.offlineNote')}</p>}
+        </div>
 
         <div className="grid grid-2" style={{ alignItems: 'start' }}>
           <div className="card">

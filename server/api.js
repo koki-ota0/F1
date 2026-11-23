@@ -2,6 +2,7 @@ import express from 'express'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { predictRaceWithAI, aiStatus } from './ai.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.join(__dirname, 'data')
@@ -15,9 +16,36 @@ const champions = read('champions.json')
 const records = read('records.json')
 const trivia = read('trivia.json')
 const news = read('news.json')
+const POSTS_FILE = path.join(DATA_DIR, 'posts.json')
+
+// ---------- community posts (fan SNS) ----------
+function loadPosts() {
+  const inMem = postCache.get('list')
+  if (inMem?.data) return inMem.data
+  const list = read('posts.json')
+  postCache.set('list', { at: Date.now(), data: list })
+  return list
+}
+const postCache = new Map()
+function savePosts(list) {
+  postCache.set('list', { at: Date.now(), data: list })
+  try { fs.writeFileSync(POSTS_FILE, JSON.stringify(list, null, 2)) } catch { /* ignore */ }
+}
 
 const teamById = Object.fromEntries(teams.map((t) => [t.id, t]))
 const driverById = Object.fromEntries(drivers.map((d) => [d.id, d]))
+
+// ---------- snapshot (written by scripts/update-data.mjs) ----------
+const SNAPSHOT_FILE = path.join(DATA_DIR, 'snapshot.json')
+let snapshotCache = null
+function readSnapshot() {
+  if (snapshotCache) return snapshotCache
+  try { snapshotCache = JSON.parse(fs.readFileSync(SNAPSHOT_FILE, 'utf8')) } catch { snapshotCache = null }
+  return snapshotCache
+}
+function snapshotFresh(snap) {
+  return snap && snap.updatedAt && Date.now() - new Date(snap.updatedAt).getTime() < 7 * 86400000
+}
 
 // ---------- outbound fetch helpers (best-effort, short timeout) ----------
 const cache = new Map()
@@ -102,6 +130,10 @@ async function getCalendar(year) {
     }))
     return { source: 'live', season: y, races: mapped }
   }
+  const snap = readSnapshot()
+  if (snap?.year === y && snapFresh(snap) && snap.races?.length) {
+    return { source: 'snapshot', season: y, races: snap.races, updatedAt: snap.updatedAt }
+  }
   return { source: 'offline', season: y, races: [], note: 'calendar unavailable' }
 }
 
@@ -120,6 +152,11 @@ async function getStandings(year, type) {
     if (rows?.length) {
       return { source: 'live', season: y, standings: rows.map((r) => ({ position: r.position, name: r.driver_name ?? r.name, team: r.team_name ?? r.constructor_name ?? '', points: r.points ?? 0, wins: r.wins ?? 0 })) }
     }
+  }
+  const snap = readSnapshot()
+  const key = type === 'constructors' ? 'constructors' : 'drivers'
+  if (snap?.year === y && snapshotFresh(snap) && snap[key]?.length) {
+    return { source: 'snapshot', season: y, standings: snap[key], updatedAt: snap.updatedAt }
   }
   return { source: 'offline', season: y, standings: [], note: 'standings unavailable' }
 }
@@ -183,7 +220,10 @@ router.get('/meta', (_req, res) => {
       history: 'Jolpica F1 API (api.jolpica.org)',
       offline: 'bundled dataset (server/data)'
     },
-    note: 'ライブAPIに到達できない環境ではバンドルデータを返します。'
+    note: 'ライブAPIに到達できない環境ではバンドルデータを返します。',
+    lastSyncAt,
+    cacheEntries: cache.size,
+    ai: aiStatus()
   })
 })
 
@@ -256,5 +296,80 @@ router.post('/predictions', (req, res) => {
   predictions.push(entry)
   res.json({ ok: true, entry, leaderboard: [...predictions].sort((a, b) => b.points - a.points) })
 })
+
+// ---------- AI prediction ----------
+router.get('/ai-prediction', async (req, res) => {
+  const round = Number(req.query.race)
+  const race = calendar.find((r) => r.round === round) || calendar[0]
+  try {
+    const result = await predictRaceWithAI({ drivers, teams, race })
+    res.json({ ok: true, race: { round: race.round, name: race.name }, ...result, status: aiStatus() })
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e?.message || e) })
+  }
+})
+
+// ---------- fan SNS ----------
+router.get('/posts', (_req, res) => {
+  const list = [...loadPosts()].sort((a, b) => new Date(b.at) - new Date(a.at))
+  res.json({ items: list })
+})
+
+router.post('/posts', (req, res) => {
+  const { name = 'F1 FAN', text = '', tags = [], color = '#e10600' } = req.body || {}
+  if (typeof text !== 'string' || !text.trim()) return res.status(400).json({ error: 'text required' })
+  if (text.length > 280) return res.status(400).json({ error: 'too long (max 280)' })
+  const list = loadPosts()
+  const post = {
+    id: `u-${Date.now()}`,
+    name: String(name).slice(0, 24),
+    color,
+    text: text.trim(),
+    tags: Array.isArray(tags) ? tags.map((t) => String(t).slice(0, 30)).slice(0, 5) : [],
+    likes: 0,
+    at: new Date().toISOString()
+  }
+  list.push(post)
+  savePosts(list)
+  res.json({ ok: true, post })
+})
+
+router.post('/posts/:id/like', (req, res) => {
+  const list = loadPosts()
+  const post = list.find((p) => p.id === req.params.id)
+  if (!post) return res.status(404).json({ error: 'not found' })
+  post.likes += 1
+  savePosts(list)
+  res.json({ ok: true, likes: post.likes })
+})
+
+// ---------- data freshness / sync ----------
+router.get('/sync', (_req, res) => {
+  res.json({
+    lastSyncAt,
+    now: new Date().toISOString(),
+    cacheEntries: cache.size,
+    ai: aiStatus(),
+    note: 'サーバは5分ごとにライブAPIのキャッシュを自動更新します。'
+  })
+})
+
+router.post('/sync', async (_req, res) => {
+  // force warm-up of cached endpoints (best effort; offline環境ではスキップ)
+  const year = new Date().getFullYear()
+  await getCalendar(year)
+  await getStandings(year, 'drivers')
+  lastSyncAt = new Date().toISOString()
+  res.json({ ok: true, lastSyncAt })
+})
+
+let lastSyncAt = new Date().toISOString()
+// background auto-refresh (best effort)
+setInterval(() => {
+  const year = new Date().getFullYear()
+  Promise.allSettled([getCalendar(year), getStandings(year, 'drivers'), getStandings(year, 'constructors')])
+    .then(() => { lastSyncAt = new Date().toISOString() })
+    .catch(() => {})
+}, 5 * 60 * 1000).unref?.()
 
 export default router

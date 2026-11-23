@@ -31,6 +31,7 @@ export default function Footer() {
             <Link to="/teams">{t('nav.teams')}</Link>
             <Link to="/fan">{t('nav.fan')}</Link>
             <Link to="/news">{t('nav.news')}</Link>
+            <Link to="/social">{t('nav.social')}</Link>
           </div>
         </div>
         <div className="fbot">

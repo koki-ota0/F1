@@ -11,13 +11,25 @@ export default function CalendarPage() {
   const next = nextRace(races)
   const hasUpcoming = races.some((r) => new Date(r.date + 'T23:59:59') >= new Date())
 
-  useEffect(() => { getCalendar(new Date().getFullYear()).then(setCal) }, [])
+  useEffect(() => {
+    let alive = true
+    const run = () => getCalendar(new Date().getFullYear()).then((d) => alive && setCal(d))
+    run()
+    const id = setInterval(run, 120000)
+    return () => { alive = false; clearInterval(id) }
+  }, [])
   if (!cal) return <div className="section container"><Loading /></div>
 
   return (
     <section className="section">
       <div className="container">
-        <SectionHead eyebrow="2025 SEASON" title={t('calendar.title')} sub={t('calendar.sub')} />
+        <SectionHead eyebrow={cal.seasonLabel ? `${cal.seasonLabel} ARCHIVE` : 'SEASON'} title={t('calendar.title')} sub={t('calendar.sub')} />
+        {cal.seasonLabel && (
+          <div className="card" style={{ marginBottom: 22, borderColor: 'rgba(245,192,68,.45)', background: 'rgba(245,192,68,.07)' }}>
+            <Badge kind="gold">{t('fresh.archiveBanner')}</Badge>
+            <span className="note" style={{ marginLeft: 8 }}>{t('fresh.archiveMsg', { season: cal.seasonLabel })}</span>
+          </div>
+        )}
         {next && hasUpcoming && (
           <div className="card" style={{ marginBottom: 22, display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
             <div>

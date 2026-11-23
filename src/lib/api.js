@@ -21,7 +21,7 @@ export async function tryBrowser(url, timeoutMs = 3000) {
   }
 }
 
-export function useApi(path, deps = []) {
+export function useApi(path, deps = [], opts = {}) {
   const [state, setState] = useState({ data: null, loading: true, error: null })
   const load = useCallback(() => {
     let alive = true
@@ -32,7 +32,25 @@ export function useApi(path, deps = []) {
     return () => { alive = false }
   }, [path])
   useEffect(() => load(), [load, ...deps])
+  useEffect(() => {
+    if (!opts.refreshMs) return undefined
+    const id = setInterval(load, opts.refreshMs)
+    return () => clearInterval(id)
+  }, [load, opts.refreshMs])
   return { ...state, reload: load }
+}
+
+/** lightweight poll for endpoints consumed outside useApi */
+export function usePolled(path, refreshMs = 120000) {
+  const [data, setData] = useState(null)
+  useEffect(() => {
+    let alive = true
+    const run = () => getJSON(path).then((d) => alive && setData(d)).catch(() => {})
+    run()
+    const id = setInterval(run, refreshMs)
+    return () => { alive = false; clearInterval(id) }
+  }, [path, refreshMs])
+  return data
 }
 
 const JOLPICA = 'https://api.jolpica.org/f1'

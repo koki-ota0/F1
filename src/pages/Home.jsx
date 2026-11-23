@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
-import { useApi, getJSON, getCalendar } from '../lib/api.js'
+import { useApi, usePolled, getJSON, getCalendar } from '../lib/api.js'
 import { useFan } from '../components/FanProvider.jsx'
 import { SectionHead, Countdown, Ticker, LiveBadge, Loading, Badge } from '../components/common.jsx'
 import { DriverCard, TeamCard } from '../components/Cards.jsx'
@@ -10,17 +10,24 @@ import { nextRace, fmtDate } from '../lib/utils.js'
 export default function Home() {
   const { t, lang } = useLang()
   const { fan, teams } = useFan()
-  const { data: drivers, loading: dLoading } = useApi('/api/drivers')
+  const { data: drivers, loading: dLoading } = useApi('/api/drivers', [], { refreshMs: 120000 })
+  const meta = usePolled('/api/meta', 60000)
   const [cal, setCal] = useState(null)
   const [news, setNews] = useState([])
   const [records, setRecords] = useState([])
   const [champions, setChampions] = useState([])
 
   useEffect(() => {
-    getCalendar(new Date().getFullYear()).then(setCal)
-    getJSON('/api/news').then((d) => setNews(d.items || [])).catch(() => {})
-    getJSON('/api/records').then(setRecords).catch(() => {})
-    getJSON('/api/champions').then(setChampions).catch(() => {})
+    let alive = true
+    const run = () => {
+      getCalendar(new Date().getFullYear()).then((d) => alive && setCal(d))
+      getJSON('/api/news').then((d) => alive && setNews(d.items || [])).catch(() => {})
+      getJSON('/api/records').then((d) => alive && setRecords(d)).catch(() => {})
+      getJSON('/api/champions').then((d) => alive && setChampions(d)).catch(() => {})
+    }
+    run()
+    const id = setInterval(run, 120000)
+    return () => { alive = false; clearInterval(id) }
   }, [])
 
   const races = cal?.races || []
@@ -90,7 +97,20 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <div className="note" style={{ marginTop: 18, display: 'flex', gap: 10, alignItems: 'center' }}>
+          <Badge kind="ok">{t('fresh.live')}</Badge>
+          {t('fresh.updated')}: {meta?.lastSyncAt ? new Date(meta.lastSyncAt).toLocaleTimeString() : '—'} · {t('fresh.auto')}
+        </div>
       </section>
+
+      {cal?.seasonLabel && (
+        <div className="container" style={{ paddingTop: 16 }}>
+          <div className="card" style={{ borderColor: 'rgba(245,192,68,.45)', background: 'rgba(245,192,68,.07)' }}>
+            <Badge kind="gold">{t('fresh.archiveBanner')}</Badge>
+            <span className="note" style={{ marginLeft: 8 }}>{t('fresh.archiveMsg', { season: cal.seasonLabel })}</span>
+          </div>
+        </div>
+      )}
 
       <Ticker items={news} />
 
