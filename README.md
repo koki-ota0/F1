@@ -31,6 +31,20 @@ node scripts/update-data.mjs        # ネット接続できる環境で実行 �
 - アーカイブ表示時は画面上に金色バナーでシーズンを明示します
 - オフライン環境では生成AI（LLM）連携なしでも APEX 統計モデルが動作します
 
+## GitHub Pages への公開（任意）
+
+静的ホスティング（GitHub Pages）でも動作するよう、**バンドルデータはクライアントにも同梱**しています（`npm run bundle`）。 Express の `/api` が無くても、ドライバー/チーム/カレンダー/記録/クイズ等は表示されます。
+
+```bash
+# repo settings → Pages → Source: GitHub Actions を選択
+# .github/workflows/pages.yml が main への push で自動デプロイします
+```
+
+- URL: `https://<owner>.github.io/F1/`
+- 20等の**ライブAPI**はブラウザから直接Jolpica/OpenF1へ取得を試行（CORSが通れば最新版に自動切替）
+- 深いリンク（`/live` など）は `dist/404.html` でSPAフォールバック
+- サーバ依存機能（ファンSNS共有・予測リーダーボード）は静的ホストではローカル動作に退化します
+
 ## AI予測のLLM連携（任意）
 
 OpenAI互換エンドポイントを設定すると、APEXモデルとLLMのブレンド予測になります（未設定時はAPEXのみ・自動フォールバック）。

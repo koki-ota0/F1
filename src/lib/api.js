@@ -1,4 +1,11 @@
 import { useEffect, useState, useCallback } from 'react'
+import staticDrivers from './static/drivers.json'
+import staticTeams from './static/teams.json'
+import staticCalendar from './static/calendar.json'
+import staticChampions from './static/champions.json'
+import staticRecords from './static/records.json'
+import staticTrivia from './static/trivia.json'
+import staticNews from './static/news.json'
 
 export async function getJSON(path) {
   const res = await fetch(path, { headers: { Accept: 'application/json' } })
@@ -21,6 +28,29 @@ export async function tryBrowser(url, timeoutMs = 3000) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Static fallback: keeps the whole site usable on hosts without our API
+// (GitHub Pages / Netlify / plain static). Server data remains the source of
+// truth; these copies are refreshed by `npm run bundle` (= prebuild).
+// ---------------------------------------------------------------------------
+const STATIC = {
+  '/api/drivers': () => staticDrivers,
+  '/api/teams': () => staticTeams,
+  '/api/champions': () => staticChampions,
+  '/api/records': () => staticRecords,
+  '/api/trivia': () => staticTrivia,
+  '/api/news': () => ({ source: 'offline', items: staticNews }),
+  '/api/meta': () => ({
+    app: 'PITWALL', mode: 'static-host',
+    season: new Date().getFullYear(), bundleSeason: 2025,
+    sources: { live: 'OpenF1 API', history: 'Jolpica F1 API', offline: 'bundled dataset' },
+    lastSyncAt: null
+  }),
+  '/api/predictions': () => ({ leaderboard: [] }),
+  '/api/posts': () => ({ items: [] }),
+  '/api/sync': () => ({ lastSyncAt: null, note: 'static host' })
+}
+
 export function useApi(path, deps = [], opts = {}) {
   const [state, setState] = useState({ data: null, loading: true, error: null })
   const load = useCallback(() => {
@@ -28,7 +58,11 @@ export function useApi(path, deps = [], opts = {}) {
     setState((s) => ({ ...s, loading: true, error: null }))
     getJSON(path)
       .then((data) => alive && setState({ data, loading: false, error: null }))
-      .catch((error) => alive && setState({ data: null, loading: false, error }))
+      .catch((error) => {
+        const fallback = STATIC[path]
+        if (fallback && alive) setState({ data: fallback(), loading: false, error: null, staticFallback: true })
+        else if (alive) setState({ data: null, loading: false, error })
+      })
     return () => { alive = false }
   }, [path])
   useEffect(() => load(), [load, ...deps])
@@ -55,7 +89,7 @@ export function usePolled(path, refreshMs = 120000) {
 
 const JOLPICA = 'https://api.jolpica.org/f1'
 
-/** Calendar: server (which itself tries Jolpica) → browser-direct → bundle. */
+/** Calendar: server → browser-direct → server bundle → client bundle. */
 export async function getCalendar(year) {
   try {
     const srv = await getJSON(`/api/calendar?year=${year}`)
@@ -86,15 +120,16 @@ export async function getCalendar(year) {
     const srv = await getJSON(`/api/calendar?year=${year}`)
     if (srv?.races?.length) return srv
   } catch { /* ignore */ }
-  // last resort: bundled 2025 season
   try {
     const bundle = await getJSON('/api/calendar?year=2025')
     if (bundle?.races?.length) return { ...bundle, seasonLabel: 2025 }
   } catch { /* ignore */ }
+  // last resort: client-bundled 2025 archive (works on static hosts)
+  if (staticCalendar?.length) return { source: 'offline', seasonLabel: 2025, season: 2025, races: staticCalendar }
   return { source: 'offline', season: year, races: [] }
 }
 
-/** Standings: server → browser-direct → bundle(empty). */
+/** Standings: server → browser-direct → offline(empty). */
 export async function getStandings(year, type) {
   const mapRows = (rows, kind) => rows.map((r) => ({
     position: r.position,

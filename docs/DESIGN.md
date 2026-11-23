@@ -249,6 +249,14 @@ UIは source に応じて「LIVE / CACHE / OFFLINE」バッジを表示。
 3. **クライアント直接取得**: ブラウザから Jolpica/OpenF1 へ直接フェッチを試行（CORS可否で自動LIVE）
 - UIには **最終更新時刻＋AUTOバッジ**、アーカイブ表示時は **金色バナー**でシーズンを明示
 
+## 12. 静的ホスティング（GitHub Pages）対応
+
+- **バンドルデータのクライアント同梱**: `scripts/sync-bundle.mjs` が `server/data` → `src/lib/static` にコピーし、`/api` が無い環境でも主要コンテンツを表示（`useApi` が失敗時に自動フォールバック）
+- **SPAディープリンク**: `postbuild` が `dist/404.html` を生成（GitHub Pages は未知パスに 404.html を配信）
+- **パス対応**: `vite.base = VITE_BASE || './'`。Pagesビルドは `VITE_BASE=/F1/`、Router basename も自動追従
+- **API焼き込み**: `dist/api/*.json` を生成し、静的ホストでも基本的なGETはサーバ不要で応答
+- **退化の許容範囲**: ファンSNS共有・予測リーダーボード等・動的API依存機能はローカル動作に退化（AI予測・クイズ・シミュレーターは完全動作）
+
 ### 11.1 データの誠実性ポリシー
 - バンドル（2025シーズン）は「アーカイブ」と明記して表示
 - 外部の未検証データ（匿名レポ等）は採用しない。最新化は **Jolpica/OpenF1 からの取得** または **snapshot 更新** のみ
