@@ -97,5 +97,13 @@ if (process.env.MOCK_F1 === '1') {
   ok('results-live: classification fetched from API', !!ready)
 }
 
+// ---- offline standings must never render an empty table (bundled 2025 archive)
+{
+  const { win, waitFor } = await open('/standings')
+  const ready = await waitFor(() => /Lando Norris/.test(win.document.body.textContent), 12000)
+  ok('standings-offline: archive rows rendered', !!ready)
+  ok('standings-offline: season label shown', /シーズンを表示中|Showing .* season/.test(win.document.body.textContent))
+}
+
 console.log(`\n${pass}/${total} checks passed`)
 process.exit(pass === total ? 0 : 1)

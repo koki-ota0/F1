@@ -50,7 +50,7 @@ export default function Standings() {
           right={
             <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
               {data?.season && data.season !== year && (
-                <Badge kind="gold">{t('standings.showingSeason', { season: data.season })}</Badge>
+                <Badge kind="gold">{t('standings.showingSeason', data.season)}</Badge>
               )}
               <LiveBadge live={isLive} />
             </span>
@@ -62,7 +62,7 @@ export default function Standings() {
           <button className={tab === 'constructors' ? 'on' : ''} onClick={() => setTab('constructors')}>{t('standings.constructors')}</button>
         </div>
 
-        {loading ? <Loading /> : isLive ? (
+        {loading ? <Loading /> : rows.length > 0 ? (
           <div className="table-wrap" style={{ marginBottom: 34 }}>
             <table className="table">
               <thead>
