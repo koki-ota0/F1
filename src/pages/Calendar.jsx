@@ -23,8 +23,8 @@ export default function CalendarPage() {
   return (
     <section className="section">
       <div className="container">
-        <SectionHead eyebrow={cal.seasonLabel ? `${cal.seasonLabel} ARCHIVE` : 'SEASON'} title={t('calendar.title')} sub={t('calendar.sub')} />
-        {cal.seasonLabel && (
+        <SectionHead eyebrow={`SEASON ${cal.seasonLabel || cal.season || ''}`} title={t('calendar.title')} sub={t('calendar.sub')} />
+        {cal.source === 'offline' && cal.seasonLabel && (
           <div className="card" style={{ marginBottom: 22, borderColor: 'rgba(245,192,68,.45)', background: 'rgba(245,192,68,.07)' }}>
             <Badge kind="gold">{t('fresh.archiveBanner')}</Badge>
             <span className="note" style={{ marginLeft: 8 }}>{t('fresh.archiveMsg', { season: cal.seasonLabel })}</span>

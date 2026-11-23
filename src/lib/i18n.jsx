@@ -49,14 +49,14 @@ export const dict = {
     'standings.offlineNote': '現シーズンの順位はライブAPI接続時に取得できます。ここでは歴代の記録を表示しています。',
     'standings.asOf': '基準', 'standings.holder': '保持者', 'standings.value': '記録', 'standings.year': '年',
 
-    'calendar.title': 'カレンダー', 'calendar.sub': '2025年全24戦のスケジュールとサーキット情報',
+    'calendar.title': 'カレンダー', 'calendar.sub': 'シーズン全レースのスケジュールとサーキット情報',
     'calendar.upcoming': 'これから', 'calendar.completed': '終了', 'calendar.countdownTo': 'レースまで',
     'calendar.circuitInfo': 'サーキット情報', 'calendar.raceDay': 'レース日', 'calendar.roundLabel': 'Rd.',
     'calendar.lapRecordBy': 'ラップレコード保持者',
 
-    'drivers.title': 'ドライバー', 'drivers.sub': '2025年グリッドの20人＋途中加入。戦績とプロフィール。',
+    'drivers.title': 'ドライバー', 'drivers.sub': '現シーズンのドライバーグリッド。戦績とプロフィール。',
     'drivers.filterTeam': 'チームで絞り込み', 'drivers.number': '番号', 'drivers.debut': 'デビュー', 'drivers.titles': 'タイトル',
-    'drivers.career': '通算戦績（2024年终了時・暫定）', 'drivers.addFav': '推しに追加', 'drivers.removeFav': '推しから外す',
+    'drivers.career': '通算戦績（暫定値）', 'drivers.addFav': '推しに追加', 'drivers.removeFav': '推しから外す',
     'drivers.bio': 'プロフィール', 'drivers.stats': '戦績', 'drivers.teammate': 'チームメイト', 'drivers.rating': 'PITWALLレート',
     'drivers.noResults': '該当するドライバーがいません', 'drivers.flag': '国籍',
 
@@ -182,9 +182,9 @@ export const dict = {
     'calendar.circuitInfo': 'Circuit facts', 'calendar.raceDay': 'Race day', 'calendar.roundLabel': 'Rd.',
     'calendar.lapRecordBy': 'Lap record holder',
 
-    'drivers.title': 'Drivers', 'drivers.sub': 'The 2025 grid — profiles, career numbers and more.',
+    'drivers.title': 'Drivers', 'drivers.sub': 'The current grid — profiles, career numbers and more.',
     'drivers.filterTeam': 'Filter by team', 'drivers.number': 'Number', 'drivers.debut': 'Debut', 'drivers.titles': 'Titles',
-    'drivers.career': 'Career (as of end-2024, approx.)', 'drivers.addFav': 'Add favourite', 'drivers.removeFav': 'Remove favourite',
+    'drivers.career': 'Career stats (approx.)', 'drivers.addFav': 'Add favourite', 'drivers.removeFav': 'Remove favourite',
     'drivers.bio': 'Profile', 'drivers.stats': 'Stats', 'drivers.teammate': 'Team mate', 'drivers.rating': 'PITWALL rating',
     'drivers.noResults': 'No drivers found', 'drivers.flag': 'Nationality',
 

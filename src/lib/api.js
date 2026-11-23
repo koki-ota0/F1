@@ -6,6 +6,7 @@ import staticChampions from './static/champions.json'
 import staticRecords from './static/records.json'
 import staticTrivia from './static/trivia.json'
 import staticNews from './static/news.json'
+import staticSeason from './static/season.json'
 
 export async function getJSON(path) {
   const res = await fetch(path, { headers: { Accept: 'application/json' } })
@@ -42,8 +43,10 @@ const STATIC = {
   '/api/news': () => ({ source: 'offline', items: staticNews }),
   '/api/meta': () => ({
     app: 'PITWALL', mode: 'static-host',
-    season: new Date().getFullYear(), bundleSeason: 2025,
-    sources: { live: 'OpenF1 API', history: 'Jolpica F1 API', offline: 'bundled dataset' },
+    season: new Date().getFullYear(),
+    currentSeason: staticSeason.current, bundleSeason: staticSeason.current,
+    bundleSource: staticSeason.source, bundleUpdatedAt: staticSeason.updatedAt,
+    sources: { live: 'OpenF1 API', history: 'Jolpica F1 API', offline: 'bundled dataset (client)' },
     lastSyncAt: null
   }),
   '/api/predictions': () => ({ leaderboard: [] }),
@@ -124,8 +127,10 @@ export async function getCalendar(year) {
     const bundle = await getJSON('/api/calendar?year=2025')
     if (bundle?.races?.length) return { ...bundle, seasonLabel: 2025 }
   } catch { /* ignore */ }
-  // last resort: client-bundled 2025 archive (works on static hosts)
-  if (staticCalendar?.length) return { source: 'offline', seasonLabel: 2025, season: 2025, races: staticCalendar }
+  // last resort: client-bundled current-season dataset (works on static hosts)
+  if (staticCalendar?.length) {
+    return { source: 'bundle', season: staticSeason.current, seasonLabel: staticSeason.current, races: staticCalendar, updatedAt: staticSeason.updatedAt }
+  }
   return { source: 'offline', season: year, races: [] }
 }
 

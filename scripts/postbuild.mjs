@@ -14,7 +14,7 @@ fs.copyFileSync(path.join(DIST, 'index.html'), path.join(DIST, '404.html'))
 
 // 2) /api static snapshots
 const SRC = path.join(__dirname, '..', 'server', 'data')
-const files = ['drivers.json', 'teams.json', 'champions.json', 'records.json', 'trivia.json', 'news.json', 'posts.json']
+const files = ['drivers.json', 'teams.json', 'calendar.json', 'champions.json', 'records.json', 'trivia.json', 'news.json', 'season.json', 'posts.json']
 fs.mkdirSync(path.join(DIST, 'api'), { recursive: true })
 for (const f of files) {
   const name = f.replace(/\.json$/, '')
