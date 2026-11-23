@@ -103,7 +103,7 @@ export default function Home() {
         </div>
       </section>
 
-      {cal?.seasonLabel && (
+      {cal?.source === 'offline' && cal?.seasonLabel && (
         <div className="container" style={{ paddingTop: 16 }}>
           <div className="card" style={{ borderColor: 'rgba(245,192,68,.45)', background: 'rgba(245,192,68,.07)' }}>
             <Badge kind="gold">{t('fresh.archiveBanner')}</Badge>

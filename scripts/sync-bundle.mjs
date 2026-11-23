@@ -11,7 +11,7 @@ const ROOT = path.join(__dirname, '..')
 const SRC = path.join(ROOT, 'server', 'data')
 const DEST = path.join(ROOT, 'src', 'lib', 'static')
 
-const FILES = ['drivers.json', 'teams.json', 'calendar.json', 'champions.json', 'records.json', 'trivia.json', 'news.json']
+const FILES = ['drivers.json', 'teams.json', 'calendar.json', 'champions.json', 'records.json', 'trivia.json', 'news.json', 'season.json']
 
 fs.mkdirSync(DEST, { recursive: true })
 for (const f of FILES) {

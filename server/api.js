@@ -16,6 +16,7 @@ const champions = read('champions.json')
 const records = read('records.json')
 const trivia = read('trivia.json')
 const news = read('news.json')
+const season = read('season.json')
 const POSTS_FILE = path.join(DATA_DIR, 'posts.json')
 
 // ---------- community posts (fan SNS) ----------
@@ -105,10 +106,7 @@ const OPENF1 = 'https://api.openf1.org/v1'
 const JOLPICA = 'https://api.jolpica.org/f1'
 
 async function getCalendar(year) {
-  const y = Number(year) || new Date().getFullYear()
-  if (y === 2025) {
-    return { source: 'bundle', season: 2025, races: calendar }
-  }
+  const y = Number(year) || season.current
   const data = await fetchJSON(`${JOLPICA}/${y}/races/?limit=100`)
   if (Array.isArray(data?.results) || Array.isArray(data)) {
     const rows = Array.isArray(data) ? data : data.results
@@ -131,8 +129,12 @@ async function getCalendar(year) {
     return { source: 'live', season: y, races: mapped }
   }
   const snap = readSnapshot()
-  if (snap?.year === y && snapFresh(snap) && snap.races?.length) {
+  if (snap?.year === y && snapshotFresh(snap) && snap.races?.length) {
     return { source: 'snapshot', season: y, races: snap.races, updatedAt: snap.updatedAt }
+  }
+  // bundled current-season dataset (source: OpenF1 baked in)
+  if (calendar?.length) {
+    return { source: 'bundle', season: season.current, seasonLabel: season.current, races: calendar, updatedAt: season.updatedAt }
   }
   return { source: 'offline', season: y, races: [], note: 'calendar unavailable' }
 }
@@ -214,7 +216,10 @@ router.get('/meta', (_req, res) => {
   res.json({
     app: 'PITWALL',
     season: new Date().getFullYear(),
-    bundleSeason: 2025,
+    currentSeason: season.current,
+    bundleSeason: season.current,
+    bundleSource: season.source,
+    bundleUpdatedAt: season.updatedAt,
     sources: {
       live: 'OpenF1 API (api.openf1.org)',
       history: 'Jolpica F1 API (api.jolpica.org)',
@@ -341,6 +346,31 @@ router.post('/posts/:id/like', (req, res) => {
   post.likes += 1
   savePosts(list)
   res.json({ ok: true, likes: post.likes })
+})
+
+router.get('/posts/:id/replies', (req, res) => {
+  const post = loadPosts().find((p) => p.id === req.params.id)
+  if (!post) return res.status(404).json({ error: 'not found' })
+  res.json({ replies: post.replies || [] })
+})
+
+router.post('/posts/:id/replies', (req, res) => {
+  const { name = 'F1 FAN', text = '' } = req.body || {}
+  if (typeof text !== 'string' || !text.trim()) return res.status(400).json({ error: 'text required' })
+  if (text.length > 280) return res.status(400).json({ error: 'too long (max 280)' })
+  const list = loadPosts()
+  const post = list.find((p) => p.id === req.params.id)
+  if (!post) return res.status(404).json({ error: 'not found' })
+  if (!Array.isArray(post.replies)) post.replies = []
+  const reply = {
+    id: `r-${Date.now()}`,
+    name: String(name).slice(0, 24),
+    text: text.trim(),
+    at: new Date().toISOString()
+  }
+  post.replies.push(reply)
+  savePosts(list)
+  res.json({ ok: true, reply, count: post.replies.length })
 })
 
 // ---------- data freshness / sync ----------

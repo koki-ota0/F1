@@ -97,9 +97,12 @@ function applyCircuit(priors, race) {
 export function predictRace(drivers, teams, race, opts = {}) {
   const iterations = opts.iterations || 1500
   const formMap = opts.form || {}
+  const biasMap = opts.bias || {}
   const rng = makeRng(opts.seed ?? 20251123)
 
   const priors = buildPriors(drivers, teams, formMap)
+  // learned bias from real outcomes (local model memory)
+  for (const p of priors) p.biasValue = biasMap[p.driver.id] ?? 0
   applyCircuit(priors, race)
 
   const win = {}, podium = {}, top10 = {}, fl = {}, ptsSum = {}, posSum = {}
@@ -115,7 +118,7 @@ export function predictRace(drivers, teams, race, opts = {}) {
       const noise = gauss(rng) * p.sigma + (teamNoise[p.driver.team] || 0)
       const formBoost = (p.form - 0.5) * 2.4
       const dnf = rng() < 0.02
-      return { p, score: p.base + p.circuitAffinity.value + formBoost + noise, dnf, points: 0, pos: null }
+      return { p, score: p.base + p.circuitAffinity.value + formBoost + p.biasValue + noise, dnf, points: 0, pos: null }
     })
     perf.sort((a, b) => (a.dnf - b.dnf) || (b.score - a.score))
     let classifiedIdx = 0
