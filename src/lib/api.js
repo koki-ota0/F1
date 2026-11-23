@@ -7,6 +7,7 @@ import staticRecords from './static/records.json'
 import staticTrivia from './static/trivia.json'
 import staticNews from './static/news.json'
 import staticSeason from './static/season.json'
+import { readLive, writeLive, LIVE_BASES } from './live.js'
 
 export async function getJSON(path) {
   const res = await fetch(path, { headers: { Accept: 'application/json' } })
@@ -47,7 +48,9 @@ const STATIC = {
     currentSeason: staticSeason.current, bundleSeason: staticSeason.current,
     bundleSource: staticSeason.source, bundleUpdatedAt: staticSeason.updatedAt,
     sources: { live: 'OpenF1 API', history: 'Jolpica F1 API', offline: 'bundled dataset (client)' },
-    lastSyncAt: null
+    bases: LIVE_BASES,
+    lastSyncAt: null,
+    refreshMode: 'manual'
   }),
   '/api/predictions': () => ({ leaderboard: [] }),
   '/api/posts': () => ({ items: [] }),
@@ -90,51 +93,51 @@ export function usePolled(path, refreshMs = 120000) {
   return data
 }
 
-const JOLPICA = 'https://api.jolpica.org/f1'
-
-/** Calendar: server → browser-direct → server bundle → client bundle. */
+/** Calendar: server → browser-direct → manual cache → client bundle. */
 export async function getCalendar(year) {
+  const toRaces = (rows) => rows.map((r) => ({
+    round: r.round,
+    name: r.race_name,
+    nameJa: r.race_name,
+    circuit: r.circuit?.circuit_name ?? r.circuit_name ?? '',
+    circuitJa: r.circuit?.circuit_name ?? r.circuit_name ?? '',
+    country: r.country?.country_name ?? r.country_name ?? '',
+    countryJa: r.country?.country_name ?? r.country_name ?? '',
+    flag: '',
+    date: (r.date ?? '').slice(0, 10) || null,
+    laps: r.laps_total ?? null,
+    lengthKm: null, turns: null, drsZones: null, lapRecord: null
+  }))
+
   try {
     const srv = await getJSON(`/api/calendar?year=${year}`)
     if (srv?.source === 'live') return srv
+    if (srv?.races?.length) return srv          // server bundle / snapshot tier
   } catch { /* fall through */ }
-  const direct = await tryBrowser(`${JOLPICA}/${year}/races/?limit=100`, 2500)
+
+  // static hosts: browser talks to the public API directly
+  const direct = await tryBrowser(`${LIVE_BASES.f1}/${year}/races/?limit=100`, 6000)
   const rows = Array.isArray(direct) ? direct : direct?.results
   if (Array.isArray(rows) && rows.length) {
-    return {
-      source: 'live',
-      season: year,
-      races: rows.map((r) => ({
-        round: r.round,
-        name: r.race_name,
-        nameJa: r.race_name,
-        circuit: r.circuit?.circuit_name ?? r.circuit_name ?? '',
-        circuitJa: r.circuit?.circuit_name ?? r.circuit_name ?? '',
-        country: r.country?.country_name ?? r.country_name ?? '',
-        countryJa: r.country?.country_name ?? r.country_name ?? '',
-        flag: '',
-        date: (r.date ?? '').slice(0, 10) || null,
-        laps: r.laps_total ?? null,
-        lengthKm: null, turns: null, drsZones: null, lapRecord: null
-      }))
-    }
+    const races = toRaces(rows)
+    writeLive('calendar', year, { races })
+    return { source: 'live', season: year, seasonLabel: year, races }
   }
-  try {
-    const srv = await getJSON(`/api/calendar?year=${year}`)
-    if (srv?.races?.length) return srv
-  } catch { /* ignore */ }
-  try {
-    const bundle = await getJSON('/api/calendar?year=2025')
-    if (bundle?.races?.length) return { ...bundle, seasonLabel: 2025 }
-  } catch { /* ignore */ }
-  // last resort: client-bundled current-season dataset (works on static hosts)
+
+  // freshest manually-refreshed snapshot (GitHub Pages flow)
+  const cached = readLive('calendar', year)
+  if (cached?.races?.length) {
+    return { source: 'cache', season: year, seasonLabel: year, races: cached.races, updatedAt: cached.at }
+  }
+
+  // last resort: client-bundled current-season dataset (works offline)
   if (staticCalendar?.length) {
     return { source: 'bundle', season: staticSeason.current, seasonLabel: staticSeason.current, races: staticCalendar, updatedAt: staticSeason.updatedAt }
   }
   return { source: 'offline', season: year, races: [] }
 }
 
-/** Standings: server → browser-direct → offline(empty). */
+/** Standings: server → browser-direct → manual cache → offline(empty). */
 export async function getStandings(year, type) {
   const mapRows = (rows, kind) => rows.map((r) => ({
     position: r.position,
@@ -147,8 +150,16 @@ export async function getStandings(year, type) {
     const srv = await getJSON(`/api/standings?year=${year}&type=${type}`)
     if (srv?.source === 'live' && srv.standings?.length) return srv
   } catch { /* fall through */ }
-  const direct = await tryBrowser(`${JOLPICA}/${year}/${type}/?limit=100`)
+  const direct = await tryBrowser(`${LIVE_BASES.f1}/${year}/${type}/?limit=100`, 6000)
   const rows = Array.isArray(direct) ? direct : direct?.results
-  if (Array.isArray(rows) && rows.length) return { source: 'live', season: year, standings: mapRows(rows, type) }
+  if (Array.isArray(rows) && rows.length) {
+    const standings = mapRows(rows, type)
+    writeLive(type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers', year, { standings })
+    return { source: 'live', season: year, standings }
+  }
+  const cached = readLive(type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers', year)
+  if (cached?.standings?.length) {
+    return { source: 'cache', season: year, standings: cached.standings, updatedAt: cached.at }
+  }
   try { return await getJSON(`/api/standings?year=${year}&type=${type}`) } catch { return { source: 'offline', season: year, standings: [] } }
 }
