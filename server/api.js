@@ -107,26 +107,27 @@ const JOLPICA = 'https://api.jolpica.org/f1'
 
 async function getCalendar(year) {
   const y = Number(year) || season.current
-  const data = await fetchJSON(`${JOLPICA}/${y}/races/?limit=100`)
-  if (Array.isArray(data?.results) || Array.isArray(data)) {
-    const rows = Array.isArray(data) ? data : data.results
-    const mapped = rows.map((r) => ({
-      round: r.round,
-      name: r.race_name,
-      nameJa: r.race_name,
-      circuit: r.circuit?.circuit_name ?? r.circuit_name ?? '',
-      circuitJa: r.circuit?.circuit_name ?? r.circuit_name ?? '',
-      country: r.country?.country_name ?? r.country_name ?? '',
-      countryJa: r.country?.country_name ?? r.country_name ?? '',
-      flag: '',
-      date: r.date?.slice(0, 10) ?? r.date ?? null,
-      laps: r.laps_total ?? null,
-      lengthKm: null,
-      turns: null,
-      drsZones: null,
-      lapRecord: null
-    }))
-    return { source: 'live', season: y, races: mapped }
+  const mapRows = (rows) => rows.map((r) => ({
+    round: r.round,
+    name: r.race_name,
+    nameJa: r.race_name,
+    circuit: r.circuit?.circuit_name ?? r.circuit_name ?? '',
+    circuitJa: r.circuit?.circuit_name ?? r.circuit_name ?? '',
+    country: r.country?.country_name ?? r.country_name ?? '',
+    countryJa: r.country?.country_name ?? r.country_name ?? '',
+    flag: '',
+    date: r.date?.slice(0, 10) ?? r.date ?? null,
+    laps: r.laps_total ?? null,
+    lengthKm: null,
+    turns: null,
+    drsZones: null,
+    lapRecord: null
+  }))
+  // requested season first, then the last published one
+  for (const sy of [y, y - 1]) {
+    const data = await fetchJSON(`${JOLPICA}/${sy}/races/?limit=100`)
+    const rows = Array.isArray(data) ? data : data?.results
+    if (rows?.length) return { source: 'live', season: sy, requestedSeason: y, races: mapRows(rows) }
   }
   const snap = readSnapshot()
   if (snap?.year === y && snapshotFresh(snap) && snap.races?.length) {
@@ -141,19 +142,19 @@ async function getCalendar(year) {
 
 async function getStandings(year, type) {
   const y = Number(year) || new Date().getFullYear()
-  const base = `${JOLPICA}/${y}`
-  if (type === 'constructors') {
-    const data = await fetchJSON(`${base}/constructors/?limit=100`)
+  const map = (rows) => rows.map((r) => ({
+    position: r.position,
+    name: type === 'constructors' ? (r.team_name ?? r.constructor_name ?? r.name) : (r.driver_name ?? r.name),
+    team: type === 'constructors' ? undefined : (r.team_name ?? r.constructor_name ?? ''),
+    points: r.points ?? 0,
+    wins: r.wins ?? 0
+  }))
+  // requested season first, then the last published one
+  for (const sy of [y, y - 1]) {
+    const path = type === 'constructors' ? 'constructors' : 'drivers'
+    const data = await fetchJSON(`${JOLPICA}/${sy}/${path}/?limit=100`)
     const rows = Array.isArray(data) ? data : data?.results
-    if (rows?.length) {
-      return { source: 'live', season: y, standings: rows.map((r) => ({ position: r.position, name: r.team_name ?? r.constructor_name ?? r.name, points: r.points ?? 0, wins: r.wins ?? 0 })) }
-    }
-  } else {
-    const data = await fetchJSON(`${base}/drivers/?limit=100`)
-    const rows = Array.isArray(data) ? data : data?.results
-    if (rows?.length) {
-      return { source: 'live', season: y, standings: rows.map((r) => ({ position: r.position, name: r.driver_name ?? r.name, team: r.team_name ?? r.constructor_name ?? '', points: r.points ?? 0, wins: r.wins ?? 0 })) }
-    }
+    if (rows?.length) return { source: 'live', season: sy, requestedSeason: y, standings: map(rows) }
   }
   const snap = readSnapshot()
   const key = type === 'constructors' ? 'constructors' : 'drivers'

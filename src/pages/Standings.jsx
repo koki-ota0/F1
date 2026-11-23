@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLang } from '../lib/i18n.jsx'
 import { getStandings, getJSON, usePolled } from '../lib/api.js'
-import { SectionHead, Loading, EmptyState, LiveBadge } from '../components/common.jsx'
+import { SectionHead, Loading, EmptyState, LiveBadge, Badge } from '../components/common.jsx'
 import { useFan } from '../components/FanProvider.jsx'
 import { useLiveRefresh } from '../components/RefreshProvider.jsx'
 
@@ -44,10 +44,17 @@ export default function Standings() {
     <section className="section">
       <div className="container">
         <SectionHead
-          eyebrow="CHAMPIONSHIP"
+          eyebrow={`CHAMPIONSHIP ${data?.season || year}`}
           title={t('standings.title')}
           sub={t('standings.sub')}
-          right={<LiveBadge live={isLive} />}
+          right={
+            <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+              {data?.season && data.season !== year && (
+                <Badge kind="gold">{t('standings.showingSeason', { season: data.season })}</Badge>
+              )}
+              <LiveBadge live={isLive} />
+            </span>
+          }
         />
 
         <div className="tabs" style={{ marginBottom: 20 }}>

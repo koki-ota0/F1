@@ -52,7 +52,13 @@ const click = (win, el) => el.dispatchEvent(new win.MouseEvent('click', { bubble
   ok('refresh: navbar button present', !!btn)
   ok('refresh: initial page renders standings', win.document.body.textContent.length > 200)
   if (btn) click(win, btn)
-  await wait(4000)
+  // refresh runs several season-aware requests; wait until it settles
+  let settled = false
+  for (let i = 0; i < 30 && !settled; i++) {
+    await wait(500)
+    settled = !!win.localStorage.getItem('pitwall.live.status')
+  }
+  await wait(500)
   const txt = win.document.body.textContent
   // sandbox has no outbound F1 API, so the honest outcome is the offline report
   ok('refresh: reports an outcome', /LIVE|オフライン|Offline/.test(txt))
@@ -78,8 +84,9 @@ if (process.env.MOCK_F1 === '1') {
   ok('refresh-mock: no runtime errors', errors.length === 0)
 
   const st = await open('/standings')
-  await st.wait(1200)
+  await st.wait(1500)
   ok('refresh-mock: standings page uses cached mock data', /QA Racer/.test(st.win.document.body.textContent))
+  ok('refresh-mock: season-fallback label shown', /シーズンを表示中|Showing .* season/.test(st.win.document.body.textContent))
 }
 
 console.log(`\n${pass}/${total} checks passed`)

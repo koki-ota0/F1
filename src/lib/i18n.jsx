@@ -43,6 +43,7 @@ export const dict = {
     'live.notes': '黄旗・安全車・赤旗の情報はライブAPIから取得します。',
 
     'standings.title': '順位表', 'standings.sub': 'ドライバー / コンストラクターズの今季順位と歴代記録',
+    'standings.showingSeason': (s) => `${s}年シーズンを表示中`,
     'standings.drivers': 'ドライバーズ', 'standings.constructors': 'コンストラクターズ', 'standings.position': '順位',
     'standings.driver': 'ドライバー', 'standings.team': 'チーム', 'standings.points': 'ポイント', 'standings.wins': '優勝',
     'standings.allTime': '歴代チャンピオン', 'standings.champions': '歴代チャンピオン', 'standings.records': 'オールタイム記録',
@@ -189,6 +190,7 @@ export const dict = {
     'live.notes': 'Flags, safety car and red flags come from the live API.',
 
     'standings.title': 'Standings', 'standings.sub': 'This season’s drivers & constructors, plus the history books.',
+    'standings.showingSeason': (s) => `Showing ${s} season`,
     'standings.drivers': 'Drivers', 'standings.constructors': 'Constructors', 'standings.position': 'Pos',
     'standings.driver': 'Driver', 'standings.team': 'Team', 'standings.points': 'Points', 'standings.wins': 'Wins',
     'standings.allTime': 'Champions', 'standings.champions': 'Champions', 'standings.records': 'All-time records',
