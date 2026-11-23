@@ -43,6 +43,12 @@ export function readStatus() {
   return load(STATUS_KEY, { at: null, results: [], okCount: 0 })
 }
 
+/** generic raw cache slot for per-race data etc. */
+export function readCacheRaw(key) { return load(`live.${key}`, null) }
+export function writeCacheRaw(key, payload) {
+  save(`live.${key}`, { at: new Date().toISOString(), ...payload })
+}
+
 // ---------- fetchers ----------
 async function timed(name, fn) {
   const t0 = performance.now()

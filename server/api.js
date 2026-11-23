@@ -242,6 +242,57 @@ router.get('/standings', async (req, res) => {
   res.json(await getStandings(req.query.year, type))
 })
 
+// Race results: live classification per round; season summary falls back to the
+// bundled archive of the last completed season.
+const archiveResults = read('results-2025.json')
+const archiveStandings = read('standings-2025.json')
+
+async function getRaceResult(year, round) {
+  const y = Number(year) || season.current
+  const r = Number(round)
+  if (!r) return { source: 'offline', season: y, classification: [], note: 'round required' }
+  try {
+    const data = await fetchJSON(`${JOLPICA}/${y}/${r}/results/?limit=100`)
+    const rows = Array.isArray(data) ? data : data?.results
+    if (rows?.length) {
+      return {
+        source: 'live',
+        season: y,
+        round: r,
+        classification: rows.map((x, i) => ({
+          position: x.position ?? i + 1,
+          driver: x.driver_name ?? x.full_name ?? x.name ?? '',
+          team: x.team_name ?? x.constructor_name ?? '',
+          points: x.points ?? 0,
+          time: x.time ?? null,
+          status: x.status ?? ''
+        }))
+      }
+    }
+  } catch { /* fall through */ }
+  if (archiveResults?.season === y && archiveResults.rounds?.length) {
+    return { source: 'archive', season: y, classification: [], note: 'archive has no per-race classification' }
+  }
+  return { source: 'offline', season: y, classification: [] }
+}
+
+router.get('/results', async (req, res) => {
+  const y = Number(req.query.year) || season.current
+  if (req.query.round) return res.json(await getRaceResult(y, req.query.round))
+  try {
+    // live season summary: reuse the calendar feed's race order + winners when available
+    const data = await fetchJSON(`${JOLPICA}/${y}/races/?limit=100`)
+    const rows = Array.isArray(data) ? data : data?.results
+    if (rows?.length) {
+      return res.json({ source: 'live', season: y, rounds: rows.map((r) => ({ round: r.round, name: r.race_name, date: (r.date ?? '').slice(0, 10) || null })) })
+    }
+  } catch { /* fall through */ }
+  if (archiveResults?.rounds?.length && y >= archiveResults.season) {
+    return res.json({ source: 'archive', season: archiveResults.season, rounds: archiveResults.rounds })
+  }
+  return res.json({ source: 'offline', season: y, rounds: [] })
+})
+
 router.get('/drivers', (_req, res) => {
   res.json(drivers.map((d) => ({ ...d, teamInfo: teamById[d.team] ?? null })))
 })

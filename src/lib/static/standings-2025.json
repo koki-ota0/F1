@@ -1,0 +1,41 @@
+{
+  "season": 2025,
+  "source": "Wikipedia『2025 Formula One World Championship』（FIA 2025 Abu Dhabi GP – Championship Points PDF 参照）",
+  "retrievedAt": "2026-11-23T00:00:00Z",
+  "note": "オフラインバンドル。APIが現シーズンを返さない場合の最終フォールバック。",
+  "drivers": [
+    { "position": 1, "name": "Lando Norris", "nameJa": "ランド・ノリス", "team": "McLaren-Mercedes", "teamJa": "マクラーレン", "points": 423, "wins": 9 },
+    { "position": 2, "name": "Max Verstappen", "nameJa": "マックス・フェルスタッペン", "team": "Red Bull Racing-Honda RBPT", "teamJa": "レッドブル", "points": 421, "wins": 9 },
+    { "position": 3, "name": "Oscar Piastri", "nameJa": "オスカー・ピアストリ", "team": "McLaren-Mercedes", "teamJa": "マクラーレン", "points": 410, "wins": 8 },
+    { "position": 4, "name": "George Russell", "nameJa": "ジョージ・ラッセル", "team": "Mercedes", "teamJa": "メルセデス", "points": 319, "wins": 2 },
+    { "position": 5, "name": "Charles Leclerc", "nameJa": "シャルル・ルクレール", "team": "Ferrari", "teamJa": "フェラーリ", "points": 242, "wins": 0 },
+    { "position": 6, "name": "Lewis Hamilton", "nameJa": "ルイス・ハミルトン", "team": "Ferrari", "teamJa": "フェラーリ", "points": 156, "wins": 0 },
+    { "position": 7, "name": "Kimi Antonelli", "nameJa": "キミ・アントネッリ", "team": "Mercedes", "teamJa": "メルセデス", "points": 150, "wins": 0 },
+    { "position": 8, "name": "Alexander Albon", "nameJa": "アレクサンダー・アルボン", "team": "Williams-Mercedes", "teamJa": "ウィリアムズ", "points": 73, "wins": 0 },
+    { "position": 9, "name": "Carlos Sainz Jr.", "nameJa": "カルロス・サインス", "team": "Williams-Mercedes", "teamJa": "ウィリアムズ", "points": 64, "wins": 0 },
+    { "position": 10, "name": "Fernando Alonso", "nameJa": "フェルナンド・アロンソ", "team": "Aston Martin Aramco-Mercedes", "teamJa": "アストンマーティン", "points": 56, "wins": 0 },
+    { "position": 11, "name": "Nico Hülkenberg", "nameJa": "ニコ・ヒュルケンベルク", "team": "Kick Sauber-Ferrari", "teamJa": "ザウバー", "points": 51, "wins": 0 },
+    { "position": 12, "name": "Isack Hadjar", "nameJa": "アイサック・ハジール", "team": "Racing Bulls-Honda RBPT", "teamJa": "RB", "points": 51, "wins": 0 },
+    { "position": 13, "name": "Oliver Bearman", "nameJa": "オリバー・ベアマン", "team": "Haas-Ferrari", "teamJa": "ハース", "points": 41, "wins": 0 },
+    { "position": 14, "name": "Liam Lawson", "nameJa": "リアム・ローソン", "team": "Racing Bulls-Honda RBPT", "teamJa": "RB", "points": 38, "wins": 0 },
+    { "position": 15, "name": "Esteban Ocon", "nameJa": "エステバン・オコン", "team": "Haas-Ferrari", "teamJa": "ハース", "points": 38, "wins": 0 },
+    { "position": 16, "name": "Lance Stroll", "nameJa": "ランス・ストロール", "team": "Aston Martin Aramco-Mercedes", "teamJa": "アストンマーティン", "points": 33, "wins": 0 },
+    { "position": 17, "name": "Yuki Tsunoda", "nameJa": "ユキ・ツノダ", "team": "Racing Bulls-Honda RBPT", "teamJa": "RB", "points": 33, "wins": 0 },
+    { "position": 18, "name": "Pierre Gasly", "nameJa": "ピエール・ガスリー", "team": "Alpine-Renault", "teamJa": "アルピーヌ", "points": 22, "wins": 0 },
+    { "position": 19, "name": "Gabriel Bortoleto", "nameJa": "ガブリエル・ボルトレト", "team": "Kick Sauber-Ferrari", "teamJa": "ザウバー", "points": 11, "wins": 0 },
+    { "position": 20, "name": "Franco Colapinto", "nameJa": "フランコ・コラピント", "team": "Alpine-Renault", "teamJa": "アルピーヌ", "points": 0, "wins": 0 },
+    { "position": 21, "name": "Jack Doohan", "nameJa": "ジャック・ドゥーン", "team": "Alpine-Renault", "teamJa": "アルピーヌ", "points": 0, "wins": 0 }
+  ],
+  "constructors": [
+    { "position": 1, "name": "McLaren-Mercedes", "nameJa": "マクラーレン・メルセデス", "points": 833, "wins": 12 },
+    { "position": 2, "name": "Mercedes", "nameJa": "メルセデス", "points": 469, "wins": 3 },
+    { "position": 3, "name": "Red Bull Racing-Honda RBPT", "nameJa": "レッドブル・ホンダRBPT", "points": 451, "wins": 9 },
+    { "position": 4, "name": "Ferrari", "nameJa": "フェラーリ", "points": 398, "wins": 0 },
+    { "position": 5, "name": "Williams-Mercedes", "nameJa": "ウィリアムズ・メルセデス", "points": 137, "wins": 0 },
+    { "position": 6, "name": "Racing Bulls-Honda RBPT", "nameJa": "RB・ホンダRBPT", "points": 92, "wins": 0 },
+    { "position": 7, "name": "Aston Martin Aramco-Mercedes", "nameJa": "アストンマーティン", "points": 89, "wins": 0 },
+    { "position": 8, "name": "Haas-Ferrari", "nameJa": "ハース・フェラーリ", "points": 79, "wins": 0 },
+    { "position": 9, "name": "Kick Sauber-Ferrari", "nameJa": "キック・ザウバー", "points": 70, "wins": 0 },
+    { "position": 10, "name": "Alpine-Renault", "nameJa": "アルピーヌ・ルノー", "points": 20, "wins": 0 }
+  ]
+}

@@ -172,7 +172,7 @@ export default function Social() {
                     <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap' }}>
                       <button className="btn sm ghost" onClick={() => like(p.id)}>♥ {p.likes} {t('social.likes')}</button>
                       <button className="btn sm ghost" onClick={() => toggleReplies(p)}>
-                        💬 {t('social.replyCount')((openReplies[p.id] || p.replies || []).length)}
+                        💬 {t('social.replyCount', (openReplies[p.id] || p.replies || []).length)}
                       </button>
                     </div>
                     {openReplies[p.id] && (

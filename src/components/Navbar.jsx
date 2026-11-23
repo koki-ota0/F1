@@ -16,6 +16,7 @@ export default function Navbar() {
   const links = [
     ['/live', t('nav.live')],
     ['/standings', t('nav.standings')],
+    ['/results', t('nav.results')],
     ['/calendar', t('nav.calendar')],
     ['/drivers', t('nav.drivers')],
     ['/teams', t('nav.teams')]
@@ -23,7 +24,8 @@ export default function Navbar() {
   const games = [
     ['/predict', t('nav.predict')],
     ['/sim', t('nav.sim')],
-    ['/quiz', t('nav.quiz')]
+    ['/quiz', t('nav.quiz')],
+    ['/garage', t('nav.garage')]
   ]
 
   return (
@@ -52,7 +54,7 @@ export default function Navbar() {
             className={`btn sm ${badgeTone === 'ok' ? 'primary' : ''}`}
             onClick={refresh}
             disabled={busy}
-            title={lastAt ? t('nav.lastRefresh')(lastAt) : t('nav.refreshHint')}
+            title={lastAt ? t('nav.lastRefresh', lastAt) : t('nav.refreshHint')}
           >
             {busy ? t('nav.refreshing') : '🔄 ' + t('nav.refresh')}
           </button>

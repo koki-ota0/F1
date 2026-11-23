@@ -435,3 +435,17 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; min-width
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* PITWALL GARAGE (3D viewer) */
+.garage-badge {
+  position: absolute; top: 14px; left: 16px; z-index: 2;
+  font-family: var(--font-display); letter-spacing: .12em; font-size: 13px;
+  color: var(--muted); text-transform: uppercase;
+}
+.garage-zoom {
+  position: absolute; z-index: 2; width: 40px; height: 40px; padding: 0;
+  font-size: 18px; display: grid; place-items: center;
+  background: rgba(20,24,31,.85); backdrop-filter: blur(4px);
+}
+.garage-zoom:first-of-type { right: 72px; bottom: 16px; }
+.garage-zoom:last-of-type { right: 16px; bottom: 16px; }

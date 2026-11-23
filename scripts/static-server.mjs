@@ -28,8 +28,10 @@ http.createServer((req, res) => {
   const urlPath = decodeURIComponent((req.url || '/').split('?')[0])
   let file = path.join(DIST, urlPath)
   if (!file.startsWith(DIST)) { res.writeHead(403); return res.end() }
+  // GitHub Pages serves 404.html with an actual 404 status for unknown paths
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-    file = path.join(DIST, '404.html')
+    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' })
+    return fs.createReadStream(path.join(DIST, '404.html')).pipe(res)
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' })
   fs.createReadStream(file).pipe(res)
