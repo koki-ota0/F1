@@ -115,19 +115,29 @@ export async function getCalendar(year) {
     if (srv?.races?.length) return srv          // server bundle / snapshot tier
   } catch { /* fall through */ }
 
-  // static hosts: browser talks to the public API directly
-  const direct = await tryBrowser(`${LIVE_BASES.f1}/${year}/races/?limit=100`, 6000)
-  const rows = Array.isArray(direct) ? direct : direct?.results
-  if (Array.isArray(rows) && rows.length) {
-    const races = toRaces(rows)
-    writeLive('calendar', year, { races })
-    return { source: 'live', season: year, seasonLabel: year, races }
+  // static hosts: browser talks to the public API directly. If the requested
+  // season is not published yet, fall back to the last available one.
+  let season = null
+  let races = null
+  for (const y of [year, year - 1]) {
+    const direct = await tryBrowser(`${LIVE_BASES.f1}/${y}/races/?limit=100`, 6000)
+    const rows = Array.isArray(direct) ? direct : direct?.results
+    if (Array.isArray(rows) && rows.length) {
+      season = y
+      races = toRaces(rows)
+      break
+    }
+  }
+  if (races) {
+    writeLive('calendar', year, { season, races })
+    return { source: 'live', season, seasonLabel: season, races }
   }
 
   // freshest manually-refreshed snapshot (GitHub Pages flow)
   const cached = readLive('calendar', year)
   if (cached?.races?.length) {
-    return { source: 'cache', season: year, seasonLabel: year, races: cached.races, updatedAt: cached.at }
+    const s = cached.season || year
+    return { source: 'cache', season: s, seasonLabel: s, races: cached.races, updatedAt: cached.at }
   }
 
   // last resort: client-bundled current-season dataset (works offline)
@@ -150,16 +160,20 @@ export async function getStandings(year, type) {
     const srv = await getJSON(`/api/standings?year=${year}&type=${type}`)
     if (srv?.source === 'live' && srv.standings?.length) return srv
   } catch { /* fall through */ }
-  const direct = await tryBrowser(`${LIVE_BASES.f1}/${year}/${type}/?limit=100`, 6000)
-  const rows = Array.isArray(direct) ? direct : direct?.results
-  if (Array.isArray(rows) && rows.length) {
-    const standings = mapRows(rows, type)
-    writeLive(type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers', year, { standings })
-    return { source: 'live', season: year, standings }
+  const kind = type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers'
+  for (const y of [year, year - 1]) {
+    const direct = await tryBrowser(`${LIVE_BASES.f1}/${y}/${type}/?limit=100`, 6000)
+    const rows = Array.isArray(direct) ? direct : direct?.results
+    if (Array.isArray(rows) && rows.length) {
+      const standings = mapRows(rows, type)
+      writeLive(kind, year, { season: y, standings })
+      return { source: 'live', season: y, standings }
+    }
   }
-  const cached = readLive(type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers', year)
+  const cached = readLive(kind, year)
   if (cached?.standings?.length) {
-    return { source: 'cache', season: year, standings: cached.standings, updatedAt: cached.at }
+    const s = cached.season || year
+    return { source: 'cache', season: s, standings: cached.standings, updatedAt: cached.at }
   }
   try { return await getJSON(`/api/standings?year=${year}&type=${type}`) } catch { return { source: 'offline', season: year, standings: [] } }
 }

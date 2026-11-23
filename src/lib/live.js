@@ -54,6 +54,26 @@ async function timed(name, fn) {
   }
 }
 
+/**
+ * Season-aware fetch: the requested year may not be published yet on the API
+ * (e.g. a future calendar). Fall back to the previous season so the page still
+ * shows real, clearly-labelled standings instead of an empty table.
+ */
+async function fetchSeason(urlForYear, year, maxBack = 2) {
+  let lastError = null
+  for (let y = year; y >= year - maxBack; y--) {
+    try {
+      const d = await fetchJson(urlForYear(y))
+      const rows = Array.isArray(d) ? d : d?.results
+      if (Array.isArray(rows) && rows.length) return { season: y, rows }
+      lastError = new Error('empty')
+    } catch (e) {
+      lastError = e
+    }
+  }
+  throw lastError || new Error('empty')
+}
+
 const mapRaces = (rows) => rows.map((r) => ({
   round: r.round,
   name: r.race_name,
@@ -83,28 +103,22 @@ const mapStandings = (rows) => rows.map((r) => ({
 export async function refreshLive(year = new Date().getFullYear()) {
   const tasks = [
     timed('calendar', async () => {
-      const d = await fetchJson(`${F1}/${year}/races/?limit=100`)
-      const rows = Array.isArray(d) ? d : d?.results
-      if (!Array.isArray(rows) || !rows.length) throw new Error('empty')
+      const { season, rows } = await fetchSeason((y) => `${F1}/${y}/races/?limit=100`, year)
       const races = mapRaces(rows)
-      writeLive('calendar', year, { races })
-      return races.length
+      writeLive('calendar', year, { season, races })
+      return { season, count: races.length }
     }),
     timed('standings.drivers', async () => {
-      const d = await fetchJson(`${F1}/${year}/drivers/?limit=100`)
-      const rows = Array.isArray(d) ? d : d?.results
-      if (!Array.isArray(rows) || !rows.length) throw new Error('empty')
+      const { season, rows } = await fetchSeason((y) => `${F1}/${y}/drivers/?limit=100`, year)
       const standings = mapStandings(rows)
-      writeLive('standingsDrivers', year, { standings })
-      return standings.length
+      writeLive('standingsDrivers', year, { season, standings })
+      return { season, count: standings.length }
     }),
     timed('standings.constructors', async () => {
-      const d = await fetchJson(`${F1}/${year}/constructors/?limit=100`)
-      const rows = Array.isArray(d) ? d : d?.results
-      if (!Array.isArray(rows) || !rows.length) throw new Error('empty')
+      const { season, rows } = await fetchSeason((y) => `${F1}/${y}/constructors/?limit=100`, year)
       const standings = mapStandings(rows)
-      writeLive('standingsConstructors', year, { standings })
-      return standings.length
+      writeLive('standingsConstructors', year, { season, standings })
+      return { season, count: standings.length }
     })
   ]
   const results = await Promise.all(tasks)

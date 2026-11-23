@@ -41,7 +41,7 @@ node scripts/update-data.mjs        # ネット接続できる環境で実行 �
 ```
 
 - URL: `https://<owner>.github.io/F1/`
-- **最新情報の更新**: ナビ右上の「🔄 最新に更新」ボタンを押すと、ブラウザから直接 Jolpica/OpenF1 を取得しカレンダー＋順位をキャッシュ（常時ポーリングなし。オフラインなら直近キャッシュ→同梱2026データを表示）
+- **最新情報の更新**: ナビ右上の「🔄 最新に更新」ボタンを押すと、ブラウザから直接 Jolpica/OpenF1 を取得しカレンダー＋順位をキャッシュ（常時ポーリングなし。要求年が未公開なら**前シーズンを自動で取得**、オフラインなら直近キャッシュ→同梱2026データを表示）
 - ネットワークで直接アクセス出来ない場合はビルド時のベースURL差し替えが使えます:
   ```bash
   VITE_F1_BASE=https://your-proxy.example.com/f1 VITE_OPENF1_BASE=https://your-proxy.example.com/openf1 npm run build

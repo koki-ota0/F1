@@ -1,8 +1,12 @@
 // Tiny Jolpica-shaped mock used only by QA (scripts/interact4.mjs).
-//   node scripts/mock-f1.mjs [port]
+//   node scripts/mock-f1.mjs [port] [latestSeason]
+// Seasons newer than `latestSeason` answer with an empty result set, which lets
+// the QA prove the "fall back to the last published season" behaviour.
 import http from 'node:http'
 
 const port = Number(process.argv[2]) || 4180
+const latest = Number(process.argv[3]) || 2025
+
 const races = [
   { round: 1, race_name: 'Mock Australian Grand Prix', date: '2026-03-06', circuit: { circuit_name: 'Albert Park' }, laps_total: 58 },
   { round: 2, race_name: 'Mock Japanese Grand Prix', date: '2026-03-27', circuit: { circuit_name: 'Suzuka' }, laps_total: 53 }
@@ -17,12 +21,15 @@ const constructors = [
 
 http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${port}`)
+  const year = Number(url.pathname.split('/').filter(Boolean).pop()) || latest
+  const empty = year > latest
   const json = (body) => {
     res.writeHead(200, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ results: body }))
   }
+  if (empty) return json([])
   if (url.pathname.endsWith('/races/')) return json(races)
   if (url.pathname.endsWith('/drivers/')) return json(drivers)
   if (url.pathname.endsWith('/constructors/')) return json(constructors)
   res.writeHead(404); res.end('{}')
-}).listen(port, '0.0.0.0', () => console.log(`mock F1 API → http://0.0.0.0:${port}`))
+}).listen(port, '0.0.0.0', () => console.log(`mock F1 API → http://0.0.0.0:${port} (latest season ${latest})`))
