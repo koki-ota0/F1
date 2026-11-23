@@ -1,0 +1,90 @@
+[
+  {
+    "id": "n1",
+    "title": "ルイス・ハミルトン、2025年からフェラーリに移籍",
+    "titleEn": "Lewis Hamilton moves to Ferrari from 2025",
+    "source": "F1公式 / Formula1.com",
+    "date": "2024-02-01",
+    "tag": "移籍 / Transfer",
+    "summary": "7度の世界チャンピオンがメルセデスを離れ、2025年シーズンからフェラーリでレクレールとコンビを組むことが発表されました。",
+    "summaryEn": "The seven-time champion leaves Mercedes to partner Charles Leclerc at Ferrari from 2025.",
+    "url": "https://www.formula1.com"
+  },
+  {
+    "id": "n2",
+    "title": "2026年、キャデラック（GM）が11チーム目としてF1参戦を正式承認",
+    "titleEn": "Cadillac (GM) formally approved as F1's 11th team for 2026",
+    "source": "F1公式 / Formula1.com",
+    "date": "2025-03-06",
+    "tag": "新規参戦 / New team",
+    "summary": "GMのキャデラックが2026年から参戦。フェラーリのPUを搭載するワークスチームとしてグリッドが11チームに。",
+    "summaryEn": "Cadillac joins the grid in 2026 with Ferrari power units, expanding the field to 11 teams.",
+    "url": "https://www.formula1.com"
+  },
+  {
+    "id": "n3",
+    "title": "アウディ、ザウバーを引き継ぎ2026年ワークス参戦へ",
+    "titleEn": "Audi takes over Sauber for a 2026 works entry",
+    "source": "Autosport",
+    "date": "2024-03-08",
+    "tag": "新規参戦 / New team",
+    "summary": "ザウバーが2026年に「Audi」として生まれ変わることが発表されました。ニコ・ヒュルケンベルクや新人の起用が注目されます。",
+    "summaryEn": "Sauber will race as Audi from 2026, with Hulkenberg and rookies in the spotlight.",
+    "url": "https://www.autosport.com"
+  },
+  {
+    "id": "n4",
+    "title": "2025年開幕はオーストラリアGP。3月16日アルバート・パーク",
+    "titleEn": "2025 season opens with the Australian GP at Albert Park",
+    "source": "F1公式 / Formula1.com",
+    "date": "2024-12-06",
+    "tag": "カレンダー / Calendar",
+    "summary": "2025年はオーストラリアGPが開幕戦に。中国GPと日本GPが続く超速開始となります。",
+    "summaryEn": "Australia opens the 2025 season, followed by China and Japan in a rapid-fire start.",
+    "url": "https://www.formula1.com"
+  },
+  {
+    "id": "n5",
+    "title": "角田裕毅、RBの中核として2025年シーズンへ意気込み",
+    "titleEn": "Yuki Tsunoda aims to lead RB into 2025",
+    "source": "Crash.net",
+    "date": "2025-02-20",
+    "tag": "ドライバー / Driver",
+    "summary": "日本GP（鈴鹿）でも注目の的となる角田。RBでの成長が日本ファンの関心を集めています。",
+    "summaryEn": "All eyes on Tsunoda at Suzuka as he targets a leading role at RB.",
+    "url": "https://www.crash.net"
+  },
+  {
+    "id": "n6",
+    "title": "2025年は24レース。ラスベガス・クパを含め史上最多規模",
+    "titleEn": "2025 features a record 24 races",
+    "source": "F1公式 / Formula1.com",
+    "date": "2024-06-18",
+    "tag": "カレンダー / Calendar",
+    "summary": "2025年シーズンは過去最多の24戦。3月から12月まで長く密度の高い日程が続きます。",
+    "summaryEn": "A record-equalling 24-round calendar runs from March to December.",
+    "url": "https://www.formula1.com"
+  },
+  {
+    "id": "n7",
+    "title": "メルセデス、超新星アントネッリを2025年シートに抜擢",
+    "titleEn": "Mercedes promotes Antonelli to a 2025 race seat",
+    "source": "Autosport",
+    "date": "2024-09-01",
+    "tag": "ルーキー / Rookie",
+    "summary": "ハミルトン後任として期待されるイタリア人アントネッリが、F2からいきなりメルセデスに。",
+    "summaryEn": "Italian Antonelli jumps straight from F2 to Mercedes as Hamilton's successor-in-waiting.",
+    "url": "https://www.autosport.com"
+  },
+  {
+    "id": "n8",
+    "title": "ラスベガスGPでノリスが2024年ドライバーズタイトルを確定",
+    "titleEn": "Norris clinches 2024 title in Las Vegas",
+    "source": "F1公式 / Formula1.com",
+    "date": "2024-11-23",
+    "tag": "チャンピオン / Champion",
+    "summary": "マクラーレンドライバーのノリスが2024年ドライバーズチャンピオンに。マクラーレンもコンストラクターズ制覇。",
+    "summaryEn": "Norris is crowned 2024 drivers' champion as McLaren take the constructors' crown.",
+    "url": "https://www.formula1.com"
+  }
+]

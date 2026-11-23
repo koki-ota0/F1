@@ -1,0 +1,17 @@
+[
+  { "year": 2024, "driver": "Lando Norris", "driverJa": "ランド・ノリス", "team": "McLaren", "teamJa": "マクラーレン", "points": "464", "note": "2024年ラスベガスGPでタイトル確定" },
+  { "year": 2023, "driver": "Max Verstappen", "driverJa": "マックス・フェルスタッペン", "team": "Red Bull", "teamJa": "レッドブル", "points": "575", "note": "19勝。シーズン勝率記録" },
+  { "year": 2022, "driver": "Max Verstappen", "driverJa": "マックス・フェルスタッペン", "team": "Red Bull", "teamJa": "レッドブル", "points": "454", "note": "" },
+  { "year": 2021, "driver": "Max Verstappen", "driverJa": "マックス・フェルスタッペン", "team": "Red Bull", "teamJa": "レッドブル", "points": "395.5", "note": "アブダビ最終ラップの逆転劇" },
+  { "year": 2020, "driver": "Lewis Hamilton", "driverJa": "ルイス・ハミルトン", "team": "Mercedes", "teamJa": "メルセデス", "points": "347", "note": "" },
+  { "year": 2019, "driver": "Lewis Hamilton", "driverJa": "ルイス・ハミルトン", "team": "Mercedes", "teamJa": "メルセデス", "points": "413", "note": "" },
+  { "year": 2018, "driver": "Lewis Hamilton", "driverJa": "ルイス・ハミルトン", "team": "Mercedes", "teamJa": "メルセデス", "points": "381", "note": "" },
+  { "year": 2017, "driver": "Lewis Hamilton", "driverJa": "ルイス・ハミルトン", "team": "Mercedes", "teamJa": "メルセデス", "points": "383", "note": "" },
+  { "year": 2016, "driver": "Nico Rosberg", "driverJa": "ニコ・ロズベルグ", "team": "Mercedes", "teamJa": "メルセデス", "points": "385", "note": "現役引退を発表" },
+  { "year": 2015, "driver": "Lewis Hamilton", "driverJa": "ルイス・ハミルトン", "team": "Mercedes", "teamJa": "メルセデス", "points": "381", "note": "" },
+  { "year": 2014, "driver": "Lewis Hamilton", "driverJa": "ルイス・ハミルトン", "team": "Mercedes", "teamJa": "メルセデス", "points": "384", "note": "第2章の開幕年" },
+  { "year": 2013, "driver": "Sebastian Vettel", "driverJa": "セバスチャン・ベッテル", "team": "Red Bull", "teamJa": "レッドブル", "points": "397", "note": "4連覇の最終年" },
+  { "year": 2012, "driver": "Sebastian Vettel", "driverJa": "セバスチャン・ベッテル", "team": "Red Bull", "teamJa": "レッドブル", "points": "281", "note": "" },
+  { "year": 2011, "driver": "Sebastian Vettel", "driverJa": "セバスチャン・ベッテル", "team": "Red Bull", "teamJa": "レッドブル", "points": "392", "note": "史上最年長23歳で2冠" },
+  { "year": 2010, "driver": "Sebastian Vettel", "driverJa": "セバスチャン・ベッテル", "team": "Red Bull", "teamJa": "レッドブル", "points": "256", "note": "史上最年少チャンピオン（当時）" }
+]

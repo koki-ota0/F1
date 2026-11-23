@@ -6,6 +6,9 @@
   "description": "PITWALL - the all-in-one F1 fan hub (live timing, standings, predictions, race sim, quiz, fan zone)",
   "scripts": {
     "dev": "vite",
+    "bundle": "node scripts/sync-bundle.mjs",
+    "prebuild": "node scripts/sync-bundle.mjs",
+    "postbuild": "node scripts/postbuild.mjs",
     "build": "vite build",
     "start": "node server/index.js",
     "serve": "npm run build && node server/index.js"
