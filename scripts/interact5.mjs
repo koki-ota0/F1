@@ -1,4 +1,4 @@
-// v2.2 QA — results archive, driver photos, 3D garage (graceful degradation).
+// v2.4 QA — results archive, driver photos, drawer nav.
 import { JSDOM, VirtualConsole } from 'jsdom'
 import { build } from 'esbuild'
 import fs from 'node:fs'
@@ -6,7 +6,7 @@ import path from 'node:path'
 
 const base = process.env.BASE || 'http://localhost:3000'
 const distAssets = path.join(process.cwd(), 'dist', 'assets')
-const entry = fs.readdirSync(distAssets).find((f) => f.endsWith('.js') && !f.includes('three'))
+const entry = fs.readdirSync(distAssets).find((f) => f.endsWith('.js'))
 await build({ entryPoints: [path.join(distAssets, entry)], bundle: true, format: 'iife', platform: 'browser', target: 'es2020', outfile: '/tmp/pitwall.v22.js', logLevel: 'silent' })
 const bundle = fs.readFileSync('/tmp/pitwall.v22.js', 'utf8')
 
@@ -31,7 +31,6 @@ async function open(route) {
       window.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
       window.requestAnimationFrame = (cb) => setTimeout(() => cb(Date.now()), 16)
       window.cancelAnimationFrame = clearTimeout
-      // no real WebGL in jsdom → the garage must degrade instead of crashing
       window.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} }
     }
   })
@@ -76,19 +75,18 @@ async function open(route) {
   ok('drivers: no runtime errors', errors.length === 0)
 }
 
-// ---- 3D garage degrades gracefully without WebGL
+// ---- single-row header + slide-in drawer navigation
 {
-  const { win, errors, waitFor } = await open('/garage')
-  const stage = await waitFor(() => win.document.querySelector('.garage-stage'), 5000)
-  ok('garage: stage mounted', !!stage)
-  await new Promise((r) => setTimeout(r, 1500))
-  const txt = win.document.body.textContent
-  ok('garage: team selector present', /マクラーレン|McLaren/.test(txt))
-  ok('garage: graceful message without WebGL', /WebGL|静的表示|static view/.test(txt))
-  // jsdom has no canvas implementation; that noise is expected and must not crash
-  const real = errors.filter((e) => !/getContext\(\)/.test(e))
-  if (real.length) console.log('   garage errors:', real.slice(0, 3))
-  ok('garage: no runtime errors', real.length === 0)
+  const { win, errors, waitFor } = await open('/')
+  const burger = await waitFor(() => win.document.querySelector('.burger'), 5000)
+  ok('nav: burger present (no inline link row)', !!burger && win.document.querySelectorAll('.nav-links a').length === 0)
+  burger.click()
+  const drawer = await waitFor(() => win.document.querySelector('.drawer.open'), 3000)
+  ok('nav: drawer opens', !!drawer)
+  const links = win.document.querySelectorAll('.drawer.open a.drawer-link')
+  ok('nav: drawer lists all sections (>= 14)', links.length >= 14)
+  ok('nav: no garage route left', !/ガレージ|Garage/.test(win.document.body.textContent))
+  ok('nav: no runtime errors', errors.length === 0)
 }
 
 // ---- live classification via mock F1 API (VITE_F1_BASE=<mock>)

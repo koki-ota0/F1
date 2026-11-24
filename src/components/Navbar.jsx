@@ -50,7 +50,6 @@ export default function Navbar() {
       ['/predict', t('nav.predict'), '🎯'],
       ['/sim', t('nav.sim'), '🏎️'],
       ['/quiz', t('nav.quiz'), '🧠'],
-      ['/garage', t('nav.garage'), '🔧'],
     ]],
     ['COMMUNITY', [
       ['/news', t('nav.news'), '📰'],

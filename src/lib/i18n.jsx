@@ -51,11 +51,6 @@ export const dict = {
 
     'standings.title': '順位表', 'standings.sub': 'ドライバー / コンストラクターズの今季順位と歴代記録',
     'standings.showingSeason': (s) => `${s}年シーズンを表示中`,
-    'garage.title': 'ガレージ（3Dマシン）', 'garage.sub': 'チームカラーのF1マシンを、約90パーツのプロシージャルモデルで3D表示。ドラッグで回転、＋/−・ホイール・ピンチでズーム。',
-    'garage.hint': 'ドラッグ: 回転 / ＋−・ホイール・ピンチ: ズーム',
-    'garage.pickTeam': 'チームを選択', 'garage.zoomIn': 'ズームイン', 'garage.zoomOut': 'ズームアウト',
-    'garage.unsupported': 'この環境では3Dレンダリングを利用できないため、静止画で表示しています（モデルは隠れています）',
-    'garage.noModel': '3Dライブラリを読み込めませんでした。ネットワーク接続を確認してください',
     'results.title': 'レース結果', 'results.sub': 'ラウンド別の優勝・ポール・ファステストラップ。クリックで全順位表。',
     'results.live': 'ライブ取得', 'results.archive': 'アーカイブ（2025）', 'results.seasonSuffix': '年',
     'results.archiveBanner': 'オフラインバンドル', 'results.archiveMsg': '同梱した前年シーズンの公式結果を表示中です。最新は「🔄 最新に更新」または OpenF1 / Jolpica 到達時に自動切替。',
@@ -143,7 +138,7 @@ export const dict = {
     'glossary.degradation': 'タイヤ劣化（デグラデーション）', 'glossary.degradation.d': '走るほどタイヤが減ってグリップが落ちること。ピット戦略の要。',
     'home.glossary': 'F1用語ミニ辞典',
 
-    'nav.social': 'ファンSNS', 'nav.league': '予測リーグ', 'nav.results': 'レース結果', 'nav.garage': 'ガレージ3D',
+    'nav.social': 'ファンSNS', 'nav.league': '予測リーグ', 'nav.results': 'レース結果',
     'nav.refresh': '最新に更新', 'nav.refreshing': '更新中…', 'nav.lastRefresh': (t) => `最終更新 ${t}`,
     'nav.refreshHint': '公共F1 APIからカレンダー/順位を取得してキャッシュに保存します',
     'nav.refreshOffline': 'オフライン（キャッシュ/バンドル表示）', 'nav.fanLevel': 'ファンレベル',
@@ -225,11 +220,6 @@ export const dict = {
 
     'standings.title': 'Standings', 'standings.sub': 'This season’s drivers & constructors, plus the history books.',
     'standings.showingSeason': (s) => `Showing ${s} season`,
-    'garage.title': 'The Garage (3D car)', 'garage.sub': 'An F1 car built from ~90 procedural parts in team colours, rendered in 3D. Drag to rotate, +/−, wheel or pinch to zoom.',
-    'garage.hint': 'Drag to rotate · +/−, wheel or pinch to zoom',
-    'garage.pickTeam': 'Choose team', 'garage.zoomIn': 'Zoom in', 'garage.zoomOut': 'Zoom out',
-    'garage.unsupported': '3D rendering is not available in this environment, so the model is hidden (static view)',
-    'garage.noModel': 'The 3D library could not be loaded. Check your connection.',
     'results.title': 'Race results', 'results.sub': 'Winners, poles and fastest laps by round. Click a card for the full classification.',
     'results.live': 'Live', 'results.archive': 'Archive (2025)', 'results.seasonSuffix': '',
     'results.archiveBanner': 'Offline bundle', 'results.archiveMsg': 'Showing bundled results for the previous season. Latest data loads automatically when OpenF1 / Jolpica is reachable, or via the Refresh button.',
@@ -316,7 +306,7 @@ export const dict = {
     'glossary.safetycar': 'Safety car', 'glossary.safetycar.d': 'Leads the field at reduced speed when there is danger. A golden pit-stop window.',
     'glossary.degradation': 'Tyre degradation', 'glossary.degradation.d': 'Tyres wear and lose grip — the key to pit strategy.',
 
-    'nav.social': 'Fan SNS', 'nav.league': 'Leagues', 'nav.results': 'Results', 'nav.garage': '3D Garage',
+    'nav.social': 'Fan SNS', 'nav.league': 'Leagues', 'nav.results': 'Results',
     'nav.refresh': 'Refresh', 'nav.refreshing': 'Refreshing…', 'nav.lastRefresh': (t) => `Updated ${t}`,
     'nav.refreshHint': 'Fetch calendar & standings from the public F1 APIs and cache them',
     'nav.refreshOffline': 'Offline (showing cached/bundled data)', 'nav.fanLevel': 'Fan level',

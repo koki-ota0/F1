@@ -18,11 +18,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    // Fold the dynamically-imported three.js module into the app bundle.
-    // A separate chunk would be fetched with an import at runtime, which the
-    // jsdom smoke harness (classic script, no modules) cannot execute — the
-    // build then fails QA even though the browser works. One bundle keeps both
-    // consumers happy; the lazy load is not worth the tooling breakage.
+    // Single bundle (no code-splitting): the jsdom QA harness executes the
+    // built asset as one classic script, so dynamic imports would fail there
+    // even though they work in a browser.
     rollupOptions: {
       output: { inlineDynamicImports: true }
     }
