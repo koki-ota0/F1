@@ -55,7 +55,7 @@ export const dict = {
     'results.live': 'ライブ取得', 'results.archive': 'アーカイブ（2025）', 'results.seasonSuffix': '年',
     'results.archiveBanner': 'オフラインバンドル', 'results.archiveMsg': '同梱した前年シーズンの公式結果を表示中です。最新は「🔄 最新に更新」または OpenF1 / Jolpica 到達時に自動切替。',
     'common.bundledSnapshot': '同梱スナップショット',
-    'results.bundledBanner': 'バンドル（2026）', 'results.bundledMsg': '2026年の公式結果スナップショット（取得日 2026-11-23）を同梱しています。「🔄 最新に更新」で API の最新データに更新されます。',
+   
     'results.offlineBanner': 'オフライン', 'results.offlineMsg': '現在 API に到達できません。同梱データを表示中です。',
     'results.winner': '優勝', 'results.pole': 'ポールポジション', 'results.fastestLap': 'ファステストラップ',
     'results.detail': '全順位を見る', 'results.hideDetail': '閉じる', 'results.empty': '結果がありません',
@@ -252,7 +252,7 @@ export const dict = {
     'results.live': 'Live', 'results.archive': 'Archive (2025)', 'results.seasonSuffix': '',
     'results.archiveBanner': 'Offline bundle', 'results.archiveMsg': 'Showing bundled results for the previous season. Latest data loads automatically when OpenF1 / Jolpica is reachable, or via the Refresh button.',
     'common.bundledSnapshot': 'Bundled snapshot',
-    'results.bundledBanner': 'Bundled (2026)', 'results.bundledMsg': 'Bundled official 2026 result snapshot (retrieved 2026-11-23). Use the 🔄 refresh to pull the latest from the API.',
+   
     'results.offlineBanner': 'Offline', 'results.offlineMsg': 'The API is unreachable right now; showing bundled data.',
     'results.winner': 'Winner', 'results.pole': 'Pole position', 'results.fastestLap': 'Fastest lap',
     'results.detail': 'Full classification', 'results.hideDetail': 'Close', 'results.empty': 'No results',

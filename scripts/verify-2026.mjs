@@ -101,5 +101,40 @@ async function open(route) {
   ok('news: every article links to formula1.com', hrefs.length > 0 && hrefs.every((h) => /^https:\/\/www\.formula1\.com\/en\/latest\/article\//.test(h)), hrefs.slice(0, 2))
 }
 
+// ---- race results: full classification available, no "bundled" banner
+{
+  const srv = await (await fetch(`${base}/api/results?year=2026&round=21`)).json()
+  const rows = srv.classification || []
+  ok('results: Rd.21 classification served', rows.length >= 20, 'rows=' + rows.length)
+  ok('results: Rd.21 winner is Verstappen', rows[0]?.number === 3, JSON.stringify(rows[0]))
+
+  // the baked fallback must carry a classification for every finished round
+  const baked = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'server', 'data', 'results-2026.json'), 'utf8'))
+  const withClass = baked.rounds.filter((r) => r.status === 'completed' && r.classification?.length >= 20).length
+  const completed = baked.rounds.filter((r) => r.status === 'completed').length
+  ok('results: baked snapshot has every classification', withClass === completed && completed >= 21, `${withClass}/${completed}`)
+  ok('results: baked snapshot retrieved after Rd.21', /2026-11-24/.test(baked.retrievedAt || ''), baked.retrievedAt)
+
+  const { win, errors, waitFor, wait } = await open('/results')
+  await waitFor(() => win.document.querySelectorAll('.round-card').length >= 23, 9000)
+  const txt = win.document.body.textContent
+  ok('results: bundled-snapshot banner removed', !/バンドル（2026）|Bundled \(2026\)/.test(txt))
+  ok('results: latest race card present', /ラスベガスGP|Las Vegas Grand Prix/.test(txt))
+  const opened = await (async () => {
+    const cards = [...win.document.querySelectorAll('.round-card')]
+    const idx = cards.findIndex((c) => /ラスベガス|Las Vegas/.test(c.textContent))
+    if (idx < 0) return 'no-card'
+    cards[idx].querySelector('.round-toggle')?.click()
+    for (let i = 0; i < 40; i++) {
+      await wait(200)
+      const n = win.document.querySelectorAll('#classification tbody tr').length
+      if (n >= 20) return n
+    }
+    return 'rows:' + win.document.querySelectorAll('#classification tbody tr').length
+  })()
+  ok('results: full classification opens from the card', typeof opened === 'number' && opened >= 20, String(opened))
+  ok('results: no runtime errors', errors.length === 0)
+}
+
 console.log(`\n${pass}/${total} checks passed`)
 process.exit(pass === total ? 0 : 1)

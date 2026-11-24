@@ -51,7 +51,9 @@ Jolpica も到達不能 → Results・Standings が「2025 アーカイブ」に
 ### 生成スナップショットの取り扱い（重要）
 `server/data/{results,standings}-2026.json` は **捏造ではなく 2026-11-23 に OpenF1 から
 取得した値の焼き込み**です。各ファイルに `retrievedAt: 2026-11-23T00:00:00Z` と
-`source` を明記し、UI には「同梱スナップショット / バンドル（2026）」バッジを表示します。
+`source` を明記します。
+
+> 追記（2026-11-24）: ユーザー希望により「バンドル（2026）」の通知バナー・バッジは Results ページから削除しました。変わりに各ラウンドへ**全順位（classification）**を同梱し、オフラインでも「全順位」が開けるようにしています（DESIGN §22）。
 ライブ API に到達した時点で上書きされます（`source: live` に切替）。
 
 再生成: `npm run gen:2026`（`scripts/gen-2026-snapshot.mjs` → `npm run bundle`）。
@@ -103,7 +105,7 @@ getCalendar():     /api/calendar → localStorage → static/calendar.json
   - Standings: CHAMPIONSHIP 2026、Antonelli 402 pts、WDC 25行 / WCC 11行
   - Live: OpenF1 由来 22 行のClassification + 天気 + SCHEDULE カード
   - calendar / home 含めレイアウト崩れ・console エラーなし
-- 静的ホストシミュレータ（:4173）: 14/14 PASS、Results は「バンドル（2026）」バッジ、
+- 静的ホストシミュレータ（:4173）: 14/14 PASS、Results は「バンドル（2026）」バッジ（※2026-11-24 に削除）、
   Standings は「同梱スナップショット」バッジ + Antonelli 402
 - Express サーバ（API 到達不能時）: `/api/results` `/api/standings` ともに
   `source: bundle`・2026 の 25 行

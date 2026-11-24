@@ -1,49 +1,61 @@
 #!/usr/bin/env node
-// One-off generator for the bundled 2026 snapshot.
+// ============================================================================
+// PITWALL — bundled 2026 snapshot generator
+// ----------------------------------------------------------------------------
+// The arrays below were captured verbatim from the public OpenF1 API
+// (api.openf1.org/v1/session_result, one request per race session) on
+// 2026-11-24, after the Las Vegas GP (Rd.21). Each row is
+//   [position, driver_number, points, laps, status]
+// with status 0 = classified finish, 1 = DNF, 2 = DNS, 3 = DSQ and position 0
+// meaning "not classified".
 //
-// The values below were read from the public OpenF1 API on 2026-11-23
-// (endpoints: /v1/sessions, /v1/session_result, /v1/championship_drivers,
-// /v1/championship_teams). Keeping a baked copy means GitHub Pages still shows
-// the current season when the live API is unreachable; the live tiers in
-// api.js/f1data.js overwrite it as soon as a request succeeds.
+// Rounds 22 (Qatar) and 23 (Abu Dhabi) had not been run at capture time.
+// This file is the single source of the OFFLINE tier: GitHub Pages has no
+// Express backend, so the client bundle carries a copy (scripts/sync-bundle).
+// Nothing here is simulated — live APIs always win when reachable.
 //
-// Round winners come from session_result?position<=3 of each round's race
-// session. Rounds 4 (Bahrain) and 5 (Saudi Arabia) are cancelled by OpenF1.
-// Qatar (Rd.24) and Abu Dhabi (Rd.25) had not been run yet at capture time.
+//   npm run gen:2026
+// ============================================================================
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const ROOT = path.join(__dirname, '..')
-const DATA = path.join(ROOT, 'server', 'data')
+const DATA = path.join(__dirname, '..', 'server', 'data')
+const RETRIEVED = '2026-11-24T00:00:00Z'
 
-const rawCal = JSON.parse(fs.readFileSync(path.join(DATA, 'calendar.json'), 'utf8'))
-// tolerate both the old flat array and the current {season,races} payload
-const calendar = Array.isArray(rawCal) ? rawCal : (rawCal.races || [])
+const CAPTURE = {"1":[[1,63,25,58,0],[2,12,18,58,0],[3,16,15,58,0],[4,44,12,58,0],[5,1,10,58,0],[6,3,8,58,0],[7,87,6,57,0],[8,41,4,57,0],[9,5,2,57,0],[10,10,1,57,0],[11,31,0,57,0],[12,23,0,57,0],[13,30,0,57,0],[14,43,0,56,0],[15,55,0,56,0],[16,11,0,55,0],[0,18,0,43,0],[0,14,0,21,1],[0,77,0,15,1],[0,6,0,10,1],[0,81,0,0,2],[0,27,0,0,2]],"2":[[1,12,25,56,0],[2,63,18,56,0],[3,44,15,56,0],[4,16,12,56,0],[5,87,10,56,0],[6,10,8,56,0],[7,30,6,56,0],[8,6,4,56,0],[9,55,2,55,0],[10,43,1,55,0],[11,27,0,55,0],[12,41,0,55,0],[13,77,0,55,0],[14,31,0,55,0],[15,11,0,55,0],[0,3,0,45,1],[0,14,0,32,1],[0,18,0,9,1],[0,81,0,0,2],[0,1,0,0,2],[0,5,0,0,2],[0,23,0,0,2]],"3":[[1,12,25,53,0],[2,81,18,53,0],[3,16,15,53,0],[4,63,12,53,0],[5,1,10,53,0],[6,44,8,53,0],[7,10,6,53,0],[8,3,4,53,0],[9,30,2,53,0],[10,31,1,53,0],[11,27,0,53,0],[12,6,0,53,0],[13,5,0,53,0],[14,41,0,53,0],[15,55,0,53,0],[16,43,0,53,0],[17,11,0,53,0],[18,14,0,52,0],[19,77,0,52,0],[20,23,0,51,0],[0,18,0,30,1],[0,87,0,20,1]],"4":[[1,12,25,57,0],[2,1,18,57,0],[3,81,15,57,0],[4,63,12,57,0],[5,3,10,57,0],[6,44,8,57,0],[7,43,6,57,0],[8,16,4,57,0],[9,55,2,57,0],[10,23,1,57,0],[11,87,0,56,0],[12,5,0,56,0],[13,31,0,56,0],[14,41,0,56,0],[15,14,0,56,0],[16,11,0,56,0],[17,18,0,56,0],[18,77,0,55,0],[0,27,0,7,1],[0,30,0,6,1],[0,10,0,4,1],[0,6,0,4,1]],"5":[[1,12,25,68,0],[2,44,18,68,0],[3,3,15,68,0],[4,16,12,68,0],[5,6,10,67,0],[6,43,8,67,0],[7,30,6,67,0],[8,10,4,67,0],[9,55,2,67,0],[10,87,1,67,0],[11,81,0,66,0],[12,27,0,66,0],[13,5,0,66,0],[14,31,0,66,0],[15,18,0,64,0],[16,77,0,64,0],[0,11,0,39,1],[0,1,0,38,1],[0,63,0,29,1],[0,14,0,23,1],[0,23,0,11,1],[0,41,0,0,2]],"6":[[1,12,25,78,0],[2,44,18,78,0],[3,6,15,78,0],[4,81,12,78,0],[5,30,10,78,0],[6,41,8,78,0],[7,10,6,78,0],[8,23,4,78,0],[9,31,2,78,0],[10,14,1,78,0],[11,5,0,78,0],[12,63,0,78,0],[13,27,0,78,0],[14,43,0,78,0],[15,11,0,78,0],[16,55,0,70,1],[0,16,0,64,1],[0,18,0,56,1],[0,1,0,43,1],[0,87,0,27,1],[0,77,0,15,1],[0,3,0,0,1]],"7":[[1,44,25,66,0],[2,63,18,66,0],[3,1,15,66,0],[4,3,12,66,0],[5,81,10,66,0],[6,6,8,65,0],[7,10,6,65,0],[8,30,4,65,0],[9,41,2,65,0],[10,43,1,65,0],[11,5,0,64,0],[12,55,0,64,0],[13,31,0,64,0],[14,11,0,63,0],[15,16,0,62,1],[16,12,0,61,1],[17,87,0,60,1],[0,23,0,55,0],[0,14,0,37,1],[0,27,0,29,1],[0,77,0,15,1],[0,18,0,5,1]],"8":[[1,63,25,71,0],[2,3,18,71,0],[3,12,15,71,0],[4,81,12,71,0],[5,44,10,71,0],[6,6,8,71,0],[7,1,6,71,0],[8,16,4,71,0],[9,30,2,70,0],[10,41,1,70,0],[11,5,0,70,0],[12,27,0,70,0],[13,10,0,70,0],[14,87,0,70,0],[15,43,0,70,0],[16,31,0,69,0],[17,23,0,69,0],[18,14,0,68,0],[0,18,0,45,1],[0,55,0,23,1],[0,11,0,4,1],[0,77,0,2,1]],"9":[[1,16,25,52,0],[2,63,18,52,0],[3,44,15,52,0],[4,1,12,52,0],[5,6,10,52,0],[6,30,8,52,0],[7,41,6,52,0],[8,5,4,52,0],[9,43,2,52,0],[10,10,1,52,0],[11,81,0,52,0],[12,87,0,52,0],[13,31,0,52,0],[14,11,0,52,0],[15,12,0,52,0],[16,77,0,52,0],[17,55,0,51,0],[18,14,0,51,0],[19,18,0,51,0],[20,3,0,46,1],[0,23,0,43,1],[0,27,0,36,1]],"10":[[1,12,25,44,0],[2,16,18,44,0],[3,3,15,44,0],[4,44,12,44,0],[5,81,10,44,0],[6,6,8,44,0],[7,1,6,44,0],[8,5,4,44,0],[9,41,2,44,0],[10,43,1,44,0],[11,10,0,44,0],[12,30,0,44,0],[13,27,0,44,0],[14,87,0,44,0],[15,23,0,44,0],[16,55,0,44,0],[17,31,0,44,0],[18,77,0,43,0],[19,14,0,42,0],[0,18,0,25,1],[0,11,0,13,1],[0,63,0,0,1]],"11":[[1,1,25,70,0],[2,3,18,70,0],[3,12,15,70,0],[4,16,12,70,0],[5,44,10,70,0],[6,6,8,70,0],[7,63,6,70,0],[8,30,4,69,0],[9,27,2,69,0],[10,41,1,69,0],[11,5,0,69,0],[12,10,0,69,0],[13,18,0,69,0],[14,14,0,69,0],[15,43,0,68,0],[16,31,0,68,0],[17,23,0,68,0],[18,55,0,68,0],[19,87,0,68,0],[0,81,0,55,1],[0,11,0,48,1],[0,77,0,13,1]],"12":[[1,1,25,72,0],[2,12,18,72,0],[3,63,15,72,0],[4,44,12,72,0],[5,16,10,72,0],[6,81,8,72,0],[7,30,6,72,0],[8,27,4,71,0],[9,14,2,71,0],[10,10,1,71,0],[11,22,0,71,0],[12,41,0,71,0],[13,5,0,71,0],[14,43,0,70,0],[15,11,0,70,0],[16,55,0,70,0],[17,23,0,66,1],[0,77,0,61,1],[0,31,0,52,1],[0,18,0,45,1],[0,87,0,2,1],[0,3,0,0,1]],"13":[[1,12,25,53,0],[2,63,18,53,0],[3,3,15,53,0],[4,1,12,53,0],[5,81,10,53,0],[6,44,8,53,0],[7,10,6,53,0],[8,41,4,53,0],[9,43,2,53,0],[10,22,1,53,0],[11,5,0,53,0],[12,27,0,53,0],[13,55,0,53,0],[14,30,0,53,0],[15,87,0,53,0],[16,31,0,52,0],[17,23,0,52,0],[18,11,0,52,0],[19,77,0,51,0],[0,18,0,26,1],[0,14,0,23,1],[0,16,0,1,1]],"14":[[1,12,25,57,0],[2,3,18,57,0],[3,1,15,57,0],[4,16,12,57,0],[5,63,10,57,0],[6,30,8,57,0],[7,43,6,57,0],[8,81,4,57,0],[9,41,2,56,0],[10,27,1,56,0],[11,31,0,56,0],[12,10,0,56,0],[13,5,0,56,0],[14,22,0,56,0],[15,23,0,56,0],[16,87,0,56,0],[17,14,0,55,0],[18,77,0,54,0],[0,55,0,43,1],[0,11,0,31,1],[0,18,0,12,1],[0,44,0,6,1]],"15":[[1,63,25,51,0],[2,3,18,51,0],[3,6,15,51,0],[4,16,12,51,0],[5,12,10,51,0],[6,44,8,51,0],[7,41,6,51,0],[8,31,4,51,0],[9,87,2,51,0],[10,55,1,51,0],[11,27,0,51,0],[12,30,0,51,0],[13,81,0,51,0],[14,11,0,51,0],[15,5,0,51,0],[16,77,0,49,1],[0,43,0,36,1],[0,10,0,35,1],[0,1,0,35,1],[0,23,0,29,1],[0,14,0,20,1],[0,18,0,7,1]],"16":[[1,3,25,55,0],[2,12,18,55,0],[3,44,15,55,0],[4,16,12,55,0],[5,6,10,55,0],[6,81,8,55,0],[7,30,6,55,0],[8,14,4,55,0],[9,1,2,55,0],[10,41,1,55,0],[11,27,0,55,0],[12,18,0,55,0],[13,43,0,55,0],[14,87,0,55,0],[15,31,0,55,0],[16,10,0,55,0],[17,55,0,55,0],[18,5,0,55,0],[19,11,0,55,0],[20,63,0,49,1],[0,23,0,41,1],[0,77,0,7,1]],"17":[[1,3,25,62,0],[2,16,18,62,0],[3,12,15,62,0],[4,1,12,62,0],[5,81,10,62,0],[6,44,8,62,0],[7,30,6,62,0],[8,27,4,62,0],[9,63,2,62,0],[10,6,1,62,0],[11,10,0,61,0],[12,87,0,61,0],[13,31,0,61,0],[14,55,0,61,0],[15,41,0,61,0],[16,14,0,61,0],[17,11,0,60,0],[18,23,0,59,1],[19,77,0,59,0],[0,18,0,36,1],[0,43,0,29,1],[0,5,0,7,1]],"18":[[1,12,25,56,0],[2,16,18,56,0],[3,3,15,56,0],[4,44,12,56,0],[5,1,10,56,0],[6,6,8,56,0],[7,81,6,56,0],[8,63,4,56,0],[9,30,2,56,0],[10,10,1,56,0],[11,27,0,56,0],[12,41,0,55,0],[13,5,0,55,0],[14,31,0,55,0],[15,18,0,55,0],[16,14,0,55,0],[17,23,0,55,0],[18,55,0,55,0],[19,11,0,55,0],[0,77,0,48,1],[0,43,0,35,1],[0,87,0,24,1]],"19":[[1,3,25,71,0],[2,44,18,71,0],[3,12,15,71,0],[4,16,12,71,0],[5,1,10,71,0],[6,63,8,71,0],[7,30,6,71,0],[8,5,4,71,0],[9,6,2,71,0],[10,50,1,71,0],[11,23,0,71,0],[12,55,0,71,0],[13,81,0,71,0],[14,27,0,71,0],[15,43,0,71,0],[16,11,0,71,0],[17,10,0,71,0],[0,41,0,58,1],[0,87,0,47,1],[0,77,0,42,1],[0,18,0,5,1],[0,14,0,5,1]],"20":[[1,1,25,71,0],[2,3,18,71,0],[3,6,15,71,0],[4,63,12,71,0],[5,12,10,71,0],[6,81,8,71,0],[7,30,6,71,0],[8,16,4,71,0],[9,44,2,70,0],[10,27,1,70,0],[11,41,0,70,0],[12,14,0,70,0],[13,43,0,70,0],[14,10,0,70,0],[15,23,0,70,0],[16,5,0,70,0],[17,87,0,70,0],[18,11,0,69,0],[19,55,0,69,0],[20,51,0,69,0],[0,18,0,30,1],[0,77,0,0,2]],"21":[[1,3,25,50,0],[2,1,18,50,0],[3,81,15,50,0],[4,12,12,50,0],[5,10,10,50,0],[6,43,8,50,0],[7,44,6,50,0],[8,55,4,50,0],[9,63,2,50,0],[10,16,1,50,0],[11,27,0,50,0],[12,5,0,50,0],[13,87,0,50,0],[14,30,0,50,0],[15,6,0,50,0],[16,51,0,50,0],[17,18,0,50,0],[18,77,0,50,0],[19,14,0,49,1],[0,41,0,19,1],[0,11,0,17,1],[0,23,0,0,2]]}
+
+const STATUS = ['', 'DNF', 'DNS', 'DSQ']
+
+const cal = JSON.parse(fs.readFileSync(path.join(DATA, 'calendar.json'), 'utf8'))
+const calendar = Array.isArray(cal) ? cal : (cal.races || [])
 const drivers = JSON.parse(fs.readFileSync(path.join(DATA, 'drivers.json'), 'utf8'))
-const ja = new Map(drivers.map((d) => [String(d.number), d]))
-const teamName = { mercedes: 'Mercedes', ferrari: 'Ferrari', 'red-bull': 'Red Bull Racing', mclaren: 'McLaren' }
+const teams = JSON.parse(fs.readFileSync(path.join(DATA, 'teams.json'), 'utf8'))
+const byNumber = new Map(drivers.map((d) => [String(d.number), d]))
+const teamName = new Map((Array.isArray(teams) ? teams : []).map((t) => [t.id, t.name]))
 
-/** round -> [winnerNumber, constructorTeamId] (OpenF1 session_result P1) */
-// official 23-round calendar: rounds 4/5 are no longer the cancelled Bahrain/
-// Saudi Arabia GPs (Bahrain moved to Sepang = Rd.16)
-const winners = {
-  1: [63, 'mercedes'], 2: [12, 'mercedes'], 3: [12, 'mercedes'],
-  4: [12, 'mercedes'], 5: [12, 'mercedes'], 6: [12, 'mercedes'],
-  7: [44, 'ferrari'], 8: [63, 'mercedes'], 9: [16, 'ferrari'],
-  10: [12, 'mercedes'], 11: [1, 'mclaren'], 12: [1, 'mclaren'],
-  13: [12, 'mercedes'], 14: [12, 'mercedes'], 15: [63, 'mercedes'],
-  16: [3, 'red-bull'], 17: [3, 'red-bull'], 18: [12, 'mercedes'],
-  19: [3, 'red-bull'], 20: [1, 'mclaren'], 21: [3, 'red-bull']
+const row = ([position, number, points, laps, st]) => {
+  const d = byNumber.get(String(number)) || {}
+  return {
+    position: position || null,
+    number,
+    driverId: d.id || null,
+    driver: d.name || `#${number}`,
+    driverJa: d.nameJa || '',
+    team: d.team ? (teamName.get(d.team) || d.team) : '',
+    points,
+    laps,
+    status: STATUS[st] || ''
+  }
 }
-const cancelled = new Set([])
-const RETRIEVED = '2026-11-23T00:00:00Z'
 
 const rounds = calendar.map((c) => {
-  const w = winners[c.round]
-  const d = w ? ja.get(String(w[0])) : null
-  const done = Boolean(w)
+  const cap = CAPTURE[String(c.round)]
+  const rows = cap ? cap.map(row) : []
+  const podium = rows.filter((r) => r.position >= 1 && r.position <= 3)
+  const winnerRow = rows.find((r) => r.position === 1) || null
+  const done = Boolean(winnerRow)
   return {
     round: c.round,
     name: c.name,
@@ -52,9 +64,14 @@ const rounds = calendar.map((c) => {
     country: c.country,
     flag: c.flag || '',
     date: c.date,
-    status: cancelled.has(c.round) ? 'cancelled' : done ? 'completed' : 'upcoming',
-    winner: w && d ? { number: d.number, name: d.name, nameJa: d.nameJa, team: teamName[w[1]] } : null,
-    provider: 'OpenF1'
+    status: done ? 'completed' : (c.status === 'cancelled' ? 'cancelled' : 'upcoming'),
+    winner: winnerRow ? {
+      number: winnerRow.number, name: winnerRow.driver, nameJa: winnerRow.driverJa, team: winnerRow.team
+    } : null,
+    pole: null,
+    fastestLap: null,
+    provider: 'OpenF1',
+    classification: rows
   }
 })
 
@@ -62,15 +79,15 @@ fs.writeFileSync(
   path.join(DATA, 'results-2026.json'),
   JSON.stringify({
     season: 2026,
-    source: 'OpenF1 API (api.openf1.org/v1)',
+    source: 'OpenF1 API (api.openf1.org/v1/session_result)',
     provider: 'OpenF1',
     retrievedAt: RETRIEVED,
-    note: '2026年シーズンのバンドルスナップショット。ライブ到達時は API の結果が優先されます。',
+    note: '2026年シーズンのバンドルスナップショット（取得日 2026-11-24、Rd.21ラスベガスGP終了時点）。各ラウンドの全順位を含みます。ライブ到達時は API の結果が優先されます。',
     rounds
   }, null, 2)
 )
 
-/** championship after Rd.23 (Las Vegas), captured from championship_* endpoints */
+/** championship after Rd.21 (Las Vegas), captured from championship_* endpoints */
 const wdcRaw = [
   [1, 12, 402], [2, 3, 304], [3, 44, 267], [4, 63, 264], [5, 1, 264],
   [6, 16, 250], [7, 81, 167], [8, 6, 122], [9, 30, 89], [10, 10, 52],
@@ -79,13 +96,12 @@ const wdcRaw = [
   [21, 50, 1], [22, 18, 0], [23, 77, 0], [24, 11, 0], [25, 51, 0]
 ]
 const wdc = wdcRaw.map(([position, number, points]) => {
-  const d = ja.get(String(number))
+  const d = byNumber.get(String(number)) || {}
   return {
-    position,
-    number,
-    name: d?.name || `#${number}`,
-    nameJa: d?.nameJa || '',
-    team: d ? teamName[d.team] || d.team : '',
+    position, number,
+    name: d.name || `#${number}`,
+    nameJa: d.nameJa || '',
+    team: d.team ? (teamName.get(d.team) || d.team) : '',
     points
   }
 })
@@ -100,13 +116,13 @@ fs.writeFileSync(
   path.join(DATA, 'standings-2026.json'),
   JSON.stringify({
     season: 2026,
-    source: 'OpenF1 API (api.openf1.org/v1) — championship after Rd.23 (Las Vegas)',
+    source: 'OpenF1 API (api.openf1.org/v1/championship_*) — after Rd.21 (Las Vegas)',
     provider: 'OpenF1',
     retrievedAt: RETRIEVED,
-    note: '#31/#22/#50 はドライバー名が公開APIに未掲載のためナンバー表示。',
+    note: '選手権ポイントにはスプリントの得点を含みます（レースのみの合算ではありません）。',
     drivers: wdc,
     constructors: wcc
   }, null, 2)
 )
 
-console.log('[gen-2026-snapshot] wrote results-2026.json + standings-2026.json')
+console.log(`[gen-2026-snapshot] ${rounds.length} rounds (${rounds.filter((r) => r.classification.length).length} with classification) → results-2026.json + standings-2026.json`)

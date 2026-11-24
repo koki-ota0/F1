@@ -444,3 +444,27 @@ P1 exact 10 / podium 4 / top10 1 · P2 exact 8 / podium 3 · P3 exact 6 / podium
 ### 21.5 QA
 - `interact5.mjs`: 認証6件に加え、実結果による採点（≥10pt）・accuracy 付与・リーグ加入/採点を追加 → **27/27 PASS**。
 - 既存の smoke / ui-audit / contrast-audit / width-audit / verify-2026 もすべてグリーン。
+
+---
+
+## §22. レース結果の最新更新と「全順位」導線（2026-11-24）
+
+> ユーザーの指摘: 「バンドル（2026）の通知はいらないから、最新データに更新して特にレースの最新順位の部分を最新化して、また、全順位を開いた時に全順位に飛ぶようにして」。
+
+### 22.1 スナップショットの作り直し
+- `scripts/gen-2026-snapshot.mjs` を作り直し、**OpenF1 `session_result` をラウンドごとに取得した全順位**を `server/data/results-2026.json` の各ラウンドに `classification` として焼き込む（取得日 2026-11-24、Rd.21 ラスベガスGP終了時点）。
+- 各行は `{position, number, driverId, driver, driverJa, team, points, laps, status}`。PNG/予測スクリプトとは異なり**位置・ポイント・DNS/DNF まで実データ**。
+- WDC/WCC も `championship_drivers/teams`（Rd.21終了時点）から再生成。スプリント得点を含むため「全順位の単純合算」とは一致しない旨を `note` に明記。
+- ついでに QA モック（`scripts/mock-openf1.mjs`）を実データに合わせて修正（セッションキーを本物の 23 個へ、`position<=N` セレクタ対応、カレンダー上の中止ラウンド誤設定を解消）。
+
+### 22.2 オフラインでも「全順位」が開くように
+- サーバー: `/api/results?year&round` はライブ失敗時に**同梱 classification を返す**層を追加（予測採点もこの層を使う）。
+- クライアント: `staticFallback()` が `/api/results?...round=N` を解決し、バンドル内の classification を返す。静的ホストは `/api/results` にコレクションが返っても discrimination しないよう、`rounds` を持つ応答は「分類なし」として残りの階層を通り続ける。
+
+### 22.3 UI
+- Results ページから「バンドル（2026）」のヘッダバッジと通知バナーを削除（オフライン/アーカイブの正直なラベルは残す）。
+- 「全順位を見る」でパネルを開くと `scrollIntoView` でそのパネルへスムーズスクロール（`#classification`）。ボタン押下後に対象レースの表が視界に入る。
+
+### 22.4 QA
+- `verify-2026.mjs` に Results 関連 6 件を追加 → **22/22**（Rd.21 全順位 22行・優勝者・同梱分類の全ラウンド分・バナー不在・カードからの開放）。
+- interact5 27/27、smoke / ui-audit / contrast / width もすべてグリーン。

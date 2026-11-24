@@ -102,6 +102,28 @@ const STATIC = {
 function staticFallback(path) {
   const exact = STATIC[path]
   if (exact) return exact()
+  // per-race classification (?year=&round=): served from the baked 2026 snapshot
+  // so the full table works on hosts without an Express backend.
+  const raceQuery = String(path).match(/^\/api\/results\?(.+)$/)
+  if (raceQuery) {
+    const q = new URLSearchParams(raceQuery[1])
+    const y = Number(q.get('year')) || staticSeason.current
+    const r = Number(q.get('round'))
+    if (r) {
+      const round = staticResults2026.rounds?.find((x) => x.round === r)
+      if (round?.classification?.length) {
+        return {
+          source: 'bundle', provider: staticResults2026.provider || 'OpenF1',
+          season: staticResults2026.season || y, round: r,
+          name: round.nameJa || round.name, classification: round.classification
+        }
+      }
+      return {
+        source: 'offline', season: staticResults2026.season || y, round: r,
+        classification: [], note: round?.status === 'upcoming' ? 'upcoming' : 'no bundled classification'
+      }
+    }
+  }
   const item = String(path).match(/^\/api\/(drivers|teams)\/([^/?]+)$/)
   if (!item) return undefined
   const collection = STATIC[`/api/${item[1]}`]
@@ -402,6 +424,8 @@ export async function getRaceResult(year, round) {
     if (srv?.note === 'upcoming' || srv?.note === 'cancelled') {
       return { source: 'offline', season: srv.season || y, classification: [], note: srv.note }
     }
+    // a static host answers the round query with the season collection; keep
+    // looking through the remaining tiers instead of showing an empty table.
   } catch { /* fall through */ }
   if (cached?.classification?.length) return { source: 'cache', season: y, classification: cached.classification }
   // browser-direct OpenF1 (works on GitHub Pages too)
@@ -435,6 +459,17 @@ export async function getRaceResult(year, round) {
     const classification = jolpica.map(mapResultRow)
     writeCacheRaw(slot, { classification })
     return { source: 'live', provider: 'Jolpica', season: y, classification }
+  }
+  // baked 2026 classification (kept current with scripts/gen-2026-snapshot.mjs)
+  const bundledRound = staticResults2026.rounds?.find((r) => r.round === Number(round))
+  if (bundledRound?.classification?.length) {
+    writeCacheRaw(slot, { classification: bundledRound.classification })
+    return {
+      source: 'bundle', provider: staticResults2026.provider || 'OpenF1',
+      season: staticResults2026.season || y, round: Number(round),
+      name: bundledRound.nameJa || bundledRound.name,
+      classification: bundledRound.classification
+    }
   }
   if (staticResults2025.rounds?.length && y >= staticResults2025.season) {
     return { source: 'archive', season: staticResults2025.season, classification: [], note: 'archive has no per-race classification' }

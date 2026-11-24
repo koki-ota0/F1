@@ -1,16 +1,16 @@
 {
   "season": 2026,
-  "source": "OpenF1 API (api.openf1.org/v1) — championship after Rd.23 (Las Vegas)",
+  "source": "OpenF1 API (api.openf1.org/v1/championship_*) — after Rd.21 (Las Vegas)",
   "provider": "OpenF1",
-  "retrievedAt": "2026-11-23T00:00:00Z",
-  "note": "#31/#22/#50 はドライバー名が公開APIに未掲載のためナンバー表示。",
+  "retrievedAt": "2026-11-24T00:00:00Z",
+  "note": "選手権ポイントにはスプリントの得点を含みます（レースのみの合算ではありません）。",
   "drivers": [
     {
       "position": 1,
       "number": 12,
       "name": "Kimi Antonelli",
       "nameJa": "キミ・アントネッリ",
-      "team": "Mercedes",
+      "team": "Mercedes-AMG Petronas F1 Team",
       "points": 402
     },
     {
@@ -18,7 +18,7 @@
       "number": 3,
       "name": "Max Verstappen",
       "nameJa": "マックス・フェルスタッペン",
-      "team": "Red Bull Racing",
+      "team": "Oracle Red Bull Racing",
       "points": 304
     },
     {
@@ -26,7 +26,7 @@
       "number": 44,
       "name": "Lewis Hamilton",
       "nameJa": "ルイス・ハミルトン",
-      "team": "Ferrari",
+      "team": "Scuderia Ferrari",
       "points": 267
     },
     {
@@ -34,7 +34,7 @@
       "number": 63,
       "name": "George Russell",
       "nameJa": "ジョージ・ラッセル",
-      "team": "Mercedes",
+      "team": "Mercedes-AMG Petronas F1 Team",
       "points": 264
     },
     {
@@ -42,7 +42,7 @@
       "number": 1,
       "name": "Lando Norris",
       "nameJa": "ランド・ノリス",
-      "team": "McLaren",
+      "team": "McLaren Formula 1 Team",
       "points": 264
     },
     {
@@ -50,7 +50,7 @@
       "number": 16,
       "name": "Charles Leclerc",
       "nameJa": "シャルル・ルクレール",
-      "team": "Ferrari",
+      "team": "Scuderia Ferrari",
       "points": 250
     },
     {
@@ -58,7 +58,7 @@
       "number": 81,
       "name": "Oscar Piastri",
       "nameJa": "オスカー・ピアストリ",
-      "team": "McLaren",
+      "team": "McLaren Formula 1 Team",
       "points": 167
     },
     {
@@ -66,7 +66,7 @@
       "number": 6,
       "name": "Isack Hadjar",
       "nameJa": "アイサック・ハジール",
-      "team": "Red Bull Racing",
+      "team": "Oracle Red Bull Racing",
       "points": 122
     },
     {
@@ -74,7 +74,7 @@
       "number": 30,
       "name": "Liam Lawson",
       "nameJa": "リアム・ローソン",
-      "team": "racing-bulls",
+      "team": "Racing Bulls",
       "points": 89
     },
     {
@@ -82,7 +82,7 @@
       "number": 10,
       "name": "Pierre Gasly",
       "nameJa": "ピエール・ガスリー",
-      "team": "alpine",
+      "team": "BWT Alpine F1 Team",
       "points": 52
     },
     {
@@ -90,7 +90,7 @@
       "number": 41,
       "name": "Arvid Lindblad",
       "nameJa": "アルヴィド・リンドブラッド",
-      "team": "racing-bulls",
+      "team": "Racing Bulls",
       "points": 38
     },
     {
@@ -98,7 +98,7 @@
       "number": 43,
       "name": "Franco Colapinto",
       "nameJa": "フランコ・コラピント",
-      "team": "alpine",
+      "team": "BWT Alpine F1 Team",
       "points": 35
     },
     {
@@ -106,7 +106,7 @@
       "number": 87,
       "name": "Oliver Bearman",
       "nameJa": "オリバー・ベアマン",
-      "team": "haas",
+      "team": "MoneyGram Haas F1 Team",
       "points": 23
     },
     {
@@ -114,7 +114,7 @@
       "number": 5,
       "name": "Gabriel Bortoleto",
       "nameJa": "ガブリエル・ボルトレト",
-      "team": "audi",
+      "team": "Audi F1 Team",
       "points": 14
     },
     {
@@ -122,7 +122,7 @@
       "number": 27,
       "name": "Nico Hülkenberg",
       "nameJa": "ニコ・ヒュルケンベルク",
-      "team": "audi",
+      "team": "Audi F1 Team",
       "points": 14
     },
     {
@@ -130,7 +130,7 @@
       "number": 55,
       "name": "Carlos Sainz",
       "nameJa": "カルロス・サインス",
-      "team": "williams",
+      "team": "Williams Racing",
       "points": 11
     },
     {
@@ -138,7 +138,7 @@
       "number": 31,
       "name": "Esteban Ocon",
       "nameJa": "エスタン・オコン",
-      "team": "haas",
+      "team": "MoneyGram Haas F1 Team",
       "points": 7
     },
     {
@@ -146,7 +146,7 @@
       "number": 14,
       "name": "Fernando Alonso",
       "nameJa": "フェルナンド・アロンソ",
-      "team": "aston-martin",
+      "team": "Aston Martin Aramco F1 Team",
       "points": 7
     },
     {
@@ -154,7 +154,7 @@
       "number": 23,
       "name": "Alexander Albon",
       "nameJa": "アレクサンダー・アルボン",
-      "team": "williams",
+      "team": "Williams Racing",
       "points": 5
     },
     {
@@ -162,7 +162,7 @@
       "number": 22,
       "name": "Yuki Tsunoda",
       "nameJa": "角田裕毅",
-      "team": "racing-bulls",
+      "team": "Racing Bulls",
       "points": 1
     },
     {
@@ -170,7 +170,7 @@
       "number": 50,
       "name": "Ryo Hirakawa",
       "nameJa": "平川亮",
-      "team": "haas",
+      "team": "MoneyGram Haas F1 Team",
       "points": 1
     },
     {
@@ -178,7 +178,7 @@
       "number": 18,
       "name": "Lance Stroll",
       "nameJa": "ランス・ストロール",
-      "team": "aston-martin",
+      "team": "Aston Martin Aramco F1 Team",
       "points": 0
     },
     {
@@ -186,7 +186,7 @@
       "number": 77,
       "name": "Valtteri Bottas",
       "nameJa": "バルテリ・ボッタス",
-      "team": "cadillac",
+      "team": "Cadillac Formula 1 Team",
       "points": 0
     },
     {
@@ -194,7 +194,7 @@
       "number": 11,
       "name": "Sergio Pérez",
       "nameJa": "セルヒオ・ペレス",
-      "team": "cadillac",
+      "team": "Cadillac Formula 1 Team",
       "points": 0
     },
     {
@@ -202,7 +202,7 @@
       "number": 51,
       "name": "Rafael Camara",
       "nameJa": "ラファエル・カマラ",
-      "team": "haas",
+      "team": "MoneyGram Haas F1 Team",
       "points": 0
     }
   ],
