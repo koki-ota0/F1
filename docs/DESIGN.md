@@ -329,3 +329,29 @@ UIは source に応じて「LIVE / CACHE / OFFLINE」バッジを表示。
 - `interact5.mjs`: 結果アーカイブ表示 / 写真配信 / ガレージ退化 / （モックAPI時）ライブ全順位取得。最大 14/14。
 - 静的ホストシミュレータを **404.html は status 404** に修正（GitHub Pages の実挙動に一致）。
 - i18n: 関数型エントリを `t(key, arg)` で呼べるよう統一（従来 `t(key)(arg)` も可）。
+
+---
+
+## §18. リアルタイム情報更新 v2.3（マルチプロバイダ）
+
+> 詳細は `docs/DESIGN-v2.3-realtime.md`。ユーザーの「最新情報の更新がうまくいかない」への回答。
+
+### 18.1 調査と結論
+- **OpenF1 API**（keyless・CORS 許可）を一次ライブソースに追加：meetings / sessions / drivers（headshot・team_colour）/ positions / weather / laps。
+- **Jolpica** は歴史・WDC/WCC の唯一の公開ソースとして維持。**GitHub Pages でブロックされたときの予備**として CORS リレー（`VITE_F1_RELAYS`）を用意。
+- `jolpica/jolpica-f1-data`（GitHub、2026年も活発更新）をバンドルの信頼できる供給源として確認。
+- FastF1（Python 製ライブラリ＝API ではない）と Ergast（終了）は不採用。
+
+### 18.2 新仕組み
+- `src/lib/providers.js`: direct→relay チェーン。`VITE_OPENF1_BASE` / `VITE_F1_BASE` / `VITE_F1_RELAYS` で上書き可能。
+- `refreshLive()`: OpenF1（カレンダー＋出走順）＋ Jolpica（standings）を並列実行し、成功したものを localStorage に保存。ナビの LIVE バッジは `成功数/タスク数`。
+- `/live`: OpenF1 実データ（ポジション・gap・lap・天気）。**静的ホストではポーリングしない**（`window.__PITWALL_API__`。dev=index.html は true、静的ビルドは postbuild で false）。
+- `server/api.js`: `/api/meta` に provider health、`/api/grid`（出走順）、calendar の OpenF1 fallback。
+
+### 18.3 正直な劣化（受入条件）
+- 全カードに `source`（live/cache/bundle/archive/offline）＋最終更新＋提供元を表示。
+- 到達不能時もデータ（バンドル/アーカイブ）は出しつつ、season バッジで「何年の情報か」を明示。**捏造データなし**。
+
+### 18.4 QA
+- smoke 15/15（:3000 / :4173）、interact 17/17、interact3 18/18・17/17、interact5 14/14、interact4 6/6（オフライン）・13/13（モック到達で LIVE 4/4 → ページ伝播）。
+- 修正: Standings ポーリング effect の cleanup 欠落（再マウントでデータ消失）。
