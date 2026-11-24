@@ -54,6 +54,9 @@ export default function Standings() {
               {data?.season && data.season !== year && (
                 <Badge kind="gold">{t('standings.showingSeason', data.season)}</Badge>
               )}
+              {data?.source && ['bundle', 'cache'].includes(data.source) && (
+                <Badge kind="gold">{t('common.bundledSnapshot')}</Badge>
+              )}
               <LiveBadge live={isLive} />
             </span>
           }

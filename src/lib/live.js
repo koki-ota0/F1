@@ -5,13 +5,18 @@
 // APIs directly (see providers.js for the provider chain + relays). Nothing runs
 // continuously: the user presses the navbar 「更新」 button, we fetch once,
 // cache the result in localStorage, and every page reads the freshest snapshot.
+//
+// Uses the current OpenF1 endpoint names (position / session_result /
+// championship_drivers|teams) so real 2026 data actually arrives.
 // ============================================================================
 
 import { load, save } from './store.js'
 import {
   OPENF1, JOLPICA, RELAYS, fetchVia, rowsOf,
-  openf1Meetings, openf1RaceSession, openf1Drivers,
-  openf1Positions, openf1Weather
+  openf1Meetings, openf1Sessions, openf1RaceSession, openf1Drivers,
+  openf1SessionResult, openf1ChampionshipDrivers, openf1ChampionshipTeams,
+  openf1PositionWindow, openf1Weather,
+  raceRoundsFromSessions, latestCompletedRound, driverDirectory
 } from './providers.js'
 import staticCalendar from './static/calendar.json'
 
@@ -91,20 +96,24 @@ const mapRaces = (rows) => rows.map((r) => ({
   lengthKm: null, turns: null, drsZones: null, lapRecord: null
 }))
 
-const mapStandings = (rows) => rows.map((r) => ({
-  position: r.position,
-  name: r.driver_name ?? r.team_name ?? r.constructor_name ?? r.name,
-  team: r.team_name ?? r.constructor_name ?? '',
-  points: r.points ?? 0,
-  wins: r.wins ?? 0
-}))
+const mapStandings = (rows, type, drivers) => rows.map((r) => {
+  const n = String(type === 'constructors' ? (r.team_name ?? '') : (r.driver_number ?? ''))
+  const d = drivers?.get(n)
+  return {
+    position: r.position_current ?? r.position ?? null,
+    number: type === 'constructors' ? undefined : Number(r.driver_number),
+    name: type === 'constructors' ? (r.team_name ?? r.constructor_name ?? '') : (d?.name || r.driver_name || `#${n}`),
+    nameJa: d?.nameJa || '',
+    team: type === 'constructors' ? undefined : (d?.team || r.team_name || ''),
+    points: r.points_current ?? r.points ?? 0
+  }
+}).sort((a, b) => (a.position ?? 999) - (b.position ?? 999))
 
-/**
- * One manual refresh pass. Tries the providers in parallel and caches successes:
- *  - calendar    : OpenF1 (primary, keyless/CORS) → Jolpica
- *  - lineup      : OpenF1 race session + drivers for the nearest meeting
- *  - standings   : Jolpica (drivers / constructors), relay-aware
- */
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+// ---------------------------------------------------------------------------
+// one manual refresh pass (navbar 「更新」)
+// ---------------------------------------------------------------------------
 export async function refreshLive(year = new Date().getFullYear()) {
   const jmap = jaMap()
 
@@ -155,29 +164,71 @@ export async function refreshLive(year = new Date().getFullYear()) {
     return { count: drivers.length, provider: 'OpenF1', sessionKey: session.session_key }
   }
 
-  const standingsTask = (type) => async () => {
-    const path = type === 'constructors' ? 'constructors' : 'drivers'
-    let lastError = null
-    for (let y = year; y >= year - 2; y--) {
+  // Results summary: sessions -> per-round top-3. Kept small (rate limits).
+  const resultsTask = async () => {
+    const sessions = await openf1Sessions(year)
+    const rounds = raceRoundsFromSessions(sessions)
+    if (!rounds.length) throw new Error('no sessions')
+    const now = new Date()
+    const lastDone = [...rounds].filter((r) => !r.cancelled && r.dateEnd && new Date(r.dateEnd) <= now)
+      .sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart))[0]
+    const driversRows = await openf1Drivers(lastDone?.sessionKey || rounds[rounds.length - 1].sessionKey).catch(() => [])
+    const driverMap = new Map(driversRows.map((d) => [String(d.driver_number), {
+      name: d.full_name ?? `${d.first_name ?? ''} ${d.last_name ?? ''}`.trim(),
+      nameJa: '', team: d.team_name ?? ''
+    }]))
+    const out = []
+    for (const r of rounds) {
+      if (r.cancelled) { out.push({ ...r, status: 'cancelled', winner: null }); continue }
+      if (!r.dateEnd || new Date(r.dateEnd) > now) { out.push({ ...r, status: 'upcoming', winner: null }); continue }
       try {
-        const d = await fetchVia(`${JOLPICA}/${y}/${path}/?limit=100`)
-        const rows = rowsOf(d)
-        if (rows.length) {
-          const standings = mapStandings(rows)
-          writeLive(type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers', year, { season: y, standings, provider: 'Jolpica' })
-          return { season: y, count: standings.length, provider: 'Jolpica' }
-        }
-        lastError = new Error('empty')
-      } catch (e) { lastError = e }
+        const rows = rowsOf(await fetchVia(`${OPENF1}/session_result?session_key=${r.sessionKey}&position<=3`))
+        const podium = rows.map((x) => ({ position: x.position, number: x.driver_number, name: driverMap.get(String(x.driver_number))?.name || `#${x.driver_number}`, team: driverMap.get(String(x.driver_number))?.team || '' }))
+          .sort((a, b) => a.position - b.position)
+        out.push({ ...r, status: 'completed', winner: podium[0] ? { number: podium[0].number, name: podium[0].name, team: podium[0].team } : null })
+      } catch {
+        out.push({ ...r, status: 'unknown', winner: null })
+      }
+      await sleep(420)
     }
-    throw lastError || new Error('empty')
+    writeLive('results', year, { season: year, source: 'cache', provider: 'OpenF1', rounds: out })
+    return { count: out.filter((r) => r.winner).length, provider: 'OpenF1' }
+  }
+
+  const standingsTask = (type) => async () => {
+    const sessions = await openf1Sessions(year)
+    const rounds = raceRoundsFromSessions(sessions)
+    const now = new Date()
+    const last = [...rounds].filter((r) => !r.cancelled && r.dateEnd && new Date(r.dateEnd) <= now)
+      .sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart))[0]
+    if (!last) throw new Error('no finished race')
+    try {
+      const path = type === 'constructors' ? 'constructors' : 'drivers'
+      const d = await fetchVia(`${JOLPICA}/${year}/${path}/?limit=100`, 9000)
+      const rows = rowsOf(d)
+      if (rows.length) {
+        const standings = mapStandings(rows.map((r) => ({ ...r, position_current: r.position, points_current: r.points })), type, null)
+        writeLive(type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers', year, { season: year, standings, provider: 'Jolpica' })
+        return { season: year, count: standings.length, provider: 'Jolpica' }
+      }
+    } catch { /* fall through to OpenF1 */ }
+    const drv = await openf1Drivers(last.sessionKey).catch(() => [])
+    const driverMap = new Map(drv.map((x) => [String(x.driver_number), { name: x.full_name ?? '', nameJa: '', team: x.team_name ?? '' }]))
+    const rows = type === 'constructors'
+      ? rowsOf(await openf1ChampionshipTeams(last.sessionKey))
+      : rowsOf(await openf1ChampionshipDrivers(last.sessionKey))
+    if (!rows.length) throw new Error('empty')
+    const standings = mapStandings(rows, type, driverMap)
+    writeLive(type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers', year, { season: year, standings, provider: 'OpenF1' })
+    return { season: year, count: standings.length, provider: 'OpenF1', sessionKey: last.sessionKey }
   }
 
   const results = await Promise.all([
     timed('calendar', 'auto', calendarTask),
     timed('lineup', 'OpenF1', lineupTask),
-    timed('standings.drivers', 'Jolpica', standingsTask('drivers')),
-    timed('standings.constructors', 'Jolpica', standingsTask('constructors'))
+    timed('results', 'OpenF1', resultsTask),
+    timed('standings.drivers', 'auto', standingsTask('drivers')),
+    timed('standings.constructors', 'auto', standingsTask('constructors'))
   ])
   const okCount = results.filter((r) => r.ok).length
   const status = { at: new Date().toISOString(), year, results, okCount, relays: RELAYS.length }
@@ -186,41 +237,58 @@ export async function refreshLive(year = new Date().getFullYear()) {
 }
 
 /**
- * Client-side live timing for the `/live` page on static hosts.
- * Uses OpenF1 (meetings → race session → positions/drivers/weather).
- * Throws when nothing usable is available.
+ * Timing tower payload for `/live`.
+ *   - while a race weekend is hot: positions inside a short time window
+ *   - otherwise: the final classification of the most recent race
  */
 export async function loadClientLive(year = new Date().getFullYear()) {
-  const meetings = await openf1Meetings(year)
-  if (!meetings.length) throw new Error('no meetings')
-  const sorted = [...meetings].sort((a, b) => new Date(a.date_start) - new Date(b.date_start))
+  const sessions = await openf1Sessions(year)
+  const rounds = raceRoundsFromSessions(sessions).filter((r) => !r.cancelled)
+  if (!rounds.length) throw new Error('no race session')
   const now = new Date()
-  const meeting =
-    sorted.find((m) => new Date(m.date_start) <= now && new Date(m.date_end) >= now) ||
-    sorted.reverse().find((m) => new Date(m.date_end) >= new Date(now.getTime() - 2 * 86400000)) ||
-    sorted[sorted.length - 1]
-  const session = await openf1RaceSession(meeting.meeting_key)
-  if (!session) throw new Error('no race session')
-  const drivers = await openf1Drivers(session.session_key)
-  let positions = []
-  try { positions = await openf1Positions(session.session_key) } catch { positions = [] }
-  let weather = null
-  try { weather = await openf1Weather(session.session_key) } catch { weather = null }
-  if (!positions.length) throw new Error('positions unavailable')
+  const meta = rounds.find((r) => new Date(r.dateStart) <= now && new Date(r.dateEnd) >= new Date(now.getTime() - 90 * 60000))
+    || [...rounds].reverse().find((r) => r.dateEnd && new Date(r.dateEnd) <= now)
+    || rounds[rounds.length - 1]
+  const drivers = await openf1Drivers(meta.sessionKey)
+  const driverMap = new Map(drivers.map((d) => [String(d.driver_number), d]))
 
-  // keep the latest record per driver number
-  const last = new Map()
-  for (const p of positions) last.set(p.driver_number, p)
-  const pos = [...last.values()].sort((a, b) => Number(a.position) - Number(b.position))
+  const start = new Date(meta.dateStart)
+  const end = new Date(meta.dateEnd)
+  const inSession = now >= new Date(start.getTime() - 90 * 60000) && now <= new Date(end.getTime() + 90 * 60000)
+  if (inSession) {
+    const from = new Date(now.getTime() - 6 * 60000).toISOString()
+    try {
+      const posRows = await openf1PositionWindow(meta.sessionKey, from, now.toISOString())
+      const last = new Map()
+      for (const p of posRows) last.set(String(p.driver_number), p)
+      const positions = [...last.values()].sort((a, b) => Number(a.position) - Number(b.position))
+      if (positions.length) {
+        const weather = await openf1Weather(meta.sessionKey).catch(() => null)
+        return {
+          source: 'live', provider: 'OpenF1', sessionKey: meta.sessionKey, window: { from, to: now.toISOString() },
+          meetingName: meta.name, circuit: meta.circuit, dateStart: meta.dateStart,
+          positions, drivers, weather
+        }
+      }
+    } catch { /* fall through to the final classification */ }
+  }
 
+  const rows = await openf1SessionResult(meta.sessionKey)
+  if (!rows.length) throw new Error('no session result')
+  const classification = rows.map((r) => ({
+    position: r.position ?? null,
+    number: r.driver_number,
+    driver: driverMap.get(String(r.driver_number))?.full_name || `#${r.driver_number}`,
+    driverJa: '',
+    team: driverMap.get(String(r.driver_number))?.team_name || '',
+    points: r.points ?? 0,
+    laps: r.number_of_laps ?? null,
+    status: r.dnf ? 'DNF' : r.dns ? 'DNS' : r.dsq ? 'DSQ' : ''
+  })).sort((a, b) => (a.position ?? 999) - (b.position ?? 999))
+  const weather = await openf1Weather(meta.sessionKey).catch(() => null)
   return {
-    source: 'live',
-    provider: 'OpenF1',
-    sessionKey: session.session_key,
-    meetingName: meeting.meeting_name,
-    sessionStart: session.date_start,
-    positions: pos,
-    drivers,
-    weather
+    source: 'result', provider: 'OpenF1', sessionKey: meta.sessionKey,
+    meetingName: meta.name, circuit: meta.circuit, dateStart: meta.dateStart, dateEnd: meta.dateEnd,
+    classification, drivers, weather
   }
 }

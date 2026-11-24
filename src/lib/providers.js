@@ -10,6 +10,14 @@
 //                     ["https://api.allorigins.win/raw?url={url}"]
 //
 // Every request tries the direct URL first, then each relay in order.
+//
+// NOTE on endpoint names: the public OpenF1 API renamed several endpoints.
+//   positions          -> position
+//   driver_standings   -> championship_drivers (beta)
+//   constructor_standings -> championship_teams (beta)
+//   results            -> session_result
+// The old names return an error, which is why the site used to fall back to
+// the bundled 2025 archive.
 // ============================================================================
 
 export const OPENF1 = (import.meta.env.VITE_OPENF1_BASE || 'https://api.openf1.org/v1').replace(/\/$/, '')
@@ -52,28 +60,54 @@ export async function fetchVia(url, timeoutMs = 9000) {
 }
 
 export const rowsOf = (d) => (Array.isArray(d) ? d : d?.results ?? [])
+const iso = (s) => (s ? encodeURIComponent(s) : '')
 
-// ---------- providers ----------
+// ---------- OpenF1 ----------
 export async function openf1Meetings(year) {
-  const rows = rowsOf(await fetchVia(`${OPENF1}/meetings?year=${year}`))
-  return rows.filter((m) => m && !m.is_cancelled)
+  return rowsOf(await fetchVia(`${OPENF1}/meetings?year=${year}`))
+}
+
+/** All sessions of a season (practice, qualifying, sprint and race). */
+export async function openf1Sessions(year) {
+  return rowsOf(await fetchVia(`${OPENF1}/sessions?year=${year}`, 12000))
 }
 
 export async function openf1RaceSession(meetingKey) {
   const rows = rowsOf(await fetchVia(`${OPENF1}/sessions?meeting_key=${meetingKey}&session_type=Race`))
-  return rows[0] || null
+  return rows.find((s) => s.session_name === 'Race') || rows[0] || null
 }
 
 export async function openf1Drivers(sessionKey) {
-  return rowsOf(await fetchVia(`${OPENF1}/drivers?session_key=${sessionKey}`))
+  return rowsOf(await fetchVia(`${OPENF1}/drivers?session_key=${sessionKey}`, 12000))
 }
 
-export async function openf1Positions(sessionKey) {
-  return rowsOf(await fetchVia(`${OPENF1}/positions?session_key=${sessionKey}`, 12000))
+/** Full final classification of a session (race/quali/practice). */
+export async function openf1SessionResult(sessionKey) {
+  return rowsOf(await fetchVia(`${OPENF1}/session_result?session_key=${sessionKey}`, 12000))
+}
+
+/** Current/most recent championship standings after a race session. */
+export async function openf1ChampionshipDrivers(sessionKey) {
+  return rowsOf(await fetchVia(`${OPENF1}/championship_drivers?session_key=${sessionKey}`, 12000))
+}
+export async function openf1ChampionshipTeams(sessionKey) {
+  return rowsOf(await fetchVia(`${OPENF1}/championship_teams?session_key=${sessionKey}`, 12000))
+}
+
+/**
+ * Live positions inside a time window (seconds resolution).
+ * `/position` without a window returns the whole session and is too large,
+ * so we always ask for a short slice ending at `toIso`.
+ */
+export async function openf1PositionWindow(sessionKey, fromIso, toIso) {
+  const q = [`session_key=${sessionKey}`]
+  if (fromIso) q.push(`date>=${iso(fromIso)}`)
+  if (toIso) q.push(`date<=${iso(toIso)}`)
+  return rowsOf(await fetchVia(`${OPENF1}/position?${q.join('&')}`, 9000))
 }
 
 export async function openf1Weather(sessionKey) {
-  const rows = rowsOf(await fetchVia(`${OPENF1}/weather?session_key=${sessionKey}`))
+  const rows = rowsOf(await fetchVia(`${OPENF1}/weather?session_key=${sessionKey}`, 12000))
   return rows.at(-1) || null
 }
 
@@ -81,7 +115,47 @@ export async function jolpicaJSON(pathAndQuery, timeoutMs = 9000) {
   return fetchVia(`${JOLPICA}${pathAndQuery}`, timeoutMs)
 }
 
-/** small reachability probes for the diagnostics panel */
+/** Race rounds ordered by start date (round = index + 1, sprints excluded). */
+export function raceRoundsFromSessions(sessions) {
+  const races = rowsOf(sessions)
+    .filter((s) => s.session_type === 'Race' && s.session_name !== 'Sprint')
+    .sort((a, b) => new Date(a.date_start) - new Date(b.date_start))
+  return races.map((s, i) => ({
+    round: i + 1,
+    meetingKey: s.meeting_key,
+    sessionKey: s.session_key,
+    name: s.meeting_name || 'Grand Prix',
+    circuit: s.circuit_short_name ?? '',
+    country: s.country_name ?? '',
+    location: s.location ?? '',
+    dateStart: s.date_start ?? null,
+    dateEnd: s.date_end ?? null,
+    date: (s.date_start ?? '').slice(0, 10) || null,
+    cancelled: !!s.is_cancelled
+  }))
+}
+
+export function latestCompletedRound(rounds, now = new Date()) {
+  return [...rounds]
+    .filter((r) => !r.cancelled && r.dateEnd && new Date(r.dateEnd) <= now)
+    .sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart))[0] || null
+}
+
+export function driverDirectory(driversRows) {
+  const map = new Map()
+  for (const d of rowsOf(driversRows)) {
+    map.set(String(d.driver_number), {
+      number: d.driver_number,
+      name: d.full_name ?? `${d.first_name ?? ''} ${d.last_name ?? ''}`.trim(),
+      team: d.team_name ?? '',
+      teamColour: d.team_colour ?? null,
+      headshot: d.headshot_url ?? null
+    })
+  }
+  return map
+}
+
+/** small reachability probes for diagnostics */
 export async function probeProviders(year = new Date().getFullYear()) {
   const probe = async (name, fn) => {
     const t0 = performance.now()
