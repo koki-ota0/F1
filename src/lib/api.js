@@ -1,3 +1,4 @@
+import { assetUrl } from './asset.js'
 import { useEffect, useState, useCallback } from 'react'
 import staticDrivers from './static/drivers.json'
 import staticTeams from './static/teams.json'
@@ -46,7 +47,7 @@ export async function tryBrowser(url, timeoutMs = 3000) {
 const STATIC = {
   // portraits resolve to the bundled official crop (same single source as the server)
   '/api/drivers': () => staticDrivers.map((d) => ({
-    ...d, photo: `${import.meta.env.BASE_URL}images/drivers/${d.id}.jpg`
+    ...d, photo: assetUrl(`images/drivers/${d.id}.jpg`)
   })),
   '/api/teams': () => staticTeams,
   '/api/champions': () => staticChampions,
@@ -88,6 +89,23 @@ const STATIC = {
   '/api/sync': () => ({ lastSyncAt: null, note: 'static host' })
 }
 
+
+/**
+ * Static-host fallback for a request path. Handles both the collection routes
+ * (`/api/drivers`) and the item routes (`/api/drivers/max-verstappen`), so deep
+ * links keep working where there is no Express API behind the page.
+ */
+function staticFallback(path) {
+  const exact = STATIC[path]
+  if (exact) return exact()
+  const item = String(path).match(/^\/api\/(drivers|teams)\/([^/?]+)$/)
+  if (!item) return undefined
+  const collection = STATIC[`/api/${item[1]}`]
+  if (!collection) return undefined
+  const found = collection().find((row) => row.id === item[2])
+  return found ?? null
+}
+
 export function useApi(path, deps = [], opts = {}) {
   const [state, setState] = useState({ data: null, loading: true, error: null })
   const load = useCallback(() => {
@@ -96,8 +114,8 @@ export function useApi(path, deps = [], opts = {}) {
     getJSON(path)
       .then((data) => alive && setState({ data, loading: false, error: null }))
       .catch((error) => {
-        const fallback = STATIC[path]
-        if (fallback && alive) setState({ data: fallback(), loading: false, error: null, staticFallback: true })
+        const data = staticFallback(path)
+        if (data !== undefined && alive) setState({ data, loading: false, error: null, staticFallback: true })
         else if (alive) setState({ data: null, loading: false, error })
       })
     return () => { alive = false }

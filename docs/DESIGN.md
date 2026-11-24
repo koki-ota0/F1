@@ -358,3 +358,36 @@ UIは source に応じて「LIVE / CACHE / OFFLINE」バッジを表示。
 ### 18.4 QA
 - smoke 15/15（:3000 / :4173）、interact 17/17、interact3 18/18・17/17、interact5 14/14、interact4 6/6（オフライン）・13/13（モック到達で LIVE 4/4 → ページ伝播）。
 - 修正: Standings ポーリング effect の cleanup 欠落（再マウントでデータ消失）。
+
+---
+
+## §19. UI/UX 全面見直し（2026-11-23）
+
+> ユーザーの指摘: 「幅が広い時に上のメニューが2列になってる」「☰で開く形にして、言語選択だけ上に」「ドライバー/チームのページが何も表示されていない」「優勝者が番号表示」「全順位を開いた時のUIが気持ち悪い」。
+
+### 19.1 ナビゲーション = ☰ ドロワー（全幅同一）
+- ヘッダーは **ブランド＋言語スイッチ＋☰** の1行。横並びリンクは廃止（幅があると2段折り返れ、狭幅では窮屈になるため）。
+- ドロワーは右からスライドイン（380px・背景オーバーレイ・Esc/背景タップで閉じる・開くと先頭リンクへフォーカス）。
+- リンクは CONTENTS（ライブ/順位/結果/カレンダー/ドライバー/チーム）・GAMES（予測/シミュレーター/クイズ/ガレージ）・COMMUNITY（ニュース/SNS/リーグ/ファン）の3グループ。リンク高 44px、ボタン 40px。
+- 言語切替はヘッダーのみ（`role=group` + `aria-pressed`）。ドロワーには置かない。
+
+### 19.2 深いリンクの描画保証（静的ホスト）
+- Vite `base` を既定 `'/'`（絶対）に。相対 `'./'` だと `/drivers/x` で `/drivers/assets/index-*.js` を要求して真っ白になる。
+- `src/lib/asset.js` の `assetUrl()` で同梱画像パスをBASE正規化。`api.js`/`Cards.jsx`/`DriverDetail.jsx` が使用。
+- `staticFallback()`: `/api/drivers/:id`・`/api/teams/:id` を受付ディレクトリJSONから解決（未登録は null）。
+- 静的シミュレータ（`scripts/static-server.mjs`）も `/`→`index.html`、未知パス→`404.html`(status 404) に修正。
+
+### 19.3 結果ページの作り直し
+- ラウンドカード（Rdチップ・ステータス・優勝者・ポール/FL）＋ **独立スクロールフレームの全順位パネル**（`.classification-scroll`、最大460px、テーブル自身が横スクロール）。
+- 年タブ（現シーズン/2025アーカイブ）、ソース別バナー（LIVE/バンドル/アーカイブ/オフライン）。
+- **優勝者は必ず名前**: `driverName()`（`utils.js`）が `name/nameJa` → 受付ディレクトリ（`/api/drivers`）→ 番号の順に解決。番号だけの行を「#31」と表示しない。サーバ側 `resultRow()` も同梱ディレクトリで名前を補完（`fetchDriverMap` 失敗時は `buildDriverMap([])`）。
+
+### 19.4 カレンダー / ホーム
+- カレンダーも同じカード言語に統一（Rd・ステータス・優勝者・周回/DRS/ラップレコード・概要展開）。
+- ホームに「最近の優勝」ストリップ（6件）を追加し、結果へ誘導。
+
+### 19.5 QA（再実行）
+- `npm run build` / `smoke`（静的 :4170）All routes OK / `interact5` 15/15 / `verify-2026` 14/14。
+- `contrast-audit` Contrast OK（SNSアバターの白文字→明るい色には濃インク）。
+- `width-audit` 1280→360px 12段階で横スクロール無し（ドロワーの `visibility:hidden` と `overflow-x:clip` で待ち受け幅を抑止）。
+- `ui-audit` smallText/smallTargets/wide/noAlt はクリーン。

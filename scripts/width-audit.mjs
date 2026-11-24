@@ -8,7 +8,7 @@
  * which pans sideways by design).
  *
  * Usage:
- *   BASE=http://localhost:4188 node scripts/width-audit.mjs
+ *   BASE=http://localhost:3000 node scripts/width-audit.mjs
  * Env: BASE (default http://localhost:3000), WIDTHS (default 1280..360)
  */
 import chromium from '@sparticuz/chromium'

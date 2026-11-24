@@ -19,7 +19,7 @@
 | 💬 ファンSNS | つぶやき・#タグ・いいね・トレンド（サーバ保存＋ポーリング） |
 | 🎯 ゲーム | 結果**予測**（P1-P3+FL、採点、リーダーボード）、**レースシミュレーター**（単戦アニメ+シーズン一括）、**クイズ**（5カテゴリ、XP/ストリーク） |
 | 🪪 ファンゾーン | 推しドライバー/チーム登録 → サイト全体のアクセントカラーが変化、ファンカード、レベル |
-| 🌐 日英バイリンガル | -navbarで即時切替（保存される） |
+| 🌐 日英バイリンガル | ヘッダーの言語スイッチで即時切替（保存される） |
 | 🔄 随時更新 | サーバ5分ごと自動リフレッシュ / snapshot更新スクリプト / ブラウザ直接LIVE取得 |
 
 ## データを最新化する
@@ -128,11 +128,38 @@ LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/shot-all.mjs
 LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/ui-audit.mjs
 
 # アルファ合成する本物の WCAG AA コントラスト監査（全ルート × 1440/390px）
-BASE=http://localhost:4188 LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/contrast-audit.mjs
+LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/contrast-audit.mjs
 
 # 1280→360px の12段階の幅で横スクロールが出ないか検査
-BASE=http://localhost:4188 LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/width-audit.mjs
+LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/width-audit.mjs
+
+# 操作系スモーク（ドロワー開閉 / タブ / 開閉パネル / 言語切替）
+BASE=http://localhost:3000 node scripts/interact5.mjs
+
+# 2026シーズンの内容（グリッド・順位・結果）が実データか
+BASE=http://localhost:3000 node scripts/verify-2026.mjs
+
+# 静的ホスト相当（GitHub Pages）でディープリンク＋同梱データ動作を確認
+node scripts/static-server.mjs 4170      # dist/ を配信（SPAフォールバック付き）
+BASE=http://localhost:4170 node scripts/smoke.mjs
 ```
+
+## UI/UX ポリシー（2026-11 全面見直し）
+
+- **ナビゲーションは全幅で同一**: ブランド＋言語スイッチ＋☰ドロワーの1行構成。
+  横並びリンクは幅があると2段に折り返れ、狭い幅では窮屈になるため、
+  コンテンツ（ライブ/順位/結果/カレンダー/ドライバー/チーム）、
+  ゲーム（予測/シミュレーター/クイズ/ガレージ）、
+  コミュニティ（ニュース/SNS/リーグ/ファン）の3グループに分けた
+  スライドイントロワーに集約しています（`src/components/Navbar.jsx`）。
+- **深いリンクも必ず描画**: 静的ホストには `/api/drivers/:id` が無いため、
+  `src/lib/api.js` の `staticFallback()` が同梱JSONから解決します
+  （`Vite base:'/'` + `assetUrl()` でアセットパスも修正済み）。
+- **結果ページ**: ラウンドカード（Rd・優勝者・ポール/FL）と、
+  独立スクロールフレームの「全順位」パネルに分離。
+  優勝者は必ず名前表示（`driverName()` が番号だけの行を受付ディレクトリで解決）。
+- **対話パターン**: オフライン/バンドル時は「全順位データがありません」と
+  理由を明示し、到達可能環境では自動で表が入ります。
 
 ## ディレクトリ
 
@@ -147,7 +174,8 @@ src/
   components/        # Navbar / Cards / common / FanProvider
   lib/               # i18n / api / store / sim / model(APEX) / learning / league / utils
 scripts/smoke.mjs    # ランタイム QA
-scripts/ui-audit.mjs / contrast-audit.mjs / width-audit.mjs / shot-all.mjs  # UI/UX 監査
+scripts/ui-audit.mjs / contrast-audit.mjs / width-audit.mjs / interact5.mjs / verify-2026.mjs  # UI/UX 監査
+scripts/static-server.mjs  # GitHub Pages 相当の静的配信シミュレータ
 docs/DESIGN.md       # 設計ドキュメント
 ```
 

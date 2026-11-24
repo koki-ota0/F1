@@ -82,3 +82,32 @@ export function computeScore(pred, result) {
   if (pred.p1 && pred.p2 && pred.p3 && [1, 2, 3].every((p) => byPos[p] === pred[`p${p}`])) pts += 5
   return pts
 }
+
+/**
+ * Display label for a result/standings driver.
+ *
+ * Data tiers are inconsistent: bundled snapshots carry `{number, name, nameJa}`,
+ * live rows sometimes only have a number, and the archive uses plain strings.
+ * Always resolve to a person's name — a bare number is never an acceptable
+ * answer on a fan-facing page.
+ */
+export function driverName(entry, lang = 'ja', byNumber = null) {
+  if (entry == null || entry === '') return ''
+  if (typeof entry === 'string') return entry
+  const direct = lang === 'ja' ? (entry.nameJa || entry.name) : entry.name
+  if (direct) return direct
+  if (byNumber && entry.number != null) {
+    const hit = byNumber.get(String(entry.number))
+    if (hit) return lang === 'ja' ? (hit.nameJa || hit.name) : hit.name
+  }
+  // last resort: make the number explicit rather than silently meaningless
+  return entry.number != null ? `#${entry.number}` : ''
+}
+
+/** Winner block of a round: name + team, resolved the same way as everywhere else. */
+export function winnerLabel(round, lang = 'ja', byNumber = null) {
+  const w = round?.winner
+  if (!w) return { name: '', team: round?.winnerTeam || '' }
+  if (typeof w === 'string') return { name: w, team: round?.winnerTeam || '' }
+  return { name: driverName(w, lang, byNumber), team: w.team || '' }
+}

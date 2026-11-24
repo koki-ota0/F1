@@ -127,19 +127,32 @@ export function buildDriverMap(driversRows) {
 // ---------------------------------------------------------------------------
 
 export async function fetchDriverMap(sessionKey) {
+  // buildDriverMap([]) alone returns the full bundled directory, so a failed or
+  // partial session-scoped lookup must never degrade rows to "#<number>".
   try {
     return buildDriverMap(await httpJSON(`${OPENF1_BASE}/drivers?session_key=${sessionKey}`, { ttlMs: 6 * 3600_000 }))
   } catch {
-    return new Map()
+    return buildDriverMap([])
   }
 }
 
+let _bundledByNumber = null
+/** Bundled name/number directory — last-resort resolution for any row. */
+const bundledByName = () => {
+  if (!_bundledByNumber) {
+    _bundledByNumber = new Map()
+    for (const d of loadBundledDrivers()) _bundledByNumber.set(String(d.number), d)
+  }
+  return _bundledByNumber
+}
+
 const resultRow = (r, drivers) => {
-  const d = drivers.get(String(r.driver_number)) || {}
+  const n = String(r.driver_number)
+  const d = drivers.get(n) || bundledByName().get(n) || {}
   return {
     position: r.position ?? null,
     number: r.driver_number,
-    driver: d.name || `#${r.driver_number}`,
+    driver: d.name || `${r.first_name ?? ''} ${r.last_name ?? ''}`.trim() || `Driver #${n}`,
     driverJa: d.nameJa || '',
     team: d.team || '',
     points: r.points ?? 0,
