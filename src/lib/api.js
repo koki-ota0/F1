@@ -25,7 +25,11 @@ import staticStandings2026 from './static/standings-2026.json'
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 export async function getJSON(path) {
-  const res = await fetch(path, { headers: { Accept: 'application/json' } })
+  // The app can live under a subpath (GitHub Pages: /F1/). A bare "/api/x"
+  // would hit the host root and 404, so resolve it against the built asset
+  // root; the dev server and Express both answer at "/api/...".
+  const url = String(path).startsWith('/api/') ? assetUrl(path) : path
+  const res = await fetch(url, { headers: { Accept: 'application/json' } })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
