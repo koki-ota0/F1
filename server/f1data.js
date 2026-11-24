@@ -91,9 +91,23 @@ function loadBundledDrivers() {
 }
 
 export function buildDriverMap(driversRows) {
-  const jaByNumber = new Map(loadBundledDrivers().map((d) => [String(d.number), d]))
+  const bundledList = loadBundledDrivers()
+  const jaByNumber = new Map(bundledList.map((d) => [String(d.number), d]))
+  const rows = rowsOf(driversRows)
+  // The public driver directory can omit a driver who still scored points
+  // (e.g. #31/#22/#50 in 2026). Keep them on the grid with their documented
+  // name/number from drivers.json instead of showing "#31".
+  const present = new Set(rows.map((r) => String(r.driver_number)))
   const map = new Map()
-  for (const d of rowsOf(driversRows)) {
+  for (const b of bundledList) {
+    if (!present.has(String(b.number))) {
+      map.set(String(b.number), {
+        number: b.number, name: b.name, nameJa: b.nameJa ?? '',
+        team: b.team ?? '', teamColour: null, headshot: null
+      })
+    }
+  }
+  for (const d of rows) {
     const n = String(d.driver_number)
     const bundled = jaByNumber.get(n)
     map.set(n, {

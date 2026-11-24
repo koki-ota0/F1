@@ -3,9 +3,15 @@ import { Link } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 import { useFan } from './FanProvider.jsx'
 
-export function DriverPhoto({ id, name, size = 72 }) {
+/**
+ * Single portrait source: the bundled official-art crop
+ * `public/images/drivers/<id>.jpg` (see README "Driver portraits"). Pass an
+ * explicit `src` to override (e.g. a live headshot when a directory row exists).
+ */
+export function DriverPhoto({ id, name, size = 72, src, fallbackId }) {
   const [failed, setFailed] = useState(false)
-  const src = `${import.meta.env.BASE_URL}images/drivers/${id}.jpg`
+  const bundled = `${import.meta.env.BASE_URL}images/drivers/${fallbackId || id}.jpg`
+  const resolved = failed ? null : (src || bundled)
   if (failed) {
     return (
       <div style={{
@@ -18,7 +24,7 @@ export function DriverPhoto({ id, name, size = 72 }) {
   return (
     <img
       className="dphoto"
-      src={src}
+      src={resolved}
       alt={name}
       width={size}
       height={size}
@@ -39,7 +45,7 @@ export function DriverCard({ driver, team }) {
       <span className="stripe" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <DriverPhoto id={driver.id} name={driver.name} size={56} />
+          <DriverPhoto id={driver.id} name={driver.name} size={56} src={driver.photo} />
           <div>
             <div className="dnum">{driver.number}</div>
             <div className="dname">{driver.name}</div>

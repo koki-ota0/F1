@@ -43,7 +43,7 @@
       "round": 3,
       "name": "Japanese Grand Prix",
       "nameJa": "日本GP",
-      "circuit": "Suzuka International Racing Course",
+      "circuit": "Suzuka Circuit",
       "country": "Japan",
       "flag": "🇯🇵",
       "date": "2026-03-29",
@@ -58,30 +58,6 @@
     },
     {
       "round": 4,
-      "name": "Bahrain Grand Prix",
-      "nameJa": "バーレーンGP",
-      "circuit": "Bahrain International Circuit",
-      "country": "Bahrain",
-      "flag": "🇧🇭",
-      "date": "2026-04-12",
-      "status": "cancelled",
-      "winner": null,
-      "provider": "OpenF1"
-    },
-    {
-      "round": 5,
-      "name": "Saudi Arabian Grand Prix",
-      "nameJa": "サウジアラビアGP",
-      "circuit": "Jeddah Corniche Circuit",
-      "country": "Saudi Arabia",
-      "flag": "🇸🇦",
-      "date": "2026-04-19",
-      "status": "cancelled",
-      "winner": null,
-      "provider": "OpenF1"
-    },
-    {
-      "round": 6,
       "name": "Miami Grand Prix",
       "nameJa": "マイアミGP",
       "circuit": "Miami International Autodrome",
@@ -98,10 +74,10 @@
       "provider": "OpenF1"
     },
     {
-      "round": 7,
+      "round": 5,
       "name": "Canadian Grand Prix",
       "nameJa": "カナダGP",
-      "circuit": "Circuit Gilles Villeneuve",
+      "circuit": "Circuit Gilles-Villeneuve",
       "country": "Canada",
       "flag": "🇨🇦",
       "date": "2026-05-24",
@@ -115,7 +91,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 8,
+      "round": 6,
       "name": "Monaco Grand Prix",
       "nameJa": "モナコGP",
       "circuit": "Circuit de Monaco",
@@ -132,9 +108,9 @@
       "provider": "OpenF1"
     },
     {
-      "round": 9,
-      "name": "Barcelona Grand Prix",
-      "nameJa": "バルセロナGP",
+      "round": 7,
+      "name": "Barcelona-Catalunya Grand Prix",
+      "nameJa": "スペインGP（バルセロナ）",
       "circuit": "Circuit de Barcelona-Catalunya",
       "country": "Spain",
       "flag": "🇪🇸",
@@ -149,7 +125,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 10,
+      "round": 8,
       "name": "Austrian Grand Prix",
       "nameJa": "オーストリアGP",
       "circuit": "Red Bull Ring",
@@ -166,11 +142,11 @@
       "provider": "OpenF1"
     },
     {
-      "round": 11,
+      "round": 9,
       "name": "British Grand Prix",
       "nameJa": "イギリスGP",
       "circuit": "Silverstone Circuit",
-      "country": "United Kingdom",
+      "country": "Great Britain",
       "flag": "🇬🇧",
       "date": "2026-07-05",
       "status": "completed",
@@ -183,7 +159,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 12,
+      "round": 10,
       "name": "Belgian Grand Prix",
       "nameJa": "ベルギーGP",
       "circuit": "Circuit de Spa-Francorchamps",
@@ -200,7 +176,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 13,
+      "round": 11,
       "name": "Hungarian Grand Prix",
       "nameJa": "ハンガリーGP",
       "circuit": "Hungaroring",
@@ -217,7 +193,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 14,
+      "round": 12,
       "name": "Dutch Grand Prix",
       "nameJa": "オランダGP",
       "circuit": "Circuit Zandvoort",
@@ -234,7 +210,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 15,
+      "round": 13,
       "name": "Italian Grand Prix",
       "nameJa": "イタリアGP",
       "circuit": "Autodromo Nazionale Monza",
@@ -251,9 +227,9 @@
       "provider": "OpenF1"
     },
     {
-      "round": 16,
+      "round": 14,
       "name": "Spanish Grand Prix",
-      "nameJa": "スペインGP",
+      "nameJa": "スペインGP（マドリーン）",
       "circuit": "Madring",
       "country": "Spain",
       "flag": "🇪🇸",
@@ -268,7 +244,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 17,
+      "round": 15,
       "name": "Azerbaijan Grand Prix",
       "nameJa": "アゼルバイジャンGP",
       "circuit": "Baku City Circuit",
@@ -285,10 +261,10 @@
       "provider": "OpenF1"
     },
     {
-      "round": 18,
-      "name": "Malaysia Grand Prix",
-      "nameJa": "マレーシアGP",
-      "circuit": "Kuala Lumpur International Circuit",
+      "round": 16,
+      "name": "Bahrain Grand Prix in Malaysia",
+      "nameJa": "バーレーンGP（マレーシア）",
+      "circuit": "Sepang International Circuit",
       "country": "Malaysia",
       "flag": "🇲🇾",
       "date": "2026-10-04",
@@ -302,7 +278,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 19,
+      "round": 17,
       "name": "Singapore Grand Prix",
       "nameJa": "シンガポールGP",
       "circuit": "Marina Bay Street Circuit",
@@ -319,10 +295,10 @@
       "provider": "OpenF1"
     },
     {
-      "round": 20,
+      "round": 18,
       "name": "United States Grand Prix",
       "nameJa": "アメリカGP",
-      "circuit": "Circuit of the Americas",
+      "circuit": "Circuit of The Americas",
       "country": "United States",
       "flag": "🇺🇸",
       "date": "2026-10-25",
@@ -336,7 +312,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 21,
+      "round": 19,
       "name": "Mexico City Grand Prix",
       "nameJa": "メキシコシティGP",
       "circuit": "Autódromo Hermanos Rodríguez",
@@ -353,7 +329,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 22,
+      "round": 20,
       "name": "São Paulo Grand Prix",
       "nameJa": "サンパウロGP",
       "circuit": "Autódromo José Carlos Pace",
@@ -370,7 +346,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 23,
+      "round": 21,
       "name": "Las Vegas Grand Prix",
       "nameJa": "ラスベガスGP",
       "circuit": "Las Vegas Strip Circuit",
@@ -387,7 +363,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 24,
+      "round": 22,
       "name": "Qatar Grand Prix",
       "nameJa": "カタールGP",
       "circuit": "Lusail International Circuit",
@@ -399,7 +375,7 @@
       "provider": "OpenF1"
     },
     {
-      "round": 25,
+      "round": 23,
       "name": "Abu Dhabi Grand Prix",
       "nameJa": "アブダビGP",
       "circuit": "Yas Marina Circuit",

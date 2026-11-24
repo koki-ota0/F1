@@ -102,9 +102,12 @@ function parseFeed(xml, limit = 12) {
       if (!m) return ''
       return m[1].replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, ' ').trim()
     }
+    // <link> is self-closing in Atom feeds; fall back to href so every item keeps
+    // a clickable source link (News UI links to `link`).
+    const link = pick('link') || (b.match(/<link[^>]*href=["']([^"']+)["']/i) || [])[1] || ''
     items.push({
       title: pick('title'),
-      link: pick('link'),
+      link,
       date: pick('pubDate') || pick('published') || pick('updated')
     })
   }
@@ -136,12 +139,52 @@ async function getCalendar(year) {
     laps: r.laps_total ?? null,
     lengthKm: null, turns: null, drsZones: null, lapRecord: null
   }))
+  const bundledCal = Array.isArray(calendar) ? calendar : calendar?.races || []
+  const bundledSeason = Array.isArray(calendar) ? null : calendar?.season
+  // The bundled current-season set carries the official race-hub facts (title,
+  // laps, length, lap record, sessions, podium). A live row may only patch the
+  // mutable fields; it must not throw those facts away.
+  // Live rows must be matched by identity, not by round number: Jolpica counts
+  // the cancelled Bahrain/Saudi Arabia rounds, so its numbering is shifted.
+  const indexLive = (list) => {
+    const byDate = new Map(); const byCircuit = new Map()
+    for (const r of list) {
+      if (r.date) byDate.set(r.date, r)
+      const key = String(r.circuit || '').toLowerCase().replace(/[^a-z]/g, '')
+      if (key) byCircuit.set(key, r)
+    }
+    return (b) => (b.date && byDate.get(b.date)) || byCircuit.get(String(b.circuit || '').toLowerCase().replace(/[^a-z]/g, '')) || null
+  }
+  const mergeLive = (races, liveRows, provider) => {
+    const find = indexLive(liveRows)
+    return {
+    source: 'live', provider: `${provider} + F1公式`, season: y, requestedSeason: y,
+    races: races.map((b) => {
+      const l = find(b)
+      if (!l) return b
+      return {
+        ...b,
+        date: l.date ?? b.date,
+        status: l.status ?? b.status,
+        cancelled: !!l.cancelled || b.cancelled === true,
+        laps: l.laps ?? b.laps,
+        circuit: l.circuit || b.circuit,
+        country: l.country || b.country,
+        trackImage: l.trackImage || b.trackImage || null,
+        meetingKey: l.meetingKey ?? b.meetingKey
+      }
+    })
+    }
+  }
   // 1) Jolpica historical calendar (rich per-round metadata)
   for (const sy of [y, y - 1]) {
     const data = await fetchJSON(`${JOLPICA}/${sy}/races/?limit=100`, 120_000)
     const rows = rowsOf(data)
     if (rows.length) {
       providerHealth.set('jolpica', { ok: true, at: Date.now() })
+      if (bundledCal.length && (sy === y || sy === bundledSeason)) {
+        return mergeLive(bundledCal, mapJolpica(rows), 'Jolpica')
+      }
       return { source: 'live', provider: 'Jolpica', season: sy, requestedSeason: y, races: mapJolpica(rows) }
     }
   }
@@ -165,6 +208,9 @@ async function getCalendar(year) {
         meetingKey: m.meeting_key
       }))
       providerHealth.set('openf1', { ok: true, at: Date.now() })
+      if (bundledCal.length && y === bundledSeason) {
+        return mergeLive(bundledCal, races, 'OpenF1')
+      }
       return { source: 'live', provider: 'OpenF1', season: y, requestedSeason: y, races }
     }
   } catch { /* fall through */ }
@@ -173,9 +219,9 @@ async function getCalendar(year) {
   if (snap?.year === y && snapshotFresh(snap) && snap.races?.length) {
     return { source: 'snapshot', season: y, races: snap.races, updatedAt: snap.updatedAt }
   }
-  // bundled current-season dataset (source: OpenF1 baked in)
-  if (calendar?.length) {
-    return { source: 'bundle', provider: 'bundled', season: season.current, seasonLabel: season.current, races: calendar, updatedAt: season.updatedAt }
+  // bundled current-season dataset (official race-hub facts; source: F1.com + Jolpica)
+  if (bundledCal.length) {
+    return { source: 'bundle', provider: 'F1公式 + Jolpica', season: calendar?.season || season.current, seasonLabel: calendar?.season || season.current, races: bundledCal, updatedAt: calendar?.retrievedAt || season.updatedAt }
   }
   return { source: 'offline', season: y, races: [], note: 'calendar unavailable' }
 }
@@ -473,14 +519,25 @@ router.get('/results', async (req, res) => {
   return res.json({ source: 'offline', season: y, rounds: [] })
 })
 
+// Driver portraits come from ONE source: the bundled official crop at
+// /images/drivers/<id>.jpg (see README "Driver portraits"). The server exposes
+// that path as `photo` so a single file can serve card + detail views; no X/Twitter.
 router.get('/drivers', (_req, res) => {
-  res.json(drivers.map((d) => ({ ...d, teamInfo: teamById[d.team] ?? null })))
+  res.json(drivers.map((d) => ({
+    ...d,
+    photo: `${process.env.PITWALL_BASE || ''}images/drivers/${d.id}.jpg`,
+    teamInfo: teamById[d.team] ?? null
+  })))
 })
 
 router.get('/drivers/:id', (req, res) => {
   const d = driverById[req.params.id]
   if (!d) return res.status(404).json({ error: 'not found' })
-  res.json({ ...d, teamInfo: teamById[d.team] ?? null })
+  res.json({
+    ...d,
+    photo: `${process.env.PITWALL_BASE || ''}images/drivers/${d.id}.jpg`,
+    teamInfo: teamById[d.team] ?? null
+  })
 })
 
 router.get('/teams', (_req, res) => {
@@ -502,6 +559,8 @@ router.get('/trivia', (req, res) => {
   res.json(list)
 })
 
+// Every item must carry a clickable source link: prefer the live official feed,
+// else the bundled snapshot (also URL-backed), and never an empty list.
 router.get('/news', async (_req, res) => {
   const feeds = [
     'https://www.formula1.com/content/fom-website/en/latest/all.xml',
@@ -515,7 +574,9 @@ router.get('/news', async (_req, res) => {
       if (items.length) return res.json({ source: 'live', items })
     }
   }
-  res.json({ source: 'offline', items: news })
+  if (news?.items?.length) return res.json({ source: 'offline', items: news.items })
+  if (Array.isArray(news)) return res.json({ source: 'offline', items: news })
+  return res.json({ source: 'offline', items: [] })
 })
 
 router.get('/live', async (req, res) => {

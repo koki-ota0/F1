@@ -20,7 +20,8 @@ export default function News() {
             {!isLive && <div className="note" style={{ marginBottom: 14 }}>{t('news.offlineFeed')}</div>}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {items.map((n, i) => (
-                <a className="card hover" key={n.id || i} href={n.link || '#'} target={n.link ? '_blank' : undefined} rel="noreferrer" style={{ display: 'block' }}>
+                <a className="card hover" key={n.id || i} href={n.url || n.link || '#'}
+                  target={n.url || n.link ? '_blank' : undefined} rel="noreferrer" style={{ display: 'block' }}>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                     <span className="tag">{n.tag || n.source}</span>
                     <span className="note">{n.date ? fmtDate(n.date, lang) : ''}</span>

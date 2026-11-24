@@ -67,8 +67,12 @@ async function open(route) {
   const { win, errors, waitFor } = await open('/drivers')
   const ready = await waitFor(() => [...win.document.querySelectorAll('img.dphoto')].length >= 10, 8000)
   ok('photos: driver cards use <img>', !!ready)
-  const firstImg = win.document.querySelector('img.dphoto')
-  ok('photos: src points at bundled asset', !!firstImg && firstImg.getAttribute('src').includes('/images/drivers/'))
+  const imgs = [...win.document.querySelectorAll('img.dphoto')]
+  const firstImg = imgs[0]
+  // portraits must come from the one bundled source; never X/Twitter or a live headshot host
+  ok('photos: src points at bundled asset',
+    !!firstImg && (firstImg.getAttribute('src').includes('/images/drivers/') || firstImg.getAttribute('src').includes('images/drivers/')))
+  ok('photos: no social headshots', !imgs.some((i) => /twitter|x\.com|twimg/.test(i.getAttribute('src') || '')))
   ok('drivers: no runtime errors', errors.length === 0)
 }
 

@@ -1,145 +1,181 @@
 [
-  {
-    "id": "mclaren",
-    "name": "McLaren Formula 1 Team",
-    "nameJa": "マクラーレン・F1チーム",
-    "short": "McLaren",
-    "color": "#F47600",
-    "base": "Woking, United Kingdom",
-    "founded": 1963,
-    "titles": 10,
-    "powerUnit": "Mercedes",
-    "drivers": ["norris", "piastri"],
-    "note": "2024年コンストラクターズチャンピオン。2026年はボンド色の新ユニフォーム"
-  },
-  {
-    "id": "red-bull",
-    "name": "Oracle Red Bull Racing",
-    "nameJa": "オラクル・レッドブル・レーシング",
-    "short": "Red Bull",
-    "color": "#4781D7",
-    "base": "Milton Keynes, United Kingdom",
-    "founded": 2005,
-    "titles": 6,
-    "powerUnit": "Honda RBPT",
-    "drivers": ["verstappen", "hadjar"],
-    "note": "2026年はフェルスタッペンが3番、ハジールが加入"
-  },
-  {
-    "id": "ferrari",
-    "name": "Scuderia Ferrari",
-    "nameJa": "スクーデリア・フェラーリ",
-    "short": "Ferrari",
-    "color": "#ED1131",
-    "base": "Maranello, Italy",
-    "founded": 1950,
-    "titles": 16,
-    "powerUnit": "Ferrari",
-    "drivers": ["leclerc", "hamilton"],
-    "note": "F1最古参。ハミルトン×レクレールの夢のコンビ"
-  },
-  {
-    "id": "mercedes",
-    "name": "Mercedes-AMG Petronas F1 Team",
-    "nameJa": "メルセデスAMGペトロナスF1チーム",
-    "short": "Mercedes",
-    "color": "#00D7B6",
-    "base": "Brackley, United Kingdom",
-    "founded": 2010,
-    "titles": 8,
-    "powerUnit": "Mercedes",
-    "drivers": ["russell", "antonelli"],
-    "note": "ラッセルと新星アントネッリの新体制"
-  },
-  {
-    "id": "audi",
-    "name": "Audi F1 Team",
-    "nameJa": "アウディF1チーム",
-    "short": "Audi",
-    "color": "#F50537",
-    "base": "Hinwil, Switzerland / Neuburg, Germany",
-    "founded": 2026,
-    "titles": 0,
-    "powerUnit": "Audi",
-    "drivers": ["bortoleto", "hulkenberg"],
-    "note": "ザウバーを引き継ぎ2026年にワークス参戦"
-  },
-  {
-    "id": "cadillac",
-    "name": "Cadillac Formula 1 Team",
-    "nameJa": "キャデラックF1チーム",
-    "short": "Cadillac",
-    "color": "#909090",
-    "base": "United States",
-    "founded": 2026,
-    "titles": 0,
-    "powerUnit": "Cadillac / Ferrari",
-    "drivers": ["perez", "bottas"],
-    "note": "GMの新規参戦。11チーム目のメーカー"
-  },
-  {
-    "id": "aston-martin",
-    "name": "Aston Martin Aramco F1 Team",
-    "nameJa": "アストンマルティン・アラムコF1チーム",
-    "short": "Aston Martin",
-    "color": "#229971",
-    "base": "Silverstone, United Kingdom",
-    "founded": 1991,
-    "titles": 0,
-    "powerUnit": "Mercedes",
-    "drivers": ["alonso", "stroll"],
-    "note": "アロンソが2026年も続投"
-  },
-  {
-    "id": "williams",
-    "name": "Williams Racing",
-    "nameJa": "ウィリアムズ・レーシング",
-    "short": "Williams",
-    "color": "#1868DB",
-    "base": "Grove, United Kingdom",
-    "founded": 1977,
-    "titles": 9,
-    "powerUnit": "Mercedes",
-    "drivers": ["albon", "sainz"],
-    "note": "サインスとアルボンの経験豊富なラインナップ"
-  },
-  {
-    "id": "alpine",
-    "name": "BWT Alpine F1 Team",
-    "nameJa": "BWTアルピンF1チーム",
-    "short": "Alpine",
-    "color": "#00A1E8",
-    "base": "Enstone, United Kingdom / Viry-Châtillon, France",
-    "founded": 2021,
-    "titles": 0,
-    "powerUnit": "Renault",
-    "drivers": ["gasly", "colapinto"],
-    "note": "ガスリーとコラピントの新しいコンビ"
-  },
-  {
-    "id": "racing-bulls",
-    "name": "Visa Cash App RB F1 Team",
-    "nameJa": "ビザ・キャッシュアプリRB F1チーム",
-    "short": "RB",
-    "color": "#6C98FF",
-    "base": "Faenza, Italy",
-    "founded": 1985,
-    "titles": 0,
-    "powerUnit": "Honda RBPT",
-    "drivers": ["lawson", "lindblad"],
-    "note": "ローソンとルーキーのリンドブラッド"
-  },
-  {
-    "id": "haas",
-    "name": "MoneyGram Haas F1 Team",
-    "nameJa": "マネーグラム・ハースF1チーム",
-    "short": "Haas",
-    "color": "#9C9FA2",
-    "base": "Kannapolis, USA",
-    "founded": 2016,
-    "titles": 0,
-    "powerUnit": "Ferrari",
-    "drivers": ["camara", "bearman"],
-    "note": "ベアマンに新鋭カマラが加わる"
-  }
+ {
+  "id": "mclaren",
+  "name": "McLaren Formula 1 Team",
+  "nameJa": "マクラーレン・F1チーム",
+  "short": "McLaren",
+  "color": "#F47600",
+  "base": "Woking, United Kingdom",
+  "founded": 1963,
+  "titles": 10,
+  "powerUnit": "Mercedes",
+  "drivers": [
+   "norris",
+   "piastri"
+  ],
+  "note": "2024年コンストラクターズチャンピオン。2026年はボンド色の新ユニフォーム"
+ },
+ {
+  "id": "red-bull",
+  "name": "Oracle Red Bull Racing",
+  "nameJa": "オラクル・レッドブル・レーシング",
+  "short": "Red Bull",
+  "color": "#4781D7",
+  "base": "Milton Keynes, United Kingdom",
+  "founded": 2005,
+  "titles": 6,
+  "powerUnit": "Honda RBPT",
+  "drivers": [
+   "verstappen",
+   "hadjar"
+  ],
+  "note": "2026年はフェルスタッペンが3番、ハジールが加入"
+ },
+ {
+  "id": "ferrari",
+  "name": "Scuderia Ferrari",
+  "nameJa": "スクーデリア・フェラーリ",
+  "short": "Ferrari",
+  "color": "#ED1131",
+  "base": "Maranello, Italy",
+  "founded": 1950,
+  "titles": 16,
+  "powerUnit": "Ferrari",
+  "drivers": [
+   "leclerc",
+   "hamilton"
+  ],
+  "note": "F1最古参。ハミルトン×レクレールの夢のコンビ"
+ },
+ {
+  "id": "mercedes",
+  "name": "Mercedes-AMG Petronas F1 Team",
+  "nameJa": "メルセデスAMGペトロナスF1チーム",
+  "short": "Mercedes",
+  "color": "#00D7B6",
+  "base": "Brackley, United Kingdom",
+  "founded": 2010,
+  "titles": 8,
+  "powerUnit": "Mercedes",
+  "drivers": [
+   "russell",
+   "antonelli"
+  ],
+  "note": "ラッセルと新星アントネッリの新体制"
+ },
+ {
+  "id": "audi",
+  "name": "Audi F1 Team",
+  "nameJa": "アウディF1チーム",
+  "short": "Audi",
+  "color": "#F50537",
+  "base": "Hinwil, Switzerland / Neuburg, Germany",
+  "founded": 2026,
+  "titles": 0,
+  "powerUnit": "Audi",
+  "drivers": [
+   "bortoleto",
+   "hulkenberg"
+  ],
+  "note": "ザウバーを引き継ぎ2026年にワークス参戦"
+ },
+ {
+  "id": "cadillac",
+  "name": "Cadillac Formula 1 Team",
+  "nameJa": "キャデラックF1チーム",
+  "short": "Cadillac",
+  "color": "#909090",
+  "base": "United States",
+  "founded": 2026,
+  "titles": 0,
+  "powerUnit": "Cadillac / Ferrari",
+  "drivers": [
+   "perez",
+   "bottas"
+  ],
+  "note": "GMの新規参戦。11チーム目のメーカー"
+ },
+ {
+  "id": "aston-martin",
+  "name": "Aston Martin Aramco F1 Team",
+  "nameJa": "アストンマルティン・アラムコF1チーム",
+  "short": "Aston Martin",
+  "color": "#229971",
+  "base": "Silverstone, United Kingdom",
+  "founded": 1991,
+  "titles": 0,
+  "powerUnit": "Mercedes",
+  "drivers": [
+   "alonso",
+   "stroll"
+  ],
+  "note": "アロンソが2026年も続投"
+ },
+ {
+  "id": "williams",
+  "name": "Williams Racing",
+  "nameJa": "ウィリアムズ・レーシング",
+  "short": "Williams",
+  "color": "#1868DB",
+  "base": "Grove, United Kingdom",
+  "founded": 1977,
+  "titles": 9,
+  "powerUnit": "Mercedes",
+  "drivers": [
+   "albon",
+   "sainz"
+  ],
+  "note": "サインスとアルボンの経験豊富なラインナップ"
+ },
+ {
+  "id": "alpine",
+  "name": "BWT Alpine F1 Team",
+  "nameJa": "BWTアルピンF1チーム",
+  "short": "Alpine",
+  "color": "#00A1E8",
+  "base": "Enstone, United Kingdom / Viry-Châtillon, France",
+  "founded": 2021,
+  "titles": 0,
+  "powerUnit": "Renault",
+  "drivers": [
+   "gasly",
+   "colapinto"
+  ],
+  "note": "ガスリーとコラピントの新しいコンビ"
+ },
+ {
+  "id": "racing-bulls",
+  "name": "Racing Bulls",
+  "nameJa": "レーシングブルズ",
+  "short": "Racing Bulls",
+  "color": "#6C98FF",
+  "base": "Faenza, Italy",
+  "founded": 1985,
+  "titles": 0,
+  "powerUnit": "Honda RBPT",
+  "drivers": [
+   "lawson",
+   "tsunoda",
+   "lindblad"
+  ],
+  "note": "ローソン＆角田の2026年体制。リンドブラッドはローソン欠場時（Rd.12-14）に代役出场"
+ },
+ {
+  "id": "haas",
+  "name": "MoneyGram Haas F1 Team",
+  "nameJa": "マネーグラム・ハースF1チーム",
+  "short": "Haas",
+  "color": "#9C9FA2",
+  "base": "Kannapolis, USA",
+  "founded": 2016,
+  "titles": 0,
+  "powerUnit": "Ferrari",
+  "drivers": [
+   "ocon",
+   "bearman",
+   "hirakawa",
+   "camara"
+  ],
+  "note": "オコン＆ベアマンで開幕。メキシコGP以降はヒラカワ、カマラが代役として出場"
+ }
 ]

@@ -21,7 +21,13 @@ const files = ['drivers.json', 'teams.json', 'calendar.json', 'champions.json', 
 fs.mkdirSync(path.join(DIST, 'api'), { recursive: true })
 for (const f of files) {
   const name = f.replace(/\.json$/, '')
-  fs.copyFileSync(path.join(SRC, f), path.join(DIST, 'api', name))
+  const raw = JSON.parse(fs.readFileSync(path.join(SRC, f), 'utf8'))
+  // the baked GET mirrors what the server returns for static hosts:
+  // /api/news -> {source, items} so the client reads data.items either way
+  const body = name === 'news'
+    ? { source: 'offline', items: Array.isArray(raw) ? raw : raw.items || [] }
+    : raw
+  fs.writeFileSync(path.join(DIST, 'api', name), JSON.stringify(body, null, 2))
 }
 const current = Number(JSON.parse(fs.readFileSync(path.join(SRC, 'season.json'), 'utf8'))?.current || new Date().getFullYear())
 for (const [kind, src] of [['results', 'results'], ['standings', 'standings']]) {

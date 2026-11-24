@@ -136,9 +136,9 @@
     {
       "position": 17,
       "number": 31,
-      "name": "#31",
-      "nameJa": "",
-      "team": "",
+      "name": "Esteban Ocon",
+      "nameJa": "エスタン・オコン",
+      "team": "haas",
       "points": 7
     },
     {
@@ -160,17 +160,17 @@
     {
       "position": 20,
       "number": 22,
-      "name": "#22",
-      "nameJa": "",
-      "team": "",
+      "name": "Yuki Tsunoda",
+      "nameJa": "角田裕毅",
+      "team": "racing-bulls",
       "points": 1
     },
     {
       "position": 21,
       "number": 50,
-      "name": "#50",
-      "nameJa": "",
-      "team": "",
+      "name": "Ryo Hirakawa",
+      "nameJa": "平川亮",
+      "team": "haas",
       "points": 1
     },
     {

@@ -44,7 +44,10 @@ export async function tryBrowser(url, timeoutMs = 3000) {
 // truth; these copies are refreshed by `npm run bundle` (= prebuild).
 // ---------------------------------------------------------------------------
 const STATIC = {
-  '/api/drivers': () => staticDrivers,
+  // portraits resolve to the bundled official crop (same single source as the server)
+  '/api/drivers': () => staticDrivers.map((d) => ({
+    ...d, photo: `${import.meta.env.BASE_URL}images/drivers/${d.id}.jpg`
+  })),
   '/api/teams': () => staticTeams,
   '/api/champions': () => staticChampions,
   '/api/records': () => staticRecords,
@@ -121,6 +124,35 @@ export function usePolled(path, refreshMs = 120000) {
   return data
 }
 
+/**
+ * Merge live calendar rows into the bundled official race-hub facts.
+ * Live providers number rounds differently (Jolpica counts cancelled rounds),
+ * so match by race date first, then by normalised circuit name.
+ */
+function mergeCalendarFacts(bundled, live) {
+  if (!bundled?.length || !Array.isArray(live) || !live.length) return bundled || []
+  const key = (s) => String(s || '').toLowerCase().replace(/[^a-z]/g, '')
+  const byDate = new Map(); const byCircuit = new Map()
+  for (const r of live) {
+    if (r.date) byDate.set(r.date, r)
+    const k = key(r.circuit)
+    if (k) byCircuit.set(k, r)
+  }
+  return bundled.map((b) => {
+    const l = (b.date && byDate.get(b.date)) || byCircuit.get(key(b.circuit))
+    if (!l) return b
+    return {
+      ...b,
+      date: l.date ?? b.date,
+      laps: l.laps ?? b.laps,
+      circuit: l.circuit || b.circuit,
+      country: l.country || b.country,
+      trackImage: l.trackImage || b.trackImage || null,
+      meetingKey: l.meetingKey ?? b.meetingKey
+    }
+  })
+}
+
 /** Calendar: server → browser-direct → manual cache → client bundle. */
 export async function getCalendar(year) {
   const toRaces = (rows) => rows.map((r) => ({
@@ -157,20 +189,37 @@ export async function getCalendar(year) {
     }
   }
   if (races) {
-    writeLive('calendar', year, { season, races })
-    return { source: 'live', season, seasonLabel: season, races }
+    const merged = mergeCalendarFacts(Array.isArray(staticCalendar) ? staticCalendar : staticCalendar?.races || [], races)
+    writeLive('calendar', year, { season, races: merged })
+    return { source: 'live', season, seasonLabel: season, races: merged }
   }
 
   // freshest manually-refreshed snapshot (GitHub Pages flow)
   const cached = readLive('calendar', year)
   if (cached?.races?.length) {
     const s = cached.season || year
-    return { source: 'cache', season: s, seasonLabel: s, races: cached.races, updatedAt: cached.at }
+    const merged = mergeCalendarFacts(Array.isArray(staticCalendar) ? staticCalendar : staticCalendar?.races || [], cached.races)
+    return { source: 'cache', season: s, seasonLabel: s, races: merged, updatedAt: cached.at }
   }
 
-  // last resort: client-bundled current-season dataset (works offline)
-  if (staticCalendar?.length) {
-    return { source: 'bundle', season: staticSeason.current, seasonLabel: staticSeason.current, races: staticCalendar, updatedAt: staticSeason.updatedAt }
+  // last resort: client-bundled current-season dataset (works offline).
+  // 2026 calendar ships enriched with official race-hub facts (sessions, circuit
+  // stats, lap record); older shapes are normalised so the UI stays stable.
+  const bundled = Array.isArray(staticCalendar) ? staticCalendar : staticCalendar?.races || []
+  if (bundled.length) {
+    return {
+      source: 'bundle',
+      season: Array.isArray(staticCalendar) ? staticSeason.current : (staticCalendar?.season || staticSeason.current),
+      seasonLabel: Array.isArray(staticCalendar) ? staticSeason.current : (staticCalendar?.season || staticSeason.current),
+      races: bundled.map((r) => ({
+        ...r,
+        nameJa: r.nameJa || r.name,
+        circuitJa: r.circuitJa || r.circuit || '',
+        countryJa: r.countryJa || r.country || '',
+        sessions: r.sessions || []
+      })),
+      updatedAt: staticSeason.updatedAt
+    }
   }
   return { source: 'offline', season: year, races: [] }
 }

@@ -17,7 +17,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
 const PORT = Number(process.argv[2]) || 4190
 
-const calendar = JSON.parse(fs.readFileSync(path.join(ROOT, 'server', 'data', 'calendar.json'), 'utf8'))
+const rawCal = JSON.parse(fs.readFileSync(path.join(ROOT, 'server', 'data', 'calendar.json'), 'utf8'))
+// tolerate both the old flat array and the current {season,races} payload
+const calendar = Array.isArray(rawCal) ? rawCal : (rawCal.races || [])
 const drivers = JSON.parse(fs.readFileSync(path.join(ROOT, 'server', 'data', 'drivers.json'), 'utf8'))
 
 /** round -> race session key (OpenF1 2026) */
@@ -111,9 +113,13 @@ function sessionResult(sessionKey) {
   }
   const pod = podiumByRound[round]
   if (!pod) return []
+  // full 22-car classification (podium order first, then the rest by number) so
+  // QA can assert a realistic timing table on any completed round
+  const rest = LAS_VEGAS.map((row) => row[1]).filter((n) => !pod.includes(n))
+  const order = [...pod, ...rest]
   const pts = [25, 18, 15]
-  return pod.map((number, i) => ({
-    position: i + 1, driver_number: number, number_of_laps: 50, points: pts[i],
+  return order.map((number, i) => ({
+    position: i + 1, driver_number: number, number_of_laps: 50, points: pts[i] || 0,
     dnf: false, dns: false, dsq: false, duration: null, gap_to_leader: i === 0 ? 0 : null,
     meeting_key: 1279 + idx, session_key: Number(sessionKey)
   }))

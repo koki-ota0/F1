@@ -18,22 +18,26 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
 const DATA = path.join(ROOT, 'server', 'data')
 
-const calendar = JSON.parse(fs.readFileSync(path.join(DATA, 'calendar.json'), 'utf8'))
+const rawCal = JSON.parse(fs.readFileSync(path.join(DATA, 'calendar.json'), 'utf8'))
+// tolerate both the old flat array and the current {season,races} payload
+const calendar = Array.isArray(rawCal) ? rawCal : (rawCal.races || [])
 const drivers = JSON.parse(fs.readFileSync(path.join(DATA, 'drivers.json'), 'utf8'))
 const ja = new Map(drivers.map((d) => [String(d.number), d]))
 const teamName = { mercedes: 'Mercedes', ferrari: 'Ferrari', 'red-bull': 'Red Bull Racing', mclaren: 'McLaren' }
 
 /** round -> [winnerNumber, constructorTeamId] (OpenF1 session_result P1) */
+// official 23-round calendar: rounds 4/5 are no longer the cancelled Bahrain/
+// Saudi Arabia GPs (Bahrain moved to Sepang = Rd.16)
 const winners = {
   1: [63, 'mercedes'], 2: [12, 'mercedes'], 3: [12, 'mercedes'],
-  6: [12, 'mercedes'], 7: [12, 'mercedes'], 8: [12, 'mercedes'],
-  9: [44, 'ferrari'], 10: [63, 'mercedes'], 11: [16, 'ferrari'],
-  12: [12, 'mercedes'], 13: [1, 'mclaren'], 14: [1, 'mclaren'],
-  15: [12, 'mercedes'], 16: [12, 'mercedes'], 17: [63, 'mercedes'],
-  18: [3, 'red-bull'], 19: [3, 'red-bull'], 20: [12, 'mercedes'],
-  21: [3, 'red-bull'], 22: [1, 'mclaren'], 23: [3, 'red-bull']
+  4: [12, 'mercedes'], 5: [12, 'mercedes'], 6: [12, 'mercedes'],
+  7: [44, 'ferrari'], 8: [63, 'mercedes'], 9: [16, 'ferrari'],
+  10: [12, 'mercedes'], 11: [1, 'mclaren'], 12: [1, 'mclaren'],
+  13: [12, 'mercedes'], 14: [12, 'mercedes'], 15: [63, 'mercedes'],
+  16: [3, 'red-bull'], 17: [3, 'red-bull'], 18: [12, 'mercedes'],
+  19: [3, 'red-bull'], 20: [1, 'mclaren'], 21: [3, 'red-bull']
 }
-const cancelled = new Set([4, 5])
+const cancelled = new Set([])
 const RETRIEVED = '2026-11-23T00:00:00Z'
 
 const rounds = calendar.map((c) => {

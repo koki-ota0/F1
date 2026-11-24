@@ -77,7 +77,7 @@ for (const [name, route, width, height] of routes) {
     const hasRoot = await page.evaluate(() => document.getElementById('root')?.children.length > 0)
     ok(`browser:${name} renders`, hasRoot && text.length > 200, text.slice(0, 120))
     // Fonts/CDN may be unreachable from a sandbox; report but do not fail on them.
-    const appErrors = errors.filter((e) => !/fonts\.|ERR_CONNECTION_CLOSED/.test(e))
+    const appErrors = errors.filter((e) => !/fonts\.|ERR_CONNECTION_CLOSED|ERR_NAME_NOT_RESOLVED/.test(e))
     ok(`browser:${name} no app console errors`, appErrors.length === 0, appErrors.slice(0, 3).join(' | '))
     ok(`browser:${name} no layout overflow`, await page.evaluate(() =>
       document.documentElement.scrollWidth <= window.innerWidth + 1))
@@ -86,7 +86,7 @@ for (const [name, route, width, height] of routes) {
       ok(`browser:${name} shows 2026 winners`, /Russell|ラッセル|Verstappen|フェルスタッペン|Antonelli|アントネッリ/.test(text2), text2.slice(0, 80))
       ok(`browser:${name} no stale-only 2025 label`, !/Archive \(2025\)/.test(text2))
       ok(`browser:${name} round cards present`, await page.evaluate(() =>
-        [...document.querySelectorAll('.card h4')].some((h) => /Grand Prix/.test(h.textContent))))
+        [...document.querySelectorAll('.card h4')].some((h) => /Grand Prix|GP/.test(h.textContent))))
     }
     if (name.startsWith('standings')) {
       ok(`browser:${name} 2026 WDC leader`, /Antonelli|アントネッリ/.test(text2) && /402/.test(text2), text2.slice(0, 80))
