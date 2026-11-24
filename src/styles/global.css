@@ -647,7 +647,6 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; min-width
   .footer .fgrid { grid-template-columns: 1fr; }
   .footer { padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
   .section-head h2 { font-size: 22px; }
-  .garage-stage { height: clamp(300px, 78vw, 420px); }
 }
 
 /* very small phones */
@@ -657,26 +656,6 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; min-width
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-}
-
-/* PITWALL GARAGE (3D viewer) */
-.garage-badge {
-  position: absolute; top: 14px; left: 16px; z-index: 2;
-  font-family: var(--font-display); letter-spacing: .12em; font-size: 13px;
-  color: var(--muted); text-transform: uppercase;
-}
-.garage-zoom {
-  position: absolute; z-index: 2; width: 40px; height: 40px; padding: 0;
-  font-size: 18px; display: grid; place-items: center;
-  background: rgba(20,24,31,.85); backdrop-filter: blur(4px);
-}
-.garage-zoom:first-of-type { right: 72px; bottom: 16px; }
-.garage-zoom:last-of-type { right: 16px; bottom: 16px; }
-.garage-fallback {
-  position: absolute; inset: 0; z-index: 1;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  text-align: center; padding: 20px;
 }
 
 /* ---------- race results (rebuilt) ---------- */

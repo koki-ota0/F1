@@ -16,7 +16,7 @@ import puppeteer from 'puppeteer-core'
 const base = process.env.BASE || 'http://localhost:3000'
 const widths = (process.env.WIDTHS || '1440,390').split(',').map(Number)
 const routes = ['/', '/live', '/standings', '/results', '/calendar', '/drivers',
-  '/teams', '/predict', '/sim', '/quiz', '/garage', '/news', '/social', '/league', '/fan']
+  '/teams', '/predict', '/sim', '/quiz', '/news', '/social', '/league', '/fan']
 
 const PROBE = () => {
   const lum = ([r, g, b]) => {

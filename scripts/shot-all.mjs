@@ -18,7 +18,7 @@ fs.mkdirSync(outDir, { recursive: true })
 
 const routes = [
   '/', '/live', '/standings', '/results', '/calendar', '/drivers', '/teams',
-  '/predict', '/sim', '/quiz', '/garage', '/news', '/social', '/league', '/fan',
+  '/predict', '/sim', '/quiz', '/news', '/social', '/league', '/fan',
   '/drivers/verstappen', '/teams/ferrari'
 ]
 

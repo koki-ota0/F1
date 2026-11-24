@@ -17,7 +17,6 @@ import TeamDetail from './pages/TeamDetail.jsx'
 import Predict from './pages/Predict.jsx'
 import Sim from './pages/Sim.jsx'
 import Quiz from './pages/Quiz.jsx'
-import Garage from './pages/Garage.jsx'
 import News from './pages/News.jsx'
 import Social from './pages/Social.jsx'
 import League from './pages/League.jsx'
@@ -51,7 +50,6 @@ function Shell() {
           <Route path="/predict" element={<Predict />} />
           <Route path="/sim" element={<Sim />} />
           <Route path="/quiz" element={<Quiz />} />
-          <Route path="/garage" element={<Garage />} />
           <Route path="/news" element={<News />} />
           <Route path="/social" element={<Social />} />
           <Route path="/league" element={<League />} />
