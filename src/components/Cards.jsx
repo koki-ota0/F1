@@ -35,7 +35,7 @@ export function DriverPhoto({ id, name, size = 72, src, fallbackId }) {
   )
 }
 
-export function DriverCard({ driver, team }) {
+export function DriverCard({ driver, team, compact = false }) {
   const { t, lang } = useLang()
   const { fan, update } = useFan()
   const isFav = fan.driver === driver.id
@@ -44,8 +44,8 @@ export function DriverCard({ driver, team }) {
     <Link to={`/drivers/${driver.id}`} className="card hover dcard" style={{ '--team-color': color, display: 'block' }}>
       <span className="stripe" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <DriverPhoto id={driver.id} name={driver.name} size={56} src={driver.photo} />
+        <div style={{ display: 'flex', gap: compact ? 8 : 12, alignItems: 'center' }}>
+          <DriverPhoto id={driver.id} name={driver.name} size={compact ? 40 : 56} src={driver.photo} />
           <div>
             <div className="dnum">{driver.number}</div>
             <div className="dname">{driver.name}</div>
@@ -54,6 +54,9 @@ export function DriverCard({ driver, team }) {
         </div>
         <button
           className={isFav ? 'btn sm primary' : 'btn sm ghost'}
+          style={{ minWidth: 34 }}
+          aria-label={`${driver.number} ${driver.name}: ${isFav ? t('drivers.removeFav') : t('drivers.addFav')}`}
+          aria-pressed={isFav}
           title={isFav ? t('drivers.removeFav') : t('drivers.addFav')}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); update({ driver: isFav ? '' : driver.id }) }}
         >

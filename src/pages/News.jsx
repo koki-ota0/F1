@@ -20,8 +20,12 @@ export default function News() {
             {!isLive && <div className="note" style={{ marginBottom: 14 }}>{t('news.offlineFeed')}</div>}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {items.map((n, i) => (
-                <a className="card hover" key={n.id || i} href={n.url || n.link || '#'}
-                  target={n.url || n.link ? '_blank' : undefined} rel="noreferrer" style={{ display: 'block' }}>
+                <a className="card hover" key={n.id || i}
+                  href={n.url || n.link || '#'}
+                  target={n.url || n.link ? '_blank' : undefined}
+                  rel={n.url || n.link ? 'noreferrer' : undefined}
+                  aria-label={`${lang === 'ja' ? (n.title || n.titleEn) : (n.titleEn || n.title)} — ${t('news.readMore')}`}
+                  style={{ display: 'block' }}>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                     <span className="tag">{n.tag || n.source}</span>
                     <span className="note">{n.date ? fmtDate(n.date, lang) : ''}</span>
@@ -32,6 +36,9 @@ export default function News() {
                   </h3>
                   {(n.summary || n.summaryEn) && (
                     <p className="note" style={{ margin: 0 }}>{lang === 'ja' ? (n.summary || n.summaryEn) : (n.summaryEn || n.summary)}</p>
+                  )}
+                  {(n.url || n.link) && (
+                    <span className="tag" style={{ marginTop: 12 }}>{t('news.readMore')} ↗</span>
                   )}
                 </a>
               ))}

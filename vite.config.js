@@ -14,6 +14,14 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    emptyOutDir: true
+    emptyOutDir: true,
+    // Fold the dynamically-imported three.js module into the app bundle.
+    // A separate chunk would be fetched with an import at runtime, which the
+    // jsdom smoke harness (classic script, no modules) cannot execute — the
+    // build then fails QA even though the browser works. One bundle keeps both
+    // consumers happy; the lazy load is not worth the tooling breakage.
+    rollupOptions: {
+      output: { inlineDynamicImports: true }
+    }
   }
 })

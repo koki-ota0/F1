@@ -11,6 +11,7 @@ export const dict = {
     'common.search': '検索…', 'common.all': 'すべて', 'common.round': 'ラウンド', 'common.date': '開催日',
     'common.circuit': 'サーキット', 'common.country': '国・地域', 'common.laps': '周回数', 'common.length': 'コース長',
     'common.turns': 'コーナー数', 'common.drsZones': 'DRSゾーン', 'common.lapRecord': 'ラップレコード',
+    'common.menu': 'メニュー', 'common.language': '言語', 'common.skipToContent': 'コンテンツへスキップ',
     'common.viewAll': 'すべて見る', 'common.close': '閉じる', 'common.km': 'km', 'common.retry': '再読み込み',
     'common.backHome': 'ホームへ戻る', 'common.details': '詳細', 'common.lastUpdate': '最終更新',
 
@@ -49,8 +50,11 @@ export const dict = {
 
     'standings.title': '順位表', 'standings.sub': 'ドライバー / コンストラクターズの今季順位と歴代記録',
     'standings.showingSeason': (s) => `${s}年シーズンを表示中`,
-    'garage.title': 'ガレージ（3Dマシン）', 'garage.sub': 'チームカラーのF1マシンを3Dで观赏。ドラッグで回転、＋/−でズーム。',
-    'garage.hint': 'ドラッグ: 回転 / ＋−: ズーム', 'garage.unsupported': 'この環境ではWebGLが使えないため静的表示です',
+    'garage.title': 'ガレージ（3Dマシン）', 'garage.sub': 'チームカラーのF1マシンを、約90パーツのプロシージャルモデルで3D表示。ドラッグで回転、＋/−・ホイール・ピンチでズーム。',
+    'garage.hint': 'ドラッグ: 回転 / ＋−・ホイール・ピンチ: ズーム',
+    'garage.pickTeam': 'チームを選択', 'garage.zoomIn': 'ズームイン', 'garage.zoomOut': 'ズームアウト',
+    'garage.unsupported': 'この環境では3Dレンダリングを利用できないため、静止画で表示しています（モデルは隠れています）',
+    'garage.noModel': '3Dライブラリを読み込めませんでした。ネットワーク接続を確認してください',
     'results.title': 'レース結果', 'results.sub': 'ラウンド別の優勝・ポール・ファステストラップ。クリックで全順位表。',
     'results.live': 'ライブ取得', 'results.archive': 'アーカイブ（2025）', 'results.seasonSuffix': '年',
     'results.archiveBanner': 'オフラインバンドル', 'results.archiveMsg': '同梱した前年シーズンの公式結果を表示中です。最新は「🔄 最新に更新」または OpenF1 / Jolpica 到達時に自動切替。',
@@ -115,6 +119,7 @@ export const dict = {
 
     'news.title': 'ニュース', 'news.sub': 'F1関連の最新情報（ライブRSS / オフライン時は注目記事）',
     'news.source': 'ソース', 'news.offlineFeed': 'オフライン記事（ライブRSSに接続できません）', 'news.readMore': '原文を見る',
+    'news.openSource': '公式記事を見る',
     'news.tag': 'タグ', 'news.noItems': '記事がありません',
 
     'fan.title': 'ファンゾーン', 'fan.sub': '推しを登録して、サイト全体をあなた好みに。',
@@ -174,6 +179,7 @@ export const dict = {
     'common.search': 'Search…', 'common.all': 'All', 'common.round': 'Round', 'common.date': 'Race day',
     'common.circuit': 'Circuit', 'common.country': 'Country', 'common.laps': 'Laps', 'common.length': 'Length',
     'common.turns': 'Turns', 'common.drsZones': 'DRS zones', 'common.lapRecord': 'Lap record',
+    'common.menu': 'Menu', 'common.language': 'Language', 'common.skipToContent': 'Skip to content',
     'common.viewAll': 'View all', 'common.close': 'Close', 'common.km': 'km', 'common.retry': 'Retry',
     'common.backHome': 'Back home', 'common.details': 'Details', 'common.lastUpdate': 'Updated',
 
@@ -213,8 +219,11 @@ export const dict = {
 
     'standings.title': 'Standings', 'standings.sub': 'This season’s drivers & constructors, plus the history books.',
     'standings.showingSeason': (s) => `Showing ${s} season`,
-    'garage.title': 'The Garage (3D car)', 'garage.sub': 'A stylised F1 car in team colours, rendered in 3D. Drag to rotate, +/− to zoom.',
-    'garage.hint': 'Drag: rotate · +/−: zoom', 'garage.unsupported': 'WebGL is unavailable here — showing a static view',
+    'garage.title': 'The Garage (3D car)', 'garage.sub': 'An F1 car built from ~90 procedural parts in team colours, rendered in 3D. Drag to rotate, +/−, wheel or pinch to zoom.',
+    'garage.hint': 'Drag to rotate · +/−, wheel or pinch to zoom',
+    'garage.pickTeam': 'Choose team', 'garage.zoomIn': 'Zoom in', 'garage.zoomOut': 'Zoom out',
+    'garage.unsupported': '3D rendering is not available in this environment, so the model is hidden (static view)',
+    'garage.noModel': 'The 3D library could not be loaded. Check your connection.',
     'results.title': 'Race results', 'results.sub': 'Winners, poles and fastest laps by round. Click a card for the full classification.',
     'results.live': 'Live', 'results.archive': 'Archive (2025)', 'results.seasonSuffix': '',
     'results.archiveBanner': 'Offline bundle', 'results.archiveMsg': 'Showing bundled results for the previous season. Latest data loads automatically when OpenF1 / Jolpica is reachable, or via the Refresh button.',
@@ -279,6 +288,7 @@ export const dict = {
 
     'news.title': 'News', 'news.sub': 'Latest F1 stories (live RSS; archive stories while offline).',
     'news.source': 'Source', 'news.offlineFeed': 'Offline archive (live RSS unreachable)', 'news.readMore': 'Read more',
+    'news.openSource': 'Open the official article',
     'news.tag': 'Tag', 'news.noItems': 'No articles',
 
     'fan.title': 'Fan Zone', 'fan.sub': 'Register your favourites and make the site yours.',

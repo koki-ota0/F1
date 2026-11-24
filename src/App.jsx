@@ -4,6 +4,7 @@ import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import { FanProvider } from './components/FanProvider.jsx'
 import { RefreshProvider } from './components/RefreshProvider.jsx'
+import { useLang } from './lib/i18n.jsx'
 import Home from './pages/Home.jsx'
 import Live from './pages/Live.jsx'
 import Standings from './pages/Standings.jsx'
@@ -29,13 +30,14 @@ function ScrollToTop() {
   return null
 }
 
-export default function App() {
+function Shell() {
+  const { t } = useLang()
   return (
-    <RefreshProvider>
-      <FanProvider>
-        <ScrollToTop />
+    <>
+      <ScrollToTop />
+      <a className="skip-link" href="#main">{t('common.skipToContent')}</a>
       <Navbar />
-      <main>
+      <main id="main">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/live" element={<Live />} />
@@ -58,6 +60,15 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <RefreshProvider>
+      <FanProvider>
+        <Shell />
       </FanProvider>
     </RefreshProvider>
   )

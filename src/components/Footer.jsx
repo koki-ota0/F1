@@ -36,7 +36,7 @@ export default function Footer() {
         </div>
         <div className="fbot">
           <span>PITWALL is a fan-made demo. Not affiliated with Formula 1, Liberty Media or any team. Data: OpenF1 / Jolpica F1 / bundled dataset.</span>
-          <span>© 2026 PITWALL</span>
+          <span>© 2026 PITWALL · <a href="https://koki-ota0.github.io/F1/" target="_blank" rel="noreferrer">koki-ota0.github.io/F1</a></span>
         </div>
       </div>
     </footer>
