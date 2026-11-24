@@ -4,3 +4,8 @@ dist
 *.log
 .vite
 qa/
+# runtime account/prediction state (never commit real credentials)
+server/data/users.json
+server/data/sessions.json
+server/data/predictions-v2.json
+server/data/leagues-v2.json

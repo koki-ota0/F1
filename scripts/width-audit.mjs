@@ -18,7 +18,7 @@ const base = process.env.BASE || 'http://localhost:3000'
 const widths = (process.env.WIDTHS || '1280,1181,1100,1024,900,768,720,600,480,414,390,360')
   .split(',').map(Number)
 const routes = ['/', '/live', '/standings', '/results', '/calendar', '/drivers',
-  '/teams', '/predict', '/sim', '/quiz', '/news', '/social', '/league', '/fan']
+  '/teams', '/predict', '/sim', '/quiz', '/login', '/news', '/social', '/league', '/fan']
 
 const browser = await puppeteer.launch({
   args: [...chromium.args, '--no-sandbox', '--enable-unsafe-swiftshader'],

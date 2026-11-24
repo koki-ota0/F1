@@ -4,11 +4,13 @@ import { useApi } from '../lib/api.js'
 import { SectionHead, Loading } from '../components/common.jsx'
 import { useFan } from '../components/FanProvider.jsx'
 import { fanLevel, fanLevelName } from '../lib/store.js'
+import { useAuth } from '../lib/auth.jsx'
 
 export default function Fan() {
   const { t, lang } = useLang()
   const { data: drivers, loading } = useApi('/api/drivers')
   const { fan, update, reset, quiz, preds, teams, myTeam } = useFan()
+  const { user, updateProfile: saveAccount, logout } = useAuth()
   const [name, setName] = useState(fan.name)
   const [driver, setDriver] = useState(fan.driver)
   const [team, setTeam] = useState(fan.team)
@@ -16,8 +18,17 @@ export default function Fan() {
 
   useEffect(() => { setName(fan.name); setDriver(fan.driver); setTeam(fan.team) }, [fan.name, fan.driver, fan.team])
 
-  const save = () => {
+  // an account gives us a server-side profile; prefer it once it arrives
+  useEffect(() => {
+    if (!user) return
+    setName((prev) => prev || user.name || user.username)
+    setDriver((prev) => prev || user.profile?.driver || '')
+    setTeam((prev) => prev || user.profile?.team || '')
+  }, [user?.id])
+
+  const save = async () => {
     update({ name, driver, team })
+    try { await saveAccount({ name, driver, team, xp: quiz.xp, bestStreak: quiz.bestStreak }) } catch { /* offline */ }
     setSaved(true)
     setTimeout(() => setSaved(false), 2200)
   }
@@ -32,6 +43,17 @@ export default function Fan() {
     <section className="section">
       <div className="container">
         <SectionHead eyebrow="FAN ZONE" title={t('fan.title')} sub={t('fan.sub')} />
+
+        <div className="card" style={{ marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <div>
+            <div className="eyebrow">{t('auth.loggedInAs')}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, marginTop: 4 }}>@{user?.username}</div>
+            <div className="note" style={{ marginTop: 2 }}>
+              {t('auth.memberSince')}: {user?.createdAt ? user.createdAt.slice(0, 10) : '—'}
+            </div>
+          </div>
+          <button className="btn sm ghost" onClick={logout}>{t('auth.logout')}</button>
+        </div>
 
         <div className="grid grid-2" style={{ alignItems: 'start' }}>
           <div className="card">
