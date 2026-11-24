@@ -1,90 +1,112 @@
 [
-  {
-    "id": "n1",
-    "title": "ルイス・ハミルトン、2025年からフェラーリに移籍",
-    "titleEn": "Lewis Hamilton moves to Ferrari from 2025",
-    "source": "F1公式 / Formula1.com",
-    "date": "2024-02-01",
-    "tag": "移籍 / Transfer",
-    "summary": "7度の世界チャンピオンがメルセデスを離れ、2025年シーズンからフェラーリでレクレールとコンビを組むことが発表されました。",
-    "summaryEn": "The seven-time champion leaves Mercedes to partner Charles Leclerc at Ferrari from 2025.",
-    "url": "https://www.formula1.com"
-  },
-  {
-    "id": "n2",
-    "title": "2026年、キャデラック（GM）が11チーム目としてF1参戦を正式承認",
-    "titleEn": "Cadillac (GM) formally approved as F1's 11th team for 2026",
-    "source": "F1公式 / Formula1.com",
-    "date": "2025-03-06",
-    "tag": "新規参戦 / New team",
-    "summary": "GMのキャデラックが2026年から参戦。フェラーリのPUを搭載するワークスチームとしてグリッドが11チームに。",
-    "summaryEn": "Cadillac joins the grid in 2026 with Ferrari power units, expanding the field to 11 teams.",
-    "url": "https://www.formula1.com"
-  },
-  {
-    "id": "n3",
-    "title": "アウディ、ザウバーを引き継ぎ2026年ワークス参戦へ",
-    "titleEn": "Audi takes over Sauber for a 2026 works entry",
-    "source": "Autosport",
-    "date": "2024-03-08",
-    "tag": "新規参戦 / New team",
-    "summary": "ザウバーが2026年に「Audi」として生まれ変わることが発表されました。ニコ・ヒュルケンベルクや新人の起用が注目されます。",
-    "summaryEn": "Sauber will race as Audi from 2026, with Hulkenberg and rookies in the spotlight.",
-    "url": "https://www.autosport.com"
-  },
-  {
-    "id": "n4",
-    "title": "2025年開幕はオーストラリアGP。3月16日アルバート・パーク",
-    "titleEn": "2025 season opens with the Australian GP at Albert Park",
-    "source": "F1公式 / Formula1.com",
-    "date": "2024-12-06",
-    "tag": "カレンダー / Calendar",
-    "summary": "2025年はオーストラリアGPが開幕戦に。中国GPと日本GPが続く超速開始となります。",
-    "summaryEn": "Australia opens the 2025 season, followed by China and Japan in a rapid-fire start.",
-    "url": "https://www.formula1.com"
-  },
-  {
-    "id": "n5",
-    "title": "角田裕毅、RBの中核として2025年シーズンへ意気込み",
-    "titleEn": "Yuki Tsunoda aims to lead RB into 2025",
-    "source": "Crash.net",
-    "date": "2025-02-20",
-    "tag": "ドライバー / Driver",
-    "summary": "日本GP（鈴鹿）でも注目の的となる角田。RBでの成長が日本ファンの関心を集めています。",
-    "summaryEn": "All eyes on Tsunoda at Suzuka as he targets a leading role at RB.",
-    "url": "https://www.crash.net"
-  },
-  {
-    "id": "n6",
-    "title": "2025年は24レース。ラスベガス・クパを含め史上最多規模",
-    "titleEn": "2025 features a record 24 races",
-    "source": "F1公式 / Formula1.com",
-    "date": "2024-06-18",
-    "tag": "カレンダー / Calendar",
-    "summary": "2025年シーズンは過去最多の24戦。3月から12月まで長く密度の高い日程が続きます。",
-    "summaryEn": "A record-equalling 24-round calendar runs from March to December.",
-    "url": "https://www.formula1.com"
-  },
-  {
-    "id": "n7",
-    "title": "メルセデス、超新星アントネッリを2025年シートに抜擢",
-    "titleEn": "Mercedes promotes Antonelli to a 2025 race seat",
-    "source": "Autosport",
-    "date": "2024-09-01",
-    "tag": "ルーキー / Rookie",
-    "summary": "ハミルトン後任として期待されるイタリア人アントネッリが、F2からいきなりメルセデスに。",
-    "summaryEn": "Italian Antonelli jumps straight from F2 to Mercedes as Hamilton's successor-in-waiting.",
-    "url": "https://www.autosport.com"
-  },
-  {
-    "id": "n8",
-    "title": "ラスベガスGPでノリスが2024年ドライバーズタイトルを確定",
-    "titleEn": "Norris clinches 2024 title in Las Vegas",
-    "source": "F1公式 / Formula1.com",
-    "date": "2024-11-23",
-    "tag": "チャンピオン / Champion",
-    "summary": "マクラーレンドライバーのノリスが2024年ドライバーズチャンピオンに。マクラーレンもコンストラクターズ制覇。",
-    "summaryEn": "Norris is crowned 2024 drivers' champion as McLaren take the constructors' crown.",
-    "url": "https://www.formula1.com"
-  }
+ {
+  "id": "n1",
+  "title": "ヴェルスタッペン＆ラッセルの長年の因縁を時系列で追う",
+  "titleEn": "The timeline of Verstappen and Russell’s long rivalry",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-22",
+  "tag": "最新 / Latest",
+  "summary": "F1.comが、マックス・ヴェルスタッペンとジョージ・ラッセルの緊張が初めて燃え上がって以来、再燃するまでの経緯を時系列でまとめています。",
+  "summaryEn": "F1.com charts how tensions first flared – and have since been reignited – between Max Verstappen and George Russell.",
+  "url": "https://www.formula1.com/en/latest/article/timeline-how-the-verstappen-vs-russell-rivalry-has-unfolded-over-several-years.4Y4Vmh0tOMo60qq4D2uXPN"
+ },
+ {
+  "id": "n2",
+  "title": "サインツ「素晴らしかった」、ラスベガスGPで8位フィニッシュ",
+  "titleEn": "Sainz hails ‘amazing’ Las Vegas GP after ‘incredible’ P8",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-21",
+  "tag": "最新 / Latest",
+  "summary": "10/25のラスベガスGPでウィリアムズのカルロス・サインツは8位に入り、バクー以来のポイントを獲得。「信じられないくらい素晴らしい走りだった」と語りました。",
+  "summaryEn": "Carlos Sainz managed to bring his Williams home in eighth place in Las Vegas, scoring for the first time since Baku with a drive the Spaniard called “amazing” after the race.",
+  "url": "https://www.formula1.com/en/latest/article/sainz-hails-amazing-las-vegas-grand-prix-after-incredible-p8-finish.4FBiwflePJER6l3k6aIFqU"
+ },
+ {
+  "id": "n3",
+  "title": "ラスベガスGPから勝者5人・敗者5人",
+  "titleEn": "5 Winners and 5 Losers from Las Vegas",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-21",
+  "tag": "最新 / Latest",
+  "summary": "ローレンス・バレットが激戦の2026年ラスベガスGPから勝者と敗者を各5人ずつ選び出します。",
+  "summaryEn": "Lawrence Barretto picks out his winners and losers from an eventful 2026 Las Vegas Grand Prix.",
+  "url": "https://www.formula1.com/en/latest/article/5-winners-and-5-losers-from-las-vegas.6HVn4aszKitqrWNRTWkksX"
+ },
+ {
+  "id": "n4",
+  "title": "カタールGPベッティングガイドと最新オッズ",
+  "titleEn": "Qatar Grand Prix betting guide and latest odds",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-20",
+  "tag": "最新 / Latest",
+  "summary": "ルサイルの週末に向けて、予想に役立つ重要情報を専門家がお届けします。",
+  "summaryEn": "Our experts bring you all the important betting information you need before making your predictions for Lusail.",
+  "url": "https://www.formula1.com/en/latest/article/qatar-grand-prix-race-betting-guide-and-what-the-markets-predict-will-happen.5A5FEXzRhph6ATX2PvVmmq"
+ },
+ {
+  "id": "n5",
+  "title": "ペレスとカマラがラスベガスGP接触についてコメント",
+  "titleEn": "Perez and Camara react to Las Vegas GP clash",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-21",
+  "tag": "最新 / Latest",
+  "summary": "セルヒオ・ペレスはラスベガスGP序盤にハースのラファエル・カマラと接触し、レースを中止。カタールGPでのペナルティも発表されました。",
+  "summaryEn": "Sergio Perez's Las Vegas Grand Prix came to an early end when the Cadillac driver collided with the Haas of Rafael Camara.",
+  "url": "https://www.formula1.com/en/latest/article/perez-and-camara-react-to-las-vegas-grand-prix-clash-as-perez-receives-penalty-for-qatar.2WhxfuDIpCN5yN35Zupw8M"
+ },
+ {
+  "id": "n6",
+  "title": "ガスリ、優勝を狙えた不具合を明かす",
+  "titleEn": "Gasly reveals issue as he felt he could challenge for Vegas win",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-20",
+  "tag": "最新 / Latest",
+  "summary": "ピエール・ガスリはラスベガスGPでトップ4チーム勢を終始抑え、優勝を狙える展開に。車の不具合についても明かしました。",
+  "summaryEn": "Pierre Gasly was one of the stars of a thrilling Las Vegas Grand Prix as the Alpine driver battled with drivers from the top four teams for the whole race.",
+  "url": "https://www.formula1.com/en/latest/article/gasly-reveals-car-issue-in-las-vegas-as-he-felt-he-could-challenge-for-the-win.yyZX6FzglV6KSXOeQBOJN"
+ },
+ {
+  "id": "n7",
+  "title": "メキエ代表「ヴェルスタッペンは別の惑星の男」",
+  "titleEn": "Verstappen 'from a different planet' – Mekies",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-20",
+  "tag": "最新 / Latest",
+  "summary": "ローラン・メキエはマックス・ヴェルスタッペンがラスベガスGPで相手を出し抜いて勝利した走りを「違う惑星の男」と称賛しました。",
+  "summaryEn": "Laurent Mekies believes Max Verstappen is \"from a different planet\" after the Red Bull driver \"outsmarted the opposition\" on his way to victory in the Las Vegas Grand Prix.",
+  "url": "https://www.formula1.com/en/latest/article/hes-from-a-different-planet-mekies-praises-verstappen-after-las-vegas-gp-victory.TXH10rYL99f2dIZqnVbCq"
+ },
+ {
+  "id": "n8",
+  "title": "ステラ代表「ノリス＆ピアストリは今季最高のレースをした」",
+  "titleEn": "Why Norris and Piastri had 'one of their best races' in Vegas",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-19",
+  "tag": "最新 / Latest",
+  "summary": "ランド・ノリスとオスカー・ピアストリはラスベガスGPで2位・3位に入り、アンドレア・ステラ代表はMCL40の限界がある中で両者の走りを称えました。",
+  "summaryEn": "Lando Norris and Oscar Piastri finished second and third in the Las Vegas Grand Prix, with McLaren Team Principal Andrea Stella praising their performances despite the limitations of the MCL40.",
+  "url": "https://www.formula1.com/en/latest/article/why-stella-believes-norris-and-piastri-had-one-of-their-best-races-in-las-vegas.3nrRVW1vlGiQAEe5LokXri"
+ },
+ {
+  "id": "n9",
+  "title": "352回のオーバーテイクを生んだラスベガスGPの要因",
+  "titleEn": "The ingredients that created a Grand Prix with 352 overtakes",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-19",
+  "tag": "最新 / Latest",
+  "summary": "マイケル・ラモナートが、記録的な352回のオーバーテイクを記録したラスベガスGPの背景を解説します。",
+  "summaryEn": "Michael Lamonato dissects the circumstances behind a record-breaking Las Vegas Grand Prix.",
+  "url": "https://www.formula1.com/en/latest/article/the-ingredients-that-created-a-grand-prix-with-352-overtakes.3IEhw6LQ9NQG9sF0orRKqV"
+ },
+ {
+  "id": "n10",
+  "title": "シーズン終盤、2位争いが激化",
+  "titleEn": "Battle for second place tightens as finish line nears",
+  "source": "F1公式 / Formula1.com",
+  "date": "2026-11-18",
+  "tag": "最新 / Latest",
+  "summary": "マックス・ヴェルスタッペンは6戦で4勝目を挙げましたが、2位を巡る争いの行方はまだ流動的です。",
+  "summaryEn": "Max Verstappen made it four wins in six races but challengers for second place are queueing up.",
+  "url": "https://www.formula1.com/en/latest/article/battle-for-second-place-tightens-as-2026-world-championship-finish-line-nears.5Rqr6EDZZLiPtFbnomVdfb"
+ }
 ]

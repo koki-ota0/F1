@@ -29,7 +29,7 @@ export default function DriverDetail() {
         <div className="card" style={{ '--team-color': color, position: 'relative', overflow: 'hidden' }}>
           <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, background: color }} />
           <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
-            <DriverPhoto id={driver.id} name={driver.name} size={120} />
+            <DriverPhoto id={driver.id} name={driver.name} size={120} src={driver.photo || `${import.meta.env.BASE_URL}images/drivers/${driver.id}.jpg`} />
             <div className="num" style={{ fontSize: 90, color: 'rgba(255,255,255,.12)', lineHeight: 1 }}>{driver.number}</div>
             <div style={{ flex: 1, minWidth: 240 }}>
               <h2 style={{ fontFamily: 'var(--font-display)', margin: '0 0 6px', fontSize: 30 }}>{lang === 'ja' ? driver.nameJa : driver.name}</h2>

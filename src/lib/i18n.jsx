@@ -69,7 +69,8 @@ export const dict = {
     'calendar.title': 'カレンダー', 'calendar.sub': 'シーズン全レースのスケジュールとサーキット情報',
     'calendar.upcoming': 'これから', 'calendar.completed': '終了', 'calendar.countdownTo': 'レースまで',
     'calendar.circuitInfo': 'サーキット情報', 'calendar.raceDay': 'レース日', 'calendar.roundLabel': 'Rd.',
-    'calendar.lapRecordBy': 'ラップレコード保持者',
+    'calendar.lapRecordBy': 'ラップレコード保持者', 'calendar.raceOverview': 'レース概要を見る',
+    'calendar.hideDetail': '閉じる', 'calendar.sessionSchedule': 'セッション日程（現地時間）',
 
     'drivers.title': 'ドライバー', 'drivers.sub': '現シーズンのドライバーグリッド。戦績とプロフィール。',
     'drivers.filterTeam': 'チームで絞り込み', 'drivers.number': '番号', 'drivers.debut': 'デビュー', 'drivers.titles': 'タイトル',
@@ -229,10 +230,11 @@ export const dict = {
     'standings.offlineNote': 'Current standings load when the live API is reachable. Showing the history books meanwhile.',
     'standings.asOf': 'As of', 'standings.holder': 'Holder', 'standings.value': 'Record', 'standings.year': 'Year',
 
-    'calendar.title': 'Calendar', 'calendar.sub': 'All 24 rounds of 2025 with circuit facts.',
+    'calendar.title': 'Calendar', 'calendar.sub': 'All 23 rounds of the 2026 season with circuit facts and session times.',
     'calendar.upcoming': 'Upcoming', 'calendar.completed': 'Completed', 'calendar.countdownTo': 'To the race',
     'calendar.circuitInfo': 'Circuit facts', 'calendar.raceDay': 'Race day', 'calendar.roundLabel': 'Rd.',
-    'calendar.lapRecordBy': 'Lap record holder',
+    'calendar.lapRecordBy': 'Lap record holder', 'calendar.raceOverview': 'Race overview',
+    'calendar.hideDetail': 'Close', 'calendar.sessionSchedule': 'Session schedule (local time)',
 
     'drivers.title': 'Drivers', 'drivers.sub': 'The current grid — profiles, career numbers and more.',
     'drivers.filterTeam': 'Filter by team', 'drivers.number': 'Number', 'drivers.debut': 'Debut', 'drivers.titles': 'Titles',
