@@ -65,7 +65,7 @@ export const dict = {
     'results.winner': '優勝', 'results.pole': 'ポールポジション', 'results.fastestLap': 'ファステストラップ',
     'results.detail': '全順位を見る', 'results.hideDetail': '閉じる', 'results.empty': '結果がありません',
     'results.noDetail': 'このラウンドの全順位はライブAPI接続時のみ取得できます。', 'results.archiveNoDetail': 'アーカイブには全順位表は含まれません。',
-    'results.classification': '全順位', 'results.gap': ' Gap ', 'results.status': '状態',
+    'results.classification': '全順位', 'results.gap': 'ギャップ', 'results.status': '状態',
     'results.classificationNote': '{year}年 レース結果（来源: {provider}）',
     'results.noDetailTitle': '全順位データがありません',
     'results.noDetailBody': '同梱スナップショットには各ラウンドの全順位表が含まれていません。OpenF1 / Jolpica に到達できる環境では自動で表示されます。',
