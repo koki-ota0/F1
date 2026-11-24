@@ -9,6 +9,10 @@
     "bundle": "node scripts/sync-bundle.mjs",
     "prebuild": "node scripts/sync-bundle.mjs",
     "postbuild": "node scripts/postbuild.mjs",
+    "qa:browser": "node scripts/browser-qa.mjs",
+    "qa:build": "vite build && node scripts/smoke.mjs && node scripts/interact5.mjs",
+    "mock:openf1": "node scripts/mock-openf1.mjs 4180",
+    "gen:2026": "node scripts/gen-2026-snapshot.mjs && npm run bundle",
     "build": "vite build",
     "start": "node server/index.js",
     "serve": "npm run build && node server/index.js"
@@ -21,8 +25,11 @@
     "three": "^0.180.0"
   },
   "devDependencies": {
+    "@sparticuz/chromium": "^131.0.1",
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^31.0.1",
+    "playwright": "^1.49.1",
+    "puppeteer-core": "^23.11.1",
     "vite": "^5.4.11"
   }
 }

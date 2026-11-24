@@ -9,7 +9,8 @@ const ARCHIVE_SEASON = 2025
 export default function Results() {
   const { t, lang } = useLang()
   const current = new Date().getFullYear()
-  const [year, setYear] = useState(ARCHIVE_SEASON)
+  // Default to the current season: the 2026 tab should be the one fans land on.
+  const [year, setYear] = useState(current)
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [openRound, setOpenRound] = useState(null)
@@ -39,9 +40,10 @@ export default function Results() {
 
   const sourceBadge = useMemo(() => {
     if (!data) return null
-    if (data.source === 'live') return <Badge kind="live">{t('results.live')}</Badge>
+    if (data.source === 'live' || data.source === 'cache') return <Badge kind="live">{t('results.live')}</Badge>
     if (data.source === 'archive') return <Badge kind="gold">{t('results.archive')}</Badge>
-    return <Badge>{t('common.offline')}</Badge>
+    if (data.source === 'bundle') return <Badge kind="gold">{t('results.bundledBanner')}</Badge>
+    return <Badge>{t('results.offlineBanner')}</Badge>
   }, [data, t])
 
   const rounds = data?.rounds || []
@@ -64,6 +66,13 @@ export default function Results() {
           ))}
         </div>
 
+        {(data?.source === 'bundle' || data?.source === 'offline') && (
+          <div className="card" style={{ marginBottom: 20, borderColor: 'rgba(245,192,68,.45)', background: 'rgba(245,192,68,.07)' }}>
+            <Badge kind="gold">{data.source === 'bundle' ? t('results.bundledBanner') : t('results.offlineBanner')}</Badge>
+            <span className="note" style={{ marginLeft: 8 }}>{data.source === 'bundle' ? t('results.bundledMsg') : t('results.offlineMsg')}</span>
+          </div>
+        )}
+
         {data?.source === 'archive' && (
           <div className="card" style={{ marginBottom: 20, borderColor: 'rgba(245,192,68,.45)', background: 'rgba(245,192,68,.07)' }}>
             <Badge kind="gold">{t('results.archiveBanner')}</Badge>
@@ -77,22 +86,33 @@ export default function Results() {
           <div className="grid grid-3" style={{ gap: 16 }}>
             {rounds.map((r) => {
               const isOpen = openRound === r.round
+              const winner = typeof r.winner === 'string' ? r.winner : r.winner?.name
+              const winnerJa = typeof r.winner === 'string' ? r.winnerJa : r.winner?.nameJa
+              const winnerTeam = typeof r.winner === 'object' ? r.winner?.team : r.constructor
               return (
                 <div className="card" key={`${r.round}-${r.name}`} style={isOpen ? { borderColor: 'var(--accent-2)', boxShadow: '0 0 0 1px var(--accent-2) inset' } : undefined}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     <span className="num" style={{ fontSize: 22, color: 'var(--gold)' }}>Rd.{r.round}</span>
-                    <span className="note">{fmtDate(r.date)}</span>
+                    <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                      {r.status === 'cancelled' && <Badge kind="offline">{t('results.cancelled')}</Badge>}
+                      {r.status === 'upcoming' && <Badge kind="ok">{t('calendar.upcoming')}</Badge>}
+                      <span className="note">{fmtDate(r.date)}</span>
+                    </span>
                   </div>
                   <h4 style={{ fontFamily: 'var(--font-display)', fontSize: 16, margin: '8px 0 2px' }}>
                     {lang === 'ja' ? (r.nameJa || r.name) : r.name}
                   </h4>
                   <div className="note" style={{ marginBottom: 10 }}>{r.circuit}</div>
-                  {r.winner && (
+                  {(winner || winnerTeam) && (
                     <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
-                      <Row label={t('results.winner')} value={lang === 'ja' ? (r.winnerJa || r.winner) : r.winner} strong />
-                      <Row label={t('results.pole')} value={lang === 'ja' ? (r.poleJa || r.pole) : r.pole} />
-                      <Row label={t('results.fastestLap')} value={lang === 'ja' ? (r.flJa || r.fastestLap) : r.fastestLap} />
+                      <Row label={t('results.winner')} value={lang === 'ja' ? (winnerJa || winner) : winner} strong />
+                      {winnerTeam && <Row label={t('standings.team')} value={winnerTeam} />}
+                      {r.pole && <Row label={t('results.pole')} value={lang === 'ja' ? (r.poleJa || r.pole) : r.pole} />}
+                      {r.fastestLap && <Row label={t('results.fastestLap')} value={lang === 'ja' ? (r.flJa || r.fastestLap) : r.fastestLap} />}
                     </div>
+                  )}
+                  {!winner && !r.status && (
+                    <p className="note" style={{ marginTop: 10 }}>{t('results.noWinnerYet')}</p>
                   )}
                   <button className="btn sm ghost" style={{ marginTop: 12 }} onClick={() => (isOpen ? setOpenRound(null) : openDetail(r))}>
                     {isOpen ? t('results.hideDetail') : t('results.detail')}

@@ -1,0 +1,414 @@
+{
+  "season": 2026,
+  "source": "OpenF1 API (api.openf1.org/v1)",
+  "provider": "OpenF1",
+  "retrievedAt": "2026-11-23T00:00:00Z",
+  "note": "2026年シーズンのバンドルスナップショット。ライブ到達時は API の結果が優先されます。",
+  "rounds": [
+    {
+      "round": 1,
+      "name": "Australian Grand Prix",
+      "nameJa": "オーストラリアGP",
+      "circuit": "Albert Park Circuit",
+      "country": "Australia",
+      "flag": "🇦🇺",
+      "date": "2026-03-08",
+      "status": "completed",
+      "winner": {
+        "number": 63,
+        "name": "George Russell",
+        "nameJa": "ジョージ・ラッセル",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 2,
+      "name": "Chinese Grand Prix",
+      "nameJa": "中国GP",
+      "circuit": "Shanghai International Circuit",
+      "country": "China",
+      "flag": "🇨🇳",
+      "date": "2026-03-15",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 3,
+      "name": "Japanese Grand Prix",
+      "nameJa": "日本GP",
+      "circuit": "Suzuka International Racing Course",
+      "country": "Japan",
+      "flag": "🇯🇵",
+      "date": "2026-03-29",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 4,
+      "name": "Bahrain Grand Prix",
+      "nameJa": "バーレーンGP",
+      "circuit": "Bahrain International Circuit",
+      "country": "Bahrain",
+      "flag": "🇧🇭",
+      "date": "2026-04-12",
+      "status": "cancelled",
+      "winner": null,
+      "provider": "OpenF1"
+    },
+    {
+      "round": 5,
+      "name": "Saudi Arabian Grand Prix",
+      "nameJa": "サウジアラビアGP",
+      "circuit": "Jeddah Corniche Circuit",
+      "country": "Saudi Arabia",
+      "flag": "🇸🇦",
+      "date": "2026-04-19",
+      "status": "cancelled",
+      "winner": null,
+      "provider": "OpenF1"
+    },
+    {
+      "round": 6,
+      "name": "Miami Grand Prix",
+      "nameJa": "マイアミGP",
+      "circuit": "Miami International Autodrome",
+      "country": "United States",
+      "flag": "🇺🇸",
+      "date": "2026-05-03",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 7,
+      "name": "Canadian Grand Prix",
+      "nameJa": "カナダGP",
+      "circuit": "Circuit Gilles Villeneuve",
+      "country": "Canada",
+      "flag": "🇨🇦",
+      "date": "2026-05-24",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 8,
+      "name": "Monaco Grand Prix",
+      "nameJa": "モナコGP",
+      "circuit": "Circuit de Monaco",
+      "country": "Monaco",
+      "flag": "🇲🇨",
+      "date": "2026-06-07",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 9,
+      "name": "Barcelona Grand Prix",
+      "nameJa": "バルセロナGP",
+      "circuit": "Circuit de Barcelona-Catalunya",
+      "country": "Spain",
+      "flag": "🇪🇸",
+      "date": "2026-06-14",
+      "status": "completed",
+      "winner": {
+        "number": 44,
+        "name": "Lewis Hamilton",
+        "nameJa": "ルイス・ハミルトン",
+        "team": "Ferrari"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 10,
+      "name": "Austrian Grand Prix",
+      "nameJa": "オーストリアGP",
+      "circuit": "Red Bull Ring",
+      "country": "Austria",
+      "flag": "🇦🇹",
+      "date": "2026-06-28",
+      "status": "completed",
+      "winner": {
+        "number": 63,
+        "name": "George Russell",
+        "nameJa": "ジョージ・ラッセル",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 11,
+      "name": "British Grand Prix",
+      "nameJa": "イギリスGP",
+      "circuit": "Silverstone Circuit",
+      "country": "United Kingdom",
+      "flag": "🇬🇧",
+      "date": "2026-07-05",
+      "status": "completed",
+      "winner": {
+        "number": 16,
+        "name": "Charles Leclerc",
+        "nameJa": "シャルル・ルクレール",
+        "team": "Ferrari"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 12,
+      "name": "Belgian Grand Prix",
+      "nameJa": "ベルギーGP",
+      "circuit": "Circuit de Spa-Francorchamps",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "date": "2026-07-19",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 13,
+      "name": "Hungarian Grand Prix",
+      "nameJa": "ハンガリーGP",
+      "circuit": "Hungaroring",
+      "country": "Hungary",
+      "flag": "🇭🇺",
+      "date": "2026-07-26",
+      "status": "completed",
+      "winner": {
+        "number": 1,
+        "name": "Lando Norris",
+        "nameJa": "ランド・ノリス",
+        "team": "McLaren"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 14,
+      "name": "Dutch Grand Prix",
+      "nameJa": "オランダGP",
+      "circuit": "Circuit Zandvoort",
+      "country": "Netherlands",
+      "flag": "🇳🇱",
+      "date": "2026-08-23",
+      "status": "completed",
+      "winner": {
+        "number": 1,
+        "name": "Lando Norris",
+        "nameJa": "ランド・ノリス",
+        "team": "McLaren"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 15,
+      "name": "Italian Grand Prix",
+      "nameJa": "イタリアGP",
+      "circuit": "Autodromo Nazionale Monza",
+      "country": "Italy",
+      "flag": "🇮🇹",
+      "date": "2026-09-06",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 16,
+      "name": "Spanish Grand Prix",
+      "nameJa": "スペインGP",
+      "circuit": "Madring",
+      "country": "Spain",
+      "flag": "🇪🇸",
+      "date": "2026-09-13",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 17,
+      "name": "Azerbaijan Grand Prix",
+      "nameJa": "アゼルバイジャンGP",
+      "circuit": "Baku City Circuit",
+      "country": "Azerbaijan",
+      "flag": "🇦🇿",
+      "date": "2026-09-26",
+      "status": "completed",
+      "winner": {
+        "number": 63,
+        "name": "George Russell",
+        "nameJa": "ジョージ・ラッセル",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 18,
+      "name": "Malaysia Grand Prix",
+      "nameJa": "マレーシアGP",
+      "circuit": "Kuala Lumpur International Circuit",
+      "country": "Malaysia",
+      "flag": "🇲🇾",
+      "date": "2026-10-04",
+      "status": "completed",
+      "winner": {
+        "number": 3,
+        "name": "Max Verstappen",
+        "nameJa": "マックス・フェルスタッペン",
+        "team": "Red Bull Racing"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 19,
+      "name": "Singapore Grand Prix",
+      "nameJa": "シンガポールGP",
+      "circuit": "Marina Bay Street Circuit",
+      "country": "Singapore",
+      "flag": "🇸🇬",
+      "date": "2026-10-11",
+      "status": "completed",
+      "winner": {
+        "number": 3,
+        "name": "Max Verstappen",
+        "nameJa": "マックス・フェルスタッペン",
+        "team": "Red Bull Racing"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 20,
+      "name": "United States Grand Prix",
+      "nameJa": "アメリカGP",
+      "circuit": "Circuit of the Americas",
+      "country": "United States",
+      "flag": "🇺🇸",
+      "date": "2026-10-25",
+      "status": "completed",
+      "winner": {
+        "number": 12,
+        "name": "Kimi Antonelli",
+        "nameJa": "キミ・アントネッリ",
+        "team": "Mercedes"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 21,
+      "name": "Mexico City Grand Prix",
+      "nameJa": "メキシコシティGP",
+      "circuit": "Autódromo Hermanos Rodríguez",
+      "country": "Mexico",
+      "flag": "🇲🇽",
+      "date": "2026-11-01",
+      "status": "completed",
+      "winner": {
+        "number": 3,
+        "name": "Max Verstappen",
+        "nameJa": "マックス・フェルスタッペン",
+        "team": "Red Bull Racing"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 22,
+      "name": "São Paulo Grand Prix",
+      "nameJa": "サンパウロGP",
+      "circuit": "Autódromo José Carlos Pace",
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "date": "2026-11-08",
+      "status": "completed",
+      "winner": {
+        "number": 1,
+        "name": "Lando Norris",
+        "nameJa": "ランド・ノリス",
+        "team": "McLaren"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 23,
+      "name": "Las Vegas Grand Prix",
+      "nameJa": "ラスベガスGP",
+      "circuit": "Las Vegas Strip Circuit",
+      "country": "United States",
+      "flag": "🇺🇸",
+      "date": "2026-11-22",
+      "status": "completed",
+      "winner": {
+        "number": 3,
+        "name": "Max Verstappen",
+        "nameJa": "マックス・フェルスタッペン",
+        "team": "Red Bull Racing"
+      },
+      "provider": "OpenF1"
+    },
+    {
+      "round": 24,
+      "name": "Qatar Grand Prix",
+      "nameJa": "カタールGP",
+      "circuit": "Lusail International Circuit",
+      "country": "Qatar",
+      "flag": "🇶🇦",
+      "date": "2026-11-29",
+      "status": "upcoming",
+      "winner": null,
+      "provider": "OpenF1"
+    },
+    {
+      "round": 25,
+      "name": "Abu Dhabi Grand Prix",
+      "nameJa": "アブダビGP",
+      "circuit": "Yas Marina Circuit",
+      "country": "United Arab Emirates",
+      "flag": "🇦🇪",
+      "date": "2026-12-06",
+      "status": "upcoming",
+      "winner": null,
+      "provider": "OpenF1"
+    }
+  ]
+}

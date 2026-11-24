@@ -3,6 +3,16 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { predictRaceWithAI, aiStatus } from './ai.js'
+import {
+  OPENF1_BASE,
+  buildSeasonResults,
+  buildRoundClassification,
+  buildChampionship,
+  raceRoundsFromSessions,
+  latestCompletedRound,
+  fetchDriverMap,
+  cacheSize as f1CacheSize
+} from './f1data.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.join(__dirname, 'data')
@@ -187,10 +197,30 @@ async function getStandings(year, type) {
     if (rows.length) return { source: 'live', provider: 'Jolpica', season: sy, requestedSeason: y, standings: map(rows) }
   }
   providerHealth.set('jolpica', { ok: false, at: Date.now() })
-  const snap = readSnapshot()
+  // OpenF1 championship (beta) covers the current season after each race.
+  try {
+    const sessions = await fetchJSON(`${OPENF1_BASE}/sessions?year=${y}`, 6 * 3600_000)
+    const round = latestCompletedRound(raceRoundsFromSessions(sessions))
+    if (round?.sessionKey) {
+      const drivers = await fetchDriverMap(round.sessionKey)
+      const ch = await buildChampionship(round.sessionKey, type, drivers)
+      if (ch?.standings?.length) {
+        providerHealth.set('openf1', { ok: true, at: Date.now() })
+        return { source: 'live', provider: 'OpenF1', season: y, requestedSeason: y, sessionKey: round.sessionKey, standings: ch.standings }
+      }
+    }
+  } catch { /* fall through */ }
   const key = type === 'constructors' ? 'constructors' : 'drivers'
+  const snap = readSnapshot()
   if (snap?.year === y && snapshotFresh(snap) && snap[key]?.length) {
     return { source: 'snapshot', season: y, standings: snap[key], updatedAt: snap.updatedAt }
+  }
+  // bundled 2026 championship snapshot (labelled, retrieved from OpenF1)
+  if (currentStandings?.season === y && currentStandings[key]?.length) {
+    return { source: 'bundle', provider: currentStandings.provider, season: y, requestedSeason: y, updatedAt: currentStandings.retrievedAt, standings: currentStandings[key] }
+  }
+  if (archiveStandings?.season === y && archiveStandings[key]?.length) {
+    return { source: 'archive', season: y, provider: 'bundled', requestedSeason: y, standings: archiveStandings[key] }
   }
   return { source: 'offline', season: y, standings: [], note: 'standings unavailable' }
 }
@@ -224,40 +254,85 @@ async function getGrid(year) {
   }
 }
 
+/**
+ * Timing tower data. Two shapes:
+ *   source 'live'   -> a race weekend in progress: positions window + weather
+ *   source 'result' -> the last finished race: final classification + weather
+ * Both are real OpenF1 data; nothing is synthesised.
+ */
 async function getLive(year, sessionKey) {
   const y = Number(year) || new Date().getFullYear()
-  let key = sessionKey
+  let key = sessionKey ? Number(sessionKey) : null
+  let meta = null
   if (!key) {
-    const meetings = await fetchJSON(`${OPENF1}/meetings?year=${y}`)
-    const rows = Array.isArray(meetings) ? meetings : meetings?.results
-    const m = rows?.find((x) => new Date(x.date_start) <= new Date()) ?? rows?.[rows.length - 1]
-    if (!m) return { source: 'offline', sessionKey: null, note: 'no meeting' }
-    const sessions = await fetchJSON(`${OPENF1}/sessions?meeting_key=${m.meeting_key}&session_type=Race`)
-    const srows = Array.isArray(sessions) ? sessions : sessions?.results
-    key = srows?.[0]?.session_key
-    if (!key) return { source: 'offline', sessionKey: null, note: 'no race session' }
+    const sessions = await fetchJSON(`${OPENF1_BASE}/sessions?year=${y}`, 6 * 3600_000)
+    const rounds = raceRoundsFromSessions(sessions).filter((r) => !r.cancelled)
+    if (!rounds.length) return { source: 'offline', sessionKey: null, note: 'no race session' }
+    const now = new Date()
+    meta = rounds.find((r) => new Date(r.dateStart) <= now && new Date(r.dateEnd) >= now - 90 * 60000)
+      || [...rounds].reverse().find((r) => new Date(r.dateEnd) <= now)
+      || rounds[rounds.length - 1]
+    key = meta.sessionKey
+  } else {
+    const sessions = await fetchJSON(`${OPENF1_BASE}/sessions?year=${y}`, 6 * 3600_000)
+    meta = raceRoundsFromSessions(sessions).find((r) => r.sessionKey === key) || { sessionKey: key }
   }
-  const [driversRes, positions, weather, pit] = await Promise.allSettled([
-    fetchJSON(`${OPENF1}/drivers?session_key=${key}`, 60_000),
-    fetchJSON(`${OPENF1}/positions?session_key=${key}`, 60_000),
-    fetchJSON(`${OPENF1}/weather?session_key=${key}`, 60_000),
-    fetchJSON(`${OPENF1}/pit?session_key=${key}`, 60_000)
+
+  const drivers = await fetchDriverMap(key)
+  const drvRows = [...drivers.values()]
+  const [weatherRows, resultRows] = await Promise.allSettled([
+    fetchJSON(`${OPENF1_BASE}/weather?session_key=${key}`, 60_000),
+    fetchJSON(`${OPENF1_BASE}/session_result?session_key=${key}`, 60_000)
   ])
-  if (positions.status !== 'fulfilled' || !positions.value) {
-    return { source: 'offline', sessionKey: key, note: 'live timing unavailable' }
+  const wth = rowsOf(weatherRows.value)
+  const weather = wth.at(-1) ?? null
+
+  // 1) live timing while the session (or its immediate aftermath) is hot
+  const start = meta.dateStart ? new Date(meta.dateStart) : null
+  const end = meta.dateEnd ? new Date(meta.dateEnd) : null
+  const now = new Date()
+  const inSession = start && end && now >= new Date(start.getTime() - 90 * 60000) && now <= new Date(end.getTime() + 90 * 60000)
+  if (inSession) {
+    try {
+      const from = new Date(now.getTime() - 6 * 60000).toISOString()
+      const to = now.toISOString()
+      const posRows = rowsOf(await fetchJSON(`${OPENF1_BASE}/position?session_key=${key}&date>=${encodeURIComponent(from)}&date<=${encodeURIComponent(to)}`, 20_000))
+      const last = new Map()
+      for (const p of posRows) last.set(String(p.driver_number), p)
+      const positions = [...last.values()].sort((a, b) => Number(a.position) - Number(b.position))
+        .map((p) => ({ ...p, driver_number: Number(p.driver_number) }))
+      if (positions.length) {
+        providerHealth.set('openf1', { ok: true, at: Date.now() })
+        return {
+          source: 'live', provider: 'OpenF1', sessionKey: key, window: { from, to },
+          meetingName: meta.name ?? '', circuit: meta.circuit ?? '', dateStart: meta.dateStart,
+          positions, drivers: drvRows, weather
+        }
+      }
+    } catch { /* fall through to the final classification */ }
   }
-  const pos = Array.isArray(positions.value) ? positions.value : positions.value.results || []
-  const drv = Array.isArray(driversRes.value) ? driversRes.value : driversRes.value?.results || []
-  const wth = Array.isArray(weather.value) ? weather.value : weather.value?.results || []
-  const pits = Array.isArray(pit.value) ? pit.value : pit.value?.results || []
-  return {
-    source: 'live',
-    sessionKey: key,
-    positions: pos,
-    drivers: drv,
-    weather: wth[wth.length - 1] ?? null,
-    pitStops: pits
+
+  // 2) final classification of the most recent session
+  if (resultRows.status === 'fulfilled' && rowsOf(resultRows.value).length) {
+    const classification = rowsOf(resultRows.value)
+      .map((r) => ({
+        position: r.position ?? null,
+        number: r.driver_number,
+        driver: drivers.get(String(r.driver_number))?.name || `#${r.driver_number}`,
+        team: drivers.get(String(r.driver_number))?.team || '',
+        points: r.points ?? 0,
+        laps: r.number_of_laps ?? null,
+        status: r.dnf ? 'DNF' : r.dns ? 'DNS' : r.dsq ? 'DSQ' : ''
+      }))
+      .sort((a, b) => (a.position ?? 999) - (b.position ?? 999))
+    providerHealth.set('openf1', { ok: true, at: Date.now() })
+    return {
+      source: 'result', provider: 'OpenF1', sessionKey: key,
+      meetingName: meta.name ?? '', circuit: meta.circuit ?? '', dateStart: meta.dateStart, dateEnd: meta.dateEnd,
+      classification, drivers: drvRows, weather
+    }
   }
+  return { source: 'offline', sessionKey: key, note: 'live timing unavailable' }
 }
 
 // ---------- local prediction store (seeded demo + in-memory) ----------
@@ -289,7 +364,7 @@ router.get('/meta', (_req, res) => {
     providers: Object.fromEntries([...providerHealth.entries()].map(([k, v]) => [k, { ok: v.ok, at: new Date(v.at).toISOString() }])),
     note: 'ライブAPIに到達できない環境ではバンドルデータを返します。',
     lastSyncAt,
-    cacheEntries: cache.size,
+    cacheEntries: cache.size + f1CacheSize(),
     ai: aiStatus()
   })
 })
@@ -304,22 +379,59 @@ router.get('/standings', async (req, res) => {
 })
 
 // Race results: live classification per round; season summary falls back to the
-// bundled archive of the last completed season.
+// Bundled fallbacks. `currentResults`/`currentStandings` are a labelled OpenF1
+// snapshot of the 2026 season (retrieved 2026-11-23) so even an API-less server
+// answers with real, current-season data; `archive*` is the previous season.
+const currentResults = read('results-2026.json')
+const currentStandings = read('standings-2026.json')
 const archiveResults = read('results-2025.json')
 const archiveStandings = read('standings-2025.json')
+
+// ---------------------------------------------------------------------------
+// Race results (OpenF1-backed; Jolpica remains the historical reference)
+// ---------------------------------------------------------------------------
+const seasonSummary = { year: null, at: 0, data: null, promise: null }
+
+function getSeasonResults(y) {
+  if (seasonSummary.year === y && seasonSummary.data && Date.now() - seasonSummary.at < 10 * 60_000) {
+    return Promise.resolve(seasonSummary.data)
+  }
+  if (seasonSummary.year === y && seasonSummary.promise) return seasonSummary.promise
+  const p = buildSeasonResults(y)
+    .then((d) => { seasonSummary.data = d; seasonSummary.at = Date.now(); return d })
+    .catch(() => ({ season: y, source: 'offline', provider: 'none', rounds: [] }))
+  seasonSummary.year = y
+  seasonSummary.promise = p
+  return p
+}
+
+async function findRound(y, round) {
+  const sessions = await fetchJSON(`${OPENF1_BASE}/sessions?year=${y}`, 6 * 3600_000)
+  const rounds = raceRoundsFromSessions(sessions)
+  return rounds.find((r) => r.round === Number(round)) || null
+}
 
 async function getRaceResult(year, round) {
   const y = Number(year) || season.current
   const r = Number(round)
   if (!r) return { source: 'offline', season: y, classification: [], note: 'round required' }
+  const info = await findRound(y, r).catch(() => null)
+  if (!info) {
+    return { source: 'offline', season: y, round: r, classification: [], note: 'round not found' }
+  }
+  if (info.cancelled) {
+    return { source: 'offline', season: y, round: r, name: info.name, classification: [], note: 'cancelled' }
+  }
+  if (info.dateEnd && new Date(info.dateEnd) > new Date()) {
+    return { source: 'offline', season: y, round: r, name: info.name, classification: [], note: 'upcoming' }
+  }
+  // Jolpica first (richer rows), OpenF1 as the fallback that works on static hosts too
   try {
-    const data = await fetchJSON(`${JOLPICA}/${y}/${r}/results/?limit=100`)
-    const rows = Array.isArray(data) ? data : data?.results
-    if (rows?.length) {
+    const data = await fetchJSON(`${JOLPICA}/${y}/${r}/results/?limit=100`, 120_000)
+    const rows = rowsOf(data)
+    if (rows.length) {
       return {
-        source: 'live',
-        season: y,
-        round: r,
+        source: 'live', provider: 'Jolpica', season: y, round: r, name: info.name,
         classification: rows.map((x, i) => ({
           position: x.position ?? i + 1,
           driver: x.driver_name ?? x.full_name ?? x.name ?? '',
@@ -330,26 +442,33 @@ async function getRaceResult(year, round) {
         }))
       }
     }
+  } catch { /* fall through to OpenF1 */ }
+  try {
+    const drivers = await fetchDriverMap(info.sessionKey)
+    const built = await buildRoundClassification(info.sessionKey, drivers)
+    if (built?.classification?.length) {
+      return { source: 'live', provider: 'OpenF1', season: y, round: r, name: info.name, ...built }
+    }
   } catch { /* fall through */ }
   if (archiveResults?.season === y && archiveResults.rounds?.length) {
     return { source: 'archive', season: y, classification: [], note: 'archive has no per-race classification' }
   }
-  return { source: 'offline', season: y, classification: [] }
+  return { source: 'offline', season: y, round: r, classification: [] }
 }
 
 router.get('/results', async (req, res) => {
   const y = Number(req.query.year) || season.current
   if (req.query.round) return res.json(await getRaceResult(y, req.query.round))
-  try {
-    // live season summary: reuse the calendar feed's race order + winners when available
-    const data = await fetchJSON(`${JOLPICA}/${y}/races/?limit=100`)
-    const rows = Array.isArray(data) ? data : data?.results
-    if (rows?.length) {
-      return res.json({ source: 'live', season: y, rounds: rows.map((r) => ({ round: r.round, name: r.race_name, date: (r.date ?? '').slice(0, 10) || null })) })
-    }
-  } catch { /* fall through */ }
+  const summary = await getSeasonResults(y)
+  if (summary?.rounds?.length && summary.rounds.some((r) => r.winner || r.status === 'completed')) {
+    return res.json(summary)
+  }
+  // no live data → labelled current-season snapshot, then the previous-season archive
+  if (currentResults?.season === y && currentResults.rounds?.length) {
+    return res.json({ source: 'bundle', season: y, provider: currentResults.provider, updatedAt: currentResults.retrievedAt, rounds: currentResults.rounds })
+  }
   if (archiveResults?.rounds?.length && y >= archiveResults.season) {
-    return res.json({ source: 'archive', season: archiveResults.season, rounds: archiveResults.rounds })
+    return res.json({ source: 'archive', season: archiveResults.season, provider: 'bundled', rounds: archiveResults.rounds })
   }
   return res.json({ source: 'offline', season: y, rounds: [] })
 })
@@ -496,9 +615,10 @@ router.get('/sync', (_req, res) => {
   res.json({
     lastSyncAt,
     now: new Date().toISOString(),
-    cacheEntries: cache.size,
+    cacheEntries: cache.size + f1CacheSize(),
     ai: aiStatus(),
-    note: 'サーバは5分ごとにライブAPIのキャッシュを自動更新します。'
+    providers: Object.fromEntries([...providerHealth.entries()].map(([k, v]) => [k, { ok: v.ok, at: new Date(v.at).toISOString() }])),
+    note: 'サーバは5分ごとにカレンダー・順位・結果を自動更新します（OpenF1/Jolpica）。'
   })
 })
 
@@ -507,17 +627,24 @@ router.post('/sync', async (_req, res) => {
   const year = new Date().getFullYear()
   await getCalendar(year)
   await getStandings(year, 'drivers')
+  await getSeasonResults(year).catch(() => {})
   lastSyncAt = new Date().toISOString()
   res.json({ ok: true, lastSyncAt })
 })
 
 let lastSyncAt = new Date().toISOString()
-// background auto-refresh (best effort)
+// background auto-refresh (best effort). Results are the slowest (one request per
+// finished round), so they are refreshed less often than the standings.
 setInterval(() => {
   const year = new Date().getFullYear()
   Promise.allSettled([getCalendar(year), getStandings(year, 'drivers'), getStandings(year, 'constructors')])
     .then(() => { lastSyncAt = new Date().toISOString() })
     .catch(() => {})
 }, 5 * 60 * 1000).unref?.()
+
+setInterval(() => {
+  const year = new Date().getFullYear()
+  getSeasonResults(year).catch(() => {})
+}, 15 * 60 * 1000).unref?.()
 
 export default router
