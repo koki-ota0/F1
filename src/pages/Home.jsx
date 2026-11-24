@@ -2,11 +2,12 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 import { useApi, usePolled, getJSON, getCalendar } from '../lib/api.js'
+
 import { useFan } from '../components/FanProvider.jsx'
 import { useRefresh, useLiveRefresh } from '../components/RefreshProvider.jsx'
 import { SectionHead, Countdown, Ticker, LiveBadge, Loading, Badge } from '../components/common.jsx'
 import { DriverCard, TeamCard } from '../components/Cards.jsx'
-import { nextRace, fmtDate } from '../lib/utils.js'
+import { nextRace, fmtDate, winnerLabel } from '../lib/utils.js'
 
 export default function Home() {
   const { t, lang } = useLang()
@@ -18,6 +19,7 @@ export default function Home() {
   const [news, setNews] = useState([])
   const [records, setRecords] = useState([])
   const [champions, setChampions] = useState([])
+  const { data: resultsData } = useApi('/api/results')
 
   const run = useCallback(() => {
     let alive = true
@@ -44,6 +46,7 @@ export default function Home() {
   const liveNow = next && Math.abs(new Date(next.date + 'T12:00:00') - now) < 2 * 86400000
   const myDriver = drivers?.find((d) => d.id === fan.driver) || null
   const myTeam = teams.find((x) => x.id === fan.team) || null
+  const recentWinners = (resultsData?.rounds || []).filter((r) => r.winner && r.winner.name).slice(0, 6)
   const upcoming = [...races].filter((r) => new Date(r.date + 'T23:59:59') >= now).slice(0, 3)
 
   return (
@@ -58,7 +61,7 @@ export default function Home() {
             <div className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <div>
-                  <div className="eyebrow" style={{ fontFamily: 'var(--font-num)', letterSpacing: '.28em', textTransform: 'uppercase', color: 'var(--accent-2)', fontSize: 12, fontWeight: 700 }}>{t('home.nextRace')}</div>
+                  <div className="eyebrow">{t('home.nextRace')}</div>
                   <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 22, margin: '8px 0 4px' }}>
                     {next ? `${next.flag} ${lang === 'ja' ? next.nameJa : next.name}` : t('home.noUpcoming')}
                   </h3>
@@ -82,7 +85,7 @@ export default function Home() {
 
             <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14 }}>
               <div>
-                <div className="eyebrow" style={{ fontFamily: 'var(--font-num)', letterSpacing: '.28em', textTransform: 'uppercase', color: 'var(--accent-2)', fontSize: 12, fontWeight: 700 }}>{t('home.fanCtaTitle')}</div>
+                <div className="eyebrow">{t('home.fanCtaTitle')}</div>
                 {myDriver || myTeam ? (
                   <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     {myDriver && (
@@ -117,6 +120,28 @@ export default function Home() {
             <span className="note" style={{ marginLeft: 8 }}>{t('fresh.archiveMsg', { season: cal.seasonLabel })}</span>
           </div>
         </div>
+      )}
+
+      {recentWinners.length > 0 && (
+        <section className="section" style={{ paddingTop: 0 }}>
+          <div className="container">
+            <SectionHead eyebrow="RESULTS" title={t('results.title')} sub={t('results.sub')}
+              right={<Link className="btn sm" to="/results">{t('common.viewAll')}</Link>} />
+            <div className="winner-strip">
+              {recentWinners.map((r) => {
+                const w = winnerLabel(r, lang)
+                return (
+                  <Link to="/results" className="card hover winner-tile" key={r.round}>
+                    <span className="round-chip">Rd {r.round}</span>
+                    <span className="winner-label">{t('results.winner')}</span>
+                    <span className="winner-name">{w.name}</span>
+                    <span className="note">{lang === "ja" ? (r.nameJa || r.name) : r.name}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </section>
       )}
 
       <Ticker items={news} />

@@ -480,6 +480,7 @@ async function getRaceResult(year, round) {
         source: 'live', provider: 'Jolpica', season: y, round: r, name: info.name,
         classification: rows.map((x, i) => ({
           position: x.position ?? i + 1,
+          number: x.driver_number ?? x.number ?? null,
           driver: x.driver_name ?? x.full_name ?? x.name ?? '',
           team: x.team_name ?? x.constructor_name ?? '',
           points: x.points ?? 0,

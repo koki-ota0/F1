@@ -6,6 +6,19 @@ import { useFan } from '../components/FanProvider.jsx'
 
 const AVATAR_COLORS = ['#e10600', '#3671C6', '#FF8000', '#27F4D2', '#52E252', '#f5c044', '#E8002D', '#6692FF']
 
+/** Readable foreground for a random avatar tint: dark ink on light colours. */
+function onColor(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '')
+  if (!m) return '#fff'
+  const n = parseInt(m[1], 16)
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  })
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  return L > 0.28 ? '#12151b' : '#fff'
+}
+
 function colorFor(name) {
   let h = 0
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
@@ -153,7 +166,8 @@ export default function Social() {
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{
                     width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
-                    display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800,
+                    display: 'grid', placeItems: 'center',
+                    color: onColor(p.color || colorFor(p.name)), fontWeight: 800,
                     background: p.color || colorFor(p.name)
                   }}>
                     {(p.name || '?').slice(0, 1).toUpperCase()}
@@ -183,7 +197,8 @@ export default function Social() {
                           <div key={r.id} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                             <div style={{
                               width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-                              display: 'grid', placeItems: 'center', color: '#fff', fontSize: 13, fontWeight: 800,
+                              display: 'grid', placeItems: 'center',
+                              color: onColor(colorFor(r.name)), fontSize: 13, fontWeight: 800,
                               background: colorFor(r.name)
                             }}>{(r.name || '?').slice(0, 1).toUpperCase()}</div>
                             <div>

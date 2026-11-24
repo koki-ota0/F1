@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 import { useFan } from './FanProvider.jsx'
 import { badgePalette } from '../lib/color.js'
+import { assetUrl } from '../lib/asset.js'
 
 /**
  * Single portrait source: the bundled official-art crop
@@ -24,7 +25,7 @@ export function badgeColors(hex) {
 
 export function DriverPhoto({ id, name, size = 72, src, fallbackId }) {
   const [failed, setFailed] = useState(false)
-  const bundled = `${import.meta.env.BASE_URL}images/drivers/${fallbackId || id}.jpg`
+  const bundled = assetUrl(`images/drivers/${fallbackId || id}.jpg`)
   const resolved = failed ? null : (src || bundled)
   if (failed) {
     return (

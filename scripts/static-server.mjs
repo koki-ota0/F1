@@ -28,6 +28,8 @@ http.createServer((req, res) => {
   const urlPath = decodeURIComponent((req.url || '/').split('?')[0])
   let file = path.join(DIST, urlPath)
   if (!file.startsWith(DIST)) { res.writeHead(403); return res.end() }
+  // "/" and directory-style URLs resolve to the app shell, like GitHub Pages
+  if (urlPath.endsWith('/')) file = path.join(file, 'index.html')
   // GitHub Pages serves 404.html with an actual 404 status for unknown paths
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
     res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' })

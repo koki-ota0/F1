@@ -1,21 +1,36 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLang } from '../lib/i18n.jsx'
-import { getResults, getRaceResult } from '../lib/api.js'
+import { getResults, getRaceResult, useApi } from '../lib/api.js'
 import { SectionHead, Loading, EmptyState, Badge } from '../components/common.jsx'
-import { fmtDate } from '../lib/utils.js'
+import { fmtDate, fmtGap, driverName, winnerLabel } from '../lib/utils.js'
 
 const ARCHIVE_SEASON = 2025
 
+/**
+ * RACE RESULTS.
+ *
+ * One card per round with a consistent hierarchy (round → race → facts), and a
+ * full classification panel that scrolls inside its own frame instead of
+ * stretching the card. Winner names are resolved through driverName() so a
+ * live row that only carries a number still shows a person.
+ */
 export default function Results() {
   const { t, lang } = useLang()
   const current = new Date().getFullYear()
-  // Default to the current season: the 2026 tab should be the one fans land on.
   const [year, setYear] = useState(current)
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [openRound, setOpenRound] = useState(null)
   const [detail, setDetail] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
+
+  // driver directory lets us turn a bare number into a name on any data tier
+  const { data: drivers } = useApi('/api/drivers')
+  const byNumber = useMemo(() => {
+    const map = new Map()
+    for (const d of drivers || []) map.set(String(d.number), d)
+    return map
+  }, [drivers])
 
   const load = useCallback(() => {
     let alive = true
@@ -38,6 +53,8 @@ export default function Results() {
     }
   }
 
+  const closeDetail = () => { setOpenRound(null); setDetail(null) }
+
   const sourceBadge = useMemo(() => {
     if (!data) return null
     if (data.source === 'live' || data.source === 'cache') return <Badge kind="live">{t('results.live')}</Badge>
@@ -51,116 +68,167 @@ export default function Results() {
   return (
     <section className="section">
       <div className="container">
-        <SectionHead
-          eyebrow="RACE RESULTS"
-          title={t('results.title')}
-          sub={t('results.sub')}
-          right={sourceBadge}
-        />
+        <SectionHead eyebrow="RACE RESULTS" title={t('results.title')} sub={t('results.sub')} right={sourceBadge} />
 
         <div className="tabs" style={{ marginBottom: 20 }}>
           {[current, ARCHIVE_SEASON].map((y) => (
-            <button key={y} className={year === y ? 'on' : ''} onClick={() => { setYear(y); setOpenRound(null); setDetail(null) }}>
+            <button key={y} className={year === y ? 'on' : ''} onClick={() => { setYear(y); closeDetail() }}>
               {y}{t('results.seasonSuffix')}
             </button>
           ))}
         </div>
 
         {(data?.source === 'bundle' || data?.source === 'offline') && (
-          <div className="card" style={{ marginBottom: 20, borderColor: 'rgba(245,192,68,.45)', background: 'rgba(245,192,68,.07)' }}>
+          <div className="notice-banner">
             <Badge kind="gold">{data.source === 'bundle' ? t('results.bundledBanner') : t('results.offlineBanner')}</Badge>
-            <span className="note" style={{ marginLeft: 8 }}>{data.source === 'bundle' ? t('results.bundledMsg') : t('results.offlineMsg')}</span>
+            <span>{data.source === 'bundle' ? t('results.bundledMsg') : t('results.offlineMsg')}</span>
           </div>
         )}
-
         {data?.source === 'archive' && (
-          <div className="card" style={{ marginBottom: 20, borderColor: 'rgba(245,192,68,.45)', background: 'rgba(245,192,68,.07)' }}>
+          <div className="notice-banner">
             <Badge kind="gold">{t('results.archiveBanner')}</Badge>
-            <span className="note" style={{ marginLeft: 8 }}>{t('results.archiveMsg')}</span>
+            <span>{t('results.archiveMsg')}</span>
           </div>
         )}
 
         {loading ? <Loading /> : rounds.length === 0 ? (
           <EmptyState icon="🏁" title={t('results.empty')} />
         ) : (
-          <div className="grid grid-3" style={{ gap: 16 }}>
-            {rounds.map((r) => {
-              const isOpen = openRound === r.round
-              const winner = typeof r.winner === 'string' ? r.winner : r.winner?.name
-              const winnerJa = typeof r.winner === 'string' ? r.winnerJa : r.winner?.nameJa
-              const winnerTeam = typeof r.winner === 'object' ? r.winner?.team : r.constructor
-              return (
-                <div className="card" key={`${r.round}-${r.name}`} style={isOpen ? { borderColor: 'var(--accent-2)', boxShadow: '0 0 0 1px var(--accent-2) inset' } : undefined}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                    <span className="num" style={{ fontSize: 22, color: 'var(--gold)' }}>Rd.{r.round}</span>
-                    <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-                      {r.status === 'cancelled' && <Badge kind="offline">{t('results.cancelled')}</Badge>}
-                      {r.status === 'upcoming' && <Badge kind="ok">{t('calendar.upcoming')}</Badge>}
-                      <span className="note">{fmtDate(r.date)}</span>
-                    </span>
-                  </div>
-                  <h4 style={{ fontFamily: 'var(--font-display)', fontSize: 16, margin: '8px 0 2px' }}>
-                    {lang === 'ja' ? (r.nameJa || r.name) : r.name}
-                  </h4>
-                  <div className="note" style={{ marginBottom: 10 }}>{r.circuit}</div>
-                  {(winner || winnerTeam) && (
-                    <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
-                      <Row label={t('results.winner')} value={lang === 'ja' ? (winnerJa || winner) : winner} strong />
-                      {winnerTeam && <Row label={t('standings.team')} value={winnerTeam} />}
-                      {r.pole && <Row label={t('results.pole')} value={lang === 'ja' ? (r.poleJa || r.pole) : r.pole} />}
-                      {r.fastestLap && <Row label={t('results.fastestLap')} value={lang === 'ja' ? (r.flJa || r.fastestLap) : r.fastestLap} />}
-                    </div>
-                  )}
-                  {!winner && !r.status && (
-                    <p className="note" style={{ marginTop: 10 }}>{t('results.noWinnerYet')}</p>
-                  )}
-                  <button
-                    className="btn sm ghost"
-                    style={{ marginTop: 12 }}
+          <>
+            <div className="grid grid-3 results-grid">
+              {rounds.map((r) => {
+                const isOpen = openRound === r.round
+                const w = winnerLabel(r, lang, byNumber)
+                return (
+                  <article
+                    className={`card round-card ${isOpen ? 'is-open' : ''}`}
+                    key={`${r.round}-${r.name}`}
                     aria-expanded={isOpen}
-                    onClick={() => (isOpen ? setOpenRound(null) : openDetail(r))}
                   >
-                    {isOpen ? t('results.hideDetail') : t('results.detail')}
-                  </button>
-                  {isOpen && (
-                    <div style={{ marginTop: 12, borderTop: '1px solid var(--line)', paddingTop: 12 }}>
-                      {detailLoading ? <Loading /> : detail?.classification?.length ? (
-                        <table className="table" style={{ fontSize: 13 }}>
-                          <thead>
-                            <tr><th>{t('standings.position')}</th><th>{t('standings.driver')}</th><th>{t('standings.points')}</th></tr>
-                          </thead>
-                          <tbody>
-                            {detail.classification.slice(0, 20).map((c) => (
-                              <tr key={`${c.position}-${c.driver}`}>
-                                <td className="num">{c.position}</td>
-                                <td>{c.driver}{c.team ? <span className="note"> · {c.team}</span> : null}</td>
-                                <td className="num">{c.points}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      ) : (
-                        <p className="note" style={{ margin: 0 }}>
-                          {t('results.noDetail')} {detail?.source === 'archive' ? t('results.archiveNoDetail') : ''}
-                        </p>
+                    <header className="round-head">
+                      <span className="round-chip">Rd.{r.round}</span>
+                      <span className="round-status">
+                        {r.status === 'cancelled' && <Badge kind="offline">{t('results.cancelled')}</Badge>}
+                        {r.status === 'upcoming' && <Badge kind="ok">{t('calendar.upcoming')}</Badge>}
+                        {r.status === 'completed' && <span className="note">{fmtDate(r.date)}</span>}
+                      </span>
+                    </header>
+                    <h3 className="round-name">{r.flag} {lang === 'ja' ? (r.nameJa || r.name) : r.name}</h3>
+                    <p className="note round-circuit">{r.circuit}</p>
+
+                    {(w.name || w.team) && (
+                      <div className="winner-box">
+                        <span className="winner-label">{t('results.winner')}</span>
+                        <span className="winner-name">{w.name || '—'}</span>
+                        {w.team && <span className="note">{w.team}</span>}
+                      </div>
+                    )}
+
+                    <dl className="fact-list">
+                      {r.pole && (
+                        <div className="fact">
+                          <dt>{t('results.pole')}</dt>
+                          <dd>{driverName(r.poleJa || r.pole, lang, byNumber)}</dd>
+                        </div>
                       )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                      {r.fastestLap && (
+                        <div className="fact">
+                          <dt>{t('results.fastestLap')}</dt>
+                          <dd>{driverName(r.flJa || r.fastestLap, lang, byNumber)}</dd>
+                        </div>
+                      )}
+                    </dl>
+
+                    <button
+                      className={`btn sm ghost round-toggle ${isOpen ? 'is-open' : ''}`}
+                      aria-expanded={isOpen}
+                      onClick={() => (isOpen ? closeDetail() : openDetail(r))}
+                    >
+                      {isOpen ? t('results.hideDetail') : t('results.detail')}
+                      <span className="chev" aria-hidden="true">▾</span>
+                    </button>
+                  </article>
+                )
+              })}
+            </div>
+
+            {openRound !== null && (
+              <ClassificationPanel
+                year={year}
+                round={openRound}
+                loading={detailLoading}
+                detail={detail}
+                lang={lang}
+                byNumber={byNumber}
+                onClose={closeDetail}
+              />
+            )}
+          </>
         )}
       </div>
     </section>
   )
 }
 
-function Row({ label, value, strong }) {
+/** Full classification, drawn as its own framed panel under the card grid. */
+function ClassificationPanel({ year, round, loading, detail, lang, byNumber, onClose }) {
+  const { t } = useLang()
+  const rows = detail?.classification || []
+  const title = detail?.round?.name || `#${round}`
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13, padding: '2px 0' }}>
-      <span className="note">{label}</span>
-      <span style={strong ? { fontWeight: 800, color: 'var(--accent-2)' } : undefined}>{value || '—'}</span>
-    </div>
+    <section className="classification" aria-label={t('results.classification')}>
+      <header className="classification-head">
+        <div>
+          <div className="eyebrow">CLASSIFICATION</div>
+          <h3>{t('results.classification')} · {title}</h3>
+          <p className="note">
+            {detail?.provider ? `${detail.provider} · ` : ''}
+            {t('results.classificationNote', { year, provider: detail?.provider || t('results.bundledBanner') })}
+          </p>
+        </div>
+        <button className="btn sm ghost" onClick={onClose} aria-label={t('common.close')}>✕ {t('common.close')}</button>
+      </header>
+
+      {loading ? <Loading /> : rows.length ? (
+        <div className="table-wrap classification-scroll">
+          <table className="table classification-table">
+            <thead>
+              <tr>
+                <th>{t('standings.position')}</th>
+                <th>{t('standings.driver')}</th>
+                <th>{t('standings.team')}</th>
+                <th className="num-col">{t('standings.points')}</th>
+                <th>{t('results.gap')}</th>
+                <th>{t('results.status')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((c) => {
+                const status = c.status || ''
+                return (
+                  <tr key={`${c.position}-${c.driver}`} className={status ? `is-${status.toLowerCase()}` : ''}>
+                    <td><span className={`pos-chip pos-${c.position}`}>{c.position}</span></td>
+                    <td className="driver-cell">
+                      {c.number != null && <span className="cell-number">{c.number}</span>}
+                      <span className="cell-name">{driverName(c, lang, byNumber)}</span>
+                    </td>
+                    <td className="note">{c.team || '—'}</td>
+                    <td className="num">{c.points ?? '—'}</td>
+                    <td className="num note">{c.gap != null ? fmtGap(c.gap) : '—'}</td>
+                    <td>{status ? <Badge kind={status === 'DNF' ? 'offline' : 'muted'}>{status}</Badge> : <span className="note">—</span>}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty-feed">
+          <span className="empty-ico" aria-hidden="true">🏁</span>
+          <strong>{t('results.noDetailTitle')}</strong>
+          <p className="note">{t('results.noDetailBody')}</p>
+        </div>
+      )}
+    </section>
   )
 }
