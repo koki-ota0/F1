@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLang } from '../lib/i18n.jsx'
 import { getResults, getRaceResult, useApi } from '../lib/api.js'
 import { SectionHead, Loading, EmptyState, Badge } from '../components/common.jsx'
@@ -23,6 +23,17 @@ export default function Results() {
   const [openRound, setOpenRound] = useState(null)
   const [detail, setDetail] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const panelRef = useRef(null)
+
+  // Opening a full classification renders the panel under the card grid; bring
+  // it into view so the click always lands on the table itself.
+  useEffect(() => {
+    if (openRound === null) return
+    const id = setTimeout(() => {
+      panelRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+    }, 60)
+    return () => clearTimeout(id)
+  }, [openRound])
 
   // driver directory lets us turn a bare number into a name on any data tier
   const { data: drivers } = useApi('/api/drivers')
@@ -59,8 +70,8 @@ export default function Results() {
     if (!data) return null
     if (data.source === 'live' || data.source === 'cache') return <Badge kind="live">{t('results.live')}</Badge>
     if (data.source === 'archive') return <Badge kind="gold">{t('results.archive')}</Badge>
-    if (data.source === 'bundle') return <Badge kind="gold">{t('results.bundledBanner')}</Badge>
-    return <Badge>{t('results.offlineBanner')}</Badge>
+    if (data.source === 'offline') return <Badge>{t('results.offlineBanner')}</Badge>
+    return null
   }, [data, t])
 
   const rounds = data?.rounds || []
@@ -78,10 +89,10 @@ export default function Results() {
           ))}
         </div>
 
-        {(data?.source === 'bundle' || data?.source === 'offline') && (
+        {data?.source === 'offline' && (
           <div className="notice-banner">
-            <Badge kind="gold">{data.source === 'bundle' ? t('results.bundledBanner') : t('results.offlineBanner')}</Badge>
-            <span>{data.source === 'bundle' ? t('results.bundledMsg') : t('results.offlineMsg')}</span>
+            <Badge>{t('results.offlineBanner')}</Badge>
+            <span>{t('results.offlineMsg')}</span>
           </div>
         )}
         {data?.source === 'archive' && (
@@ -153,15 +164,17 @@ export default function Results() {
             </div>
 
             {openRound !== null && (
-              <ClassificationPanel
-                year={year}
-                round={openRound}
-                loading={detailLoading}
-                detail={detail}
-                lang={lang}
-                byNumber={byNumber}
-                onClose={closeDetail}
-              />
+              <div ref={panelRef} id="classification">
+                <ClassificationPanel
+                  year={year}
+                  round={openRound}
+                  loading={detailLoading}
+                  detail={detail}
+                  lang={lang}
+                  byNumber={byNumber}
+                  onClose={closeDetail}
+                />
+              </div>
             )}
           </>
         )}
@@ -183,7 +196,7 @@ function ClassificationPanel({ year, round, loading, detail, lang, byNumber, onC
           <h3>{t('results.classification')} · {title}</h3>
           <p className="note">
             {detail?.provider ? `${detail.provider} · ` : ''}
-            {t('results.classificationNote', { year, provider: detail?.provider || t('results.bundledBanner') })}
+            {t('results.classificationNote', { year, provider: detail?.provider || 'OpenF1' })}
           </p>
         </div>
         <button className="btn sm ghost" onClick={onClose} aria-label={t('common.close')}>✕ {t('common.close')}</button>
