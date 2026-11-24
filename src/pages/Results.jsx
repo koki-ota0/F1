@@ -114,7 +114,12 @@ export default function Results() {
                   {!winner && !r.status && (
                     <p className="note" style={{ marginTop: 10 }}>{t('results.noWinnerYet')}</p>
                   )}
-                  <button className="btn sm ghost" style={{ marginTop: 12 }} onClick={() => (isOpen ? setOpenRound(null) : openDetail(r))}>
+                  <button
+                    className="btn sm ghost"
+                    style={{ marginTop: 12 }}
+                    aria-expanded={isOpen}
+                    onClick={() => (isOpen ? setOpenRound(null) : openDetail(r))}
+                  >
                     {isOpen ? t('results.hideDetail') : t('results.detail')}
                   </button>
                   {isOpen && (
