@@ -16,7 +16,10 @@ app.use('/api', apiRouter)
 
 if (fs.existsSync(DIST)) {
   app.use(express.static(DIST, { index: false, maxAge: '1h' }))
-  app.get('*', (_req, res) => res.sendFile(path.join(DIST, 'index.html')))
+  // let the client know it is running against our Express API (enables polling)
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(DIST, 'index.html'), (err) => err && res.status(500).send('client build missing'))
+  })
 } else {
   app.get('/', (_req, res) => res.status(200).send('PITWALL API running. Build the client with `npm run build`.'))
 }

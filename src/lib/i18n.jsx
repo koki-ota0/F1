@@ -41,6 +41,9 @@ export const dict = {
     'live.sessionSchedule': 'セッション予定', 'live.lap': 'ラップ', 'live.driver': 'ドライバー', 'live.team': 'チーム',
     'live.time': 'タイム', 'live.selectSession': 'セッションを選択', 'live.lastUpdate': '最終更新', 'live.safetyCar': '安全車',
     'live.notes': '黄旗・安全車・赤旗の情報はライブAPIから取得します。',
+    'live.staticHint': '現在ライブAPIに接続できません。ナビの「更新」ボタンで再取得できます（GitHub Pagesではオンデマンドのみ）。',
+    'live.sourcesOk': '件取得成功', 'live.provider': '提供元', 'live.start': '開始', 'live.sessionInfo': 'セッション情報',
+    'live.dataAge': 'データ更新', 'live.openf1Note': 'OpenF1 API がポジション・ギャップ・天気を提供しています。',
 
     'standings.title': '順位表', 'standings.sub': 'ドライバー / コンストラクターズの今季順位と歴代記録',
     'standings.showingSeason': (s) => `${s}年シーズンを表示中`,
@@ -196,6 +199,9 @@ export const dict = {
     'live.sessionSchedule': 'Session schedule', 'live.lap': 'Lap', 'live.driver': 'Driver', 'live.team': 'Team',
     'live.time': 'Time', 'live.selectSession': 'Select session', 'live.lastUpdate': 'Updated', 'live.safetyCar': 'Safety car',
     'live.notes': 'Flags, safety car and red flags come from the live API.',
+    'live.staticHint': 'Cannot reach the live API right now. Press 「更新」 in the navbar to retry (on-demand only on GitHub Pages).',
+    'live.sourcesOk': 'sources ok', 'live.provider': 'Provider', 'live.start': 'Start', 'live.sessionInfo': 'Session info',
+    'live.dataAge': 'Data age', 'live.openf1Note': 'Positions, gaps and weather are provided by the OpenF1 API.',
 
     'standings.title': 'Standings', 'standings.sub': 'This season’s drivers & constructors, plus the history books.',
     'standings.showingSeason': (s) => `Showing ${s} season`,

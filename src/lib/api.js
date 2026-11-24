@@ -7,7 +7,11 @@ import staticRecords from './static/records.json'
 import staticTrivia from './static/trivia.json'
 import staticNews from './static/news.json'
 import staticSeason from './static/season.json'
-import { readLive, writeLive, readCacheRaw, writeCacheRaw, LIVE_BASES } from './live.js'
+import { readLive, writeLive, readCacheRaw, writeCacheRaw, JOLPICA } from './live.js'
+import { fetchVia } from './providers.js'
+
+const LIVE_BASES = { f1: JOLPICA, openf1: import.meta.env.VITE_OPENF1_BASE || 'https://api.openf1.org/v1' }
+export { LIVE_BASES }
 import staticResults2025 from './static/results-2025.json'
 import staticStandings2025 from './static/standings-2025.json'
 
@@ -17,18 +21,12 @@ export async function getJSON(path) {
   return res.json()
 }
 
-/** Browser-direct fetch with short timeout (CORS-permitting sources only). */
+/** Browser-direct fetch with short timeout (relay-aware; null on failure). */
 export async function tryBrowser(url, timeoutMs = 3000) {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs)
   try {
-    const res = await fetch(url, { signal: ctrl.signal })
-    if (!res.ok) return null
-    return await res.json()
+    return await fetchVia(url, timeoutMs)
   } catch {
     return null
-  } finally {
-    clearTimeout(timer)
   }
 }
 
@@ -123,7 +121,7 @@ export async function getCalendar(year) {
   let season = null
   let races = null
   for (const y of [year, year - 1]) {
-    const direct = await tryBrowser(`${LIVE_BASES.f1}/${y}/races/?limit=100`, 6000)
+    const direct = await fetchVia(`${LIVE_BASES.f1}/${y}/races/?limit=100`, 9000).then((d) => Array.isArray(d) ? d : d?.results ?? null).catch(() => null)
     const rows = Array.isArray(direct) ? direct : direct?.results
     if (Array.isArray(rows) && rows.length) {
       season = y
@@ -164,12 +162,12 @@ export async function getStandings(year, type) {
     if (srv?.source === 'live' && srv.standings?.length) return srv
   } catch { /* fall through */ }
   const kind = type === 'constructors' ? 'standingsConstructors' : 'standingsDrivers'
-  for (const y of [year, year - 1]) {
-    const direct = await tryBrowser(`${LIVE_BASES.f1}/${y}/${type}/?limit=100`, 6000)
+  for (const y of [year, year - 1, year - 2]) {
+    const direct = await fetchVia(`${LIVE_BASES.f1}/${y}/${type}/?limit=100`, 9000).then((d) => Array.isArray(d) ? d : d?.results ?? null).catch(() => null)
     const rows = Array.isArray(direct) ? direct : direct?.results
     if (Array.isArray(rows) && rows.length) {
       const standings = mapRows(rows, type)
-      writeLive(kind, year, { season: y, standings })
+      writeLive(kind, year, { season: y, standings, provider: 'Jolpica' })
       return { source: 'live', season: y, standings }
     }
   }
@@ -227,7 +225,7 @@ export async function getRaceResult(year, round) {
     }
   } catch { /* fall through */ }
   if (cached?.classification?.length) return { source: 'cache', season: year, classification: cached.classification }
-  const direct = await tryBrowser(`${LIVE_BASES.f1}/${year}/${round}/results/?limit=100`, 6000)
+  const direct = await fetchVia(`${LIVE_BASES.f1}/${year}/${round}/results/?limit=100`, 9000).then((d) => Array.isArray(d) ? d : d?.results ?? null).catch(() => null)
   const rows = Array.isArray(direct) ? direct : direct?.results
   if (Array.isArray(rows) && rows.length) {
     const classification = rows.map(mapResultRow)

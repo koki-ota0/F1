@@ -102,12 +102,18 @@ function parseFeed(xml, limit = 12) {
 }
 
 // ---------- live / historical sources ----------
-const OPENF1 = 'https://api.openf1.org/v1'
-const JOLPICA = 'https://api.jolpica.org/f1'
+// Multi-source providers. Jolpica remains the historical source; OpenF1 is the
+// primary for anything session-scoped (calendar media, lineups, live timing).
+// Every provider is tried in order and a total outage degrades honestly.
+const OPENF1 = process.env.PITWALL_OPENF1_BASE || 'https://api.openf1.org/v1'
+const JOLPICA = process.env.PITWALL_F1_BASE || 'https://api.jolpica.org/f1'
+const providerHealth = new Map()
+
+function rowsOf(d) { return Array.isArray(d) ? d : d?.results ?? [] }
 
 async function getCalendar(year) {
   const y = Number(year) || season.current
-  const mapRows = (rows) => rows.map((r) => ({
+  const mapJolpica = (rows) => rows.map((r) => ({
     round: r.round,
     name: r.race_name,
     nameJa: r.race_name,
@@ -116,26 +122,50 @@ async function getCalendar(year) {
     country: r.country?.country_name ?? r.country_name ?? '',
     countryJa: r.country?.country_name ?? r.country_name ?? '',
     flag: '',
-    date: r.date?.slice(0, 10) ?? r.date ?? null,
+    date: (r.date ?? '').slice(0, 10) || null,
     laps: r.laps_total ?? null,
-    lengthKm: null,
-    turns: null,
-    drsZones: null,
-    lapRecord: null
+    lengthKm: null, turns: null, drsZones: null, lapRecord: null
   }))
-  // requested season first, then the last published one
+  // 1) Jolpica historical calendar (rich per-round metadata)
   for (const sy of [y, y - 1]) {
-    const data = await fetchJSON(`${JOLPICA}/${sy}/races/?limit=100`)
-    const rows = Array.isArray(data) ? data : data?.results
-    if (rows?.length) return { source: 'live', season: sy, requestedSeason: y, races: mapRows(rows) }
+    const data = await fetchJSON(`${JOLPICA}/${sy}/races/?limit=100`, 120_000)
+    const rows = rowsOf(data)
+    if (rows.length) {
+      providerHealth.set('jolpica', { ok: true, at: Date.now() })
+      return { source: 'live', provider: 'Jolpica', season: sy, requestedSeason: y, races: mapJolpica(rows) }
+    }
   }
+  providerHealth.set('jolpica', { ok: false, at: Date.now() })
+  // 2) OpenF1 meetings (keyless + CORS-friendly; supplies flags/circuit art)
+  try {
+    const mrows = rowsOf(await fetchJSON(`${OPENF1}/meetings?year=${y}`, 120_000))
+    if (mrows.length) {
+      const races = mrows.map((m, i) => ({
+        round: i + 1,
+        name: m.meeting_name,
+        nameJa: m.meeting_name,
+        circuit: m.circuit_short_name ?? m.location ?? '',
+        circuitJa: m.circuit_short_name ?? m.location ?? '',
+        country: m.country_name ?? '',
+        countryJa: m.country_name ?? '',
+        flag: m.country_flag ?? '',
+        date: (m.date_start ?? '').slice(0, 10) || null,
+        laps: null, lengthKm: null, turns: null, drsZones: null, lapRecord: null,
+        trackImage: m.circuit_image ?? null,
+        meetingKey: m.meeting_key
+      }))
+      providerHealth.set('openf1', { ok: true, at: Date.now() })
+      return { source: 'live', provider: 'OpenF1', season: y, requestedSeason: y, races }
+    }
+  } catch { /* fall through */ }
+  providerHealth.set('openf1', { ok: false, at: Date.now() })
   const snap = readSnapshot()
   if (snap?.year === y && snapshotFresh(snap) && snap.races?.length) {
     return { source: 'snapshot', season: y, races: snap.races, updatedAt: snap.updatedAt }
   }
   // bundled current-season dataset (source: OpenF1 baked in)
   if (calendar?.length) {
-    return { source: 'bundle', season: season.current, seasonLabel: season.current, races: calendar, updatedAt: season.updatedAt }
+    return { source: 'bundle', provider: 'bundled', season: season.current, seasonLabel: season.current, races: calendar, updatedAt: season.updatedAt }
   }
   return { source: 'offline', season: y, races: [], note: 'calendar unavailable' }
 }
@@ -149,19 +179,49 @@ async function getStandings(year, type) {
     points: r.points ?? 0,
     wins: r.wins ?? 0
   }))
-  // requested season first, then the last published one
-  for (const sy of [y, y - 1]) {
+  // Jolpica is currently the only public source that publishes mid-season WDC/WCC.
+  for (const sy of [y, y - 1, y - 2]) {
     const path = type === 'constructors' ? 'constructors' : 'drivers'
-    const data = await fetchJSON(`${JOLPICA}/${sy}/${path}/?limit=100`)
-    const rows = Array.isArray(data) ? data : data?.results
-    if (rows?.length) return { source: 'live', season: sy, requestedSeason: y, standings: map(rows) }
+    const data = await fetchJSON(`${JOLPICA}/${sy}/${path}/?limit=100`, 120_000)
+    const rows = rowsOf(data)
+    if (rows.length) return { source: 'live', provider: 'Jolpica', season: sy, requestedSeason: y, standings: map(rows) }
   }
+  providerHealth.set('jolpica', { ok: false, at: Date.now() })
   const snap = readSnapshot()
   const key = type === 'constructors' ? 'constructors' : 'drivers'
   if (snap?.year === y && snapshotFresh(snap) && snap[key]?.length) {
     return { source: 'snapshot', season: y, standings: snap[key], updatedAt: snap.updatedAt }
   }
   return { source: 'offline', season: y, standings: [], note: 'standings unavailable' }
+}
+
+async function getGrid(year) {
+  const y = Number(year) || new Date().getFullYear()
+  try {
+    const meetings = rowsOf(await fetchJSON(`${OPENF1}/meetings?year=${y}`, 120_000))
+    if (!meetings.length) return { source: 'offline', season: y, drivers: [] }
+    const sorted = [...meetings].sort((a, b) => new Date(a.date_start) - new Date(b.date_start))
+    const now = new Date()
+    const meeting = sorted.find((m) => new Date(m.date_start) <= now) ?? sorted[sorted.length - 1]
+    const sessions = rowsOf(await fetchJSON(`${OPENF1}/sessions?meeting_key=${meeting.meeting_key}&session_type=Race`, 120_000))
+    const key = sessions[0]?.session_key
+    if (!key) return { source: 'offline', season: y, drivers: [] }
+    const list = rowsOf(await fetchJSON(`${OPENF1}/drivers?session_key=${key}`, 120_000))
+    return {
+      source: 'live', provider: 'OpenF1', season: y, meetingKey: meeting.meeting_key,
+      sessionKey: key,
+      drivers: list.map((d) => ({
+        number: d.driver_number,
+        name: d.full_name ?? `${d.first_name ?? ''} ${d.last_name ?? ''}`.trim(),
+        acronym: d.name_acronym,
+        team: d.team_name,
+        teamColour: d.team_colour,
+        headshot: d.headshot_url
+      }))
+    }
+  } catch {
+    return { source: 'offline', season: y, drivers: [] }
+  }
 }
 
 async function getLive(year, sessionKey) {
@@ -226,6 +286,7 @@ router.get('/meta', (_req, res) => {
       history: 'Jolpica F1 API (api.jolpica.org)',
       offline: 'bundled dataset (server/data)'
     },
+    providers: Object.fromEntries([...providerHealth.entries()].map(([k, v]) => [k, { ok: v.ok, at: new Date(v.at).toISOString() }])),
     note: 'ライブAPIに到達できない環境ではバンドルデータを返します。',
     lastSyncAt,
     cacheEntries: cache.size,
@@ -340,6 +401,11 @@ router.get('/news', async (_req, res) => {
 
 router.get('/live', async (req, res) => {
   res.json(await getLive(req.query.year, req.query.sessionKey))
+})
+
+// Current entry list / driver lineup for the season (OpenF1).
+router.get('/grid', async (req, res) => {
+  res.json(await getGrid(req.query.year))
 })
 
 router.get('/predictions', (_req, res) => {

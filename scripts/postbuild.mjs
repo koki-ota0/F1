@@ -24,5 +24,15 @@ fs.writeFileSync(
   path.join(DIST, 'api', 'meta'),
   JSON.stringify({ app: 'PITWALL', mode: 'static-host', note: 'GitHub Pages等、サーバレス環境用の焼き込みデータ' }, null, 2)
 )
+
+// 3) mark the client build so pages know there is no Express API behind it
+//    (static hosts must stay strictly on-demand — no interval polling).
+const INDEX = path.join(DIST, 'index.html')
+let html = fs.readFileSync(INDEX, 'utf8')
+if (html.includes('__PITWALL_API__=true')) {
+  html = html.replace('__PITWALL_API__=true', '__PITWALL_API__=false')
+  fs.writeFileSync(INDEX, html)
+  fs.copyFileSync(INDEX, path.join(DIST, '404.html'))
+}
 fs.writeFileSync(path.join(DIST, 'api', 'predictions'), JSON.stringify({ leaderboard: [] }, null, 2))
 console.log('[postbuild] 404.html + dist/api/*.json written')

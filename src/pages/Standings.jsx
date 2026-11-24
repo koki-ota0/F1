@@ -22,8 +22,10 @@ export default function Standings() {
   }, [])
 
   const run = useCallback(() => {
+    let alive = true
     setLoading(true)
-    getStandings(year, tab).then((d) => { setData(d); setLoading(false) })
+    getStandings(year, tab).then((d) => { if (alive) { setData(d); setLoading(false) } })
+    return () => { alive = false }
   }, [year, tab])
 
   // manual refresh on static hosts; 5-min background sync where an API exists
@@ -35,7 +37,7 @@ export default function Standings() {
   }, [run, isStatic])
 
   useLiveRefresh(run)
-  useEffect(() => { run() }, [run])
+  useEffect(() => run(), [run])
 
   const rows = data?.standings || []
   const isLive = (data?.source === 'live' || data?.source === 'cache') && rows.length > 0
