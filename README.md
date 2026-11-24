@@ -118,6 +118,22 @@ QAスモークテスト（jsdom + esbuild classic bundle）:
 node scripts/smoke.mjs
 ```
 
+UI/UX 監査（ヘッドレス Chromium が必要。`@sparticuz/chromium` + `puppeteer-core` を dev deps に含む）:
+
+```bash
+# 全17ルート × 1440/390px のスクリーンショットとレイアウト計測
+LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/shot-all.mjs
+
+# computed style 監査（文字サイズ / コントラスト / タップ目標 / はみ出し / alt）
+LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/ui-audit.mjs
+
+# アルファ合成する本物の WCAG AA コントラスト監査（全ルート × 1440/390px）
+BASE=http://localhost:4188 LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/contrast-audit.mjs
+
+# 1280→360px の12段階の幅で横スクロールが出ないか検査
+BASE=http://localhost:4188 LD_LIBRARY_PATH=/home/user/chromelibs/lib node scripts/width-audit.mjs
+```
+
 ## ディレクトリ
 
 ```
@@ -131,6 +147,7 @@ src/
   components/        # Navbar / Cards / common / FanProvider
   lib/               # i18n / api / store / sim / model(APEX) / learning / league / utils
 scripts/smoke.mjs    # ランタイム QA
+scripts/ui-audit.mjs / contrast-audit.mjs / width-audit.mjs / shot-all.mjs  # UI/UX 監査
 docs/DESIGN.md       # 設計ドキュメント
 ```
 
