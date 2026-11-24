@@ -11,7 +11,7 @@ const base = process.env.BASE || 'http://localhost:3000'
 const out = {}
 const routes = [
   '/', '/live', '/standings', '/results', '/calendar', '/drivers', '/teams',
-  '/predict', '/sim', '/quiz', '/news', '/social', '/league', '/fan',
+  '/predict', '/sim', '/quiz', '/login', '/news', '/social', '/league', '/fan',
   '/drivers/verstappen', '/teams/ferrari'
 ]
 

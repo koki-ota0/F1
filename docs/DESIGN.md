@@ -389,3 +389,27 @@ UIは source に応じて「LIVE / CACHE / OFFLINE」バッジを表示。
 - `contrast-audit` Contrast OK（SNSアバターの白文字→明るい色には濃インク）。
 - `width-audit` 1280→360px 12段階で横スクロール無し（ドロワーの `visibility:hidden` と `overflow-x:clip` で待ち受け幅を抑止）。
 - `ui-audit` smallText/smallTargets/wide/noAlt はクリーン。
+
+
+---
+
+## §20. アカウント認証（2026-11-24）
+
+> ユーザーの指摘: 「ファンゾーンはログインが必要だと思う」。メール認証は不要、**ユーザー名＋パスワードだけ**で誰でも使える形に。
+
+### 20.1 設計（`server/auth.js`）
+- **パスワード**: `crypto.scryptSync(password, salt, 32, {N:16384,r:8,p:1})`。形式 `scrypt$N$r$p$salt$hash`。ソルトはユーザーごとに16バイト乱数。
+- **比較**: `crypto.timingSafeEqual`。存在しないユーザーに対してもダミーハッシュを計算し、時間側面通道を削ぐ。
+- **セッション**: `randomBytes(32)` の base64url をトークンとして発行（有効期限30日）。保存は SHA-256 ハッシュのみ。`GET /api/auth/me` / `PATCH /api/me` などは Cookie(`pitwall_sid`, HttpOnly, SameSite=Lax, 条件付き Secure) か `Authorization: Bearer` で解決する。
+- **入力検証**: ユーザー名 `^[A-Za-z0-9_-]{3,20}$`（大小文字不問で一意）、パスワード 8〜128文字＋英字と数字を含む＋よく使われるパスワードを拒否。エラーは安定した `code` を返し、クライアントが日英訳する。
+- **レート制限**: ログイン=IP+ユーザー名あたり 12回/15分、登録=IPあたり 20回/時（固定ウィンドウ、429+Retry-After）。
+- **永続化**: `server/data/users.json` / `sessions.json` は atomic write（tmp→rename）。Git 除外。
+
+### 20.2 クライアント
+- `src/lib/auth.jsx`: `AuthProvider`（localStorage のトークンで `/api/auth/me` を確認）、`authFetch`（Bearer 付与、401でローカルセッション破棄）、`RequireAuth`（未ログイン時に案内＋`/login` 導線）。
+- `/login` はタブ切替（ログイン/新規登録）、パスワード表示切替、エラーコードのローカライズ。
+- ナビは未ログインで「ログイン」、ログイン中は `@username` チップ（ドラワーにログアウト）。
+- 保護対象: `/fan` `/predict` `/league`。静的ホストではサーバーレスポンス（404）を「この環境では利用できません」と正直に表示。
+
+### 20.3 QA
+- `interact5.mjs` に認証チェックを追加（登録→トークン、Bearer で /me、匿名401、誤パスワード401、プロフィール更新、`/fan` ガード）。計 22/22 PASS。

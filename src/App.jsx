@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import { FanProvider } from './components/FanProvider.jsx'
+import { AuthProvider, RequireAuth } from './lib/auth.jsx'
 import { RefreshProvider } from './components/RefreshProvider.jsx'
 import { useLang } from './lib/i18n.jsx'
 import Home from './pages/Home.jsx'
@@ -21,6 +22,7 @@ import News from './pages/News.jsx'
 import Social from './pages/Social.jsx'
 import League from './pages/League.jsx'
 import Fan from './pages/Fan.jsx'
+import Login from './pages/Login.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function ScrollToTop() {
@@ -47,13 +49,14 @@ function Shell() {
           <Route path="/drivers/:id" element={<DriverDetail />} />
           <Route path="/teams" element={<Teams />} />
           <Route path="/teams/:id" element={<TeamDetail />} />
-          <Route path="/predict" element={<Predict />} />
+          <Route path="/predict" element={<RequireAuth><Predict /></RequireAuth>} />
           <Route path="/sim" element={<Sim />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/news" element={<News />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/social" element={<Social />} />
-          <Route path="/league" element={<League />} />
-          <Route path="/fan" element={<Fan />} />
+          <Route path="/league" element={<RequireAuth><League /></RequireAuth>} />
+          <Route path="/fan" element={<RequireAuth><Fan /></RequireAuth>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -65,9 +68,11 @@ function Shell() {
 export default function App() {
   return (
     <RefreshProvider>
-      <FanProvider>
-        <Shell />
-      </FanProvider>
+      <AuthProvider>
+        <FanProvider>
+          <Shell />
+        </FanProvider>
+      </AuthProvider>
     </RefreshProvider>
   )
 }

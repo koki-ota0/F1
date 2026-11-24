@@ -13,6 +13,11 @@ import {
   fetchDriverMap,
   cacheSize as f1CacheSize
 } from './f1data.js'
+import {
+  attachUser, requireAuth, rateLimit,
+  createUser, authenticate, publicUser, issueSession, revokeSession,
+  sessionCookie, updateProfile
+} from './auth.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.join(__dirname, 'data')
@@ -391,6 +396,67 @@ const predictions = [
 ]
 
 const router = express.Router()
+router.use(attachUser)
+
+// ---------------------------------------------------------------------------
+// accounts (username + password; no email)
+// ---------------------------------------------------------------------------
+// Per-account attempt throttling for logins; a looser per-IP cap for signups so
+// a household/shared address can still create a handful of accounts.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 12,
+  key: (req) => String(req.body?.username || '').trim().toLowerCase()
+})
+const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 20 })
+
+function startSession(res, req, user) {
+  const { token, expiresAt } = issueSession(user.id, req)
+  res.append('Set-Cookie', sessionCookie(token, expiresAt, req))
+  return { token, expiresAt, user: publicUser(user) }
+}
+
+router.post('/auth/register', registerLimiter, (req, res) => {
+  const { username, password, name } = req.body || {}
+  const result = createUser({ username, password, name })
+  if (!result.ok) {
+    return res.status(400).json({ error: result.error, code: result.code || 'invalid_input' })
+  }
+  res.status(201).json(startSession(res, req, result.user))
+})
+
+router.post('/auth/login', loginLimiter, (req, res) => {
+  const { username, password } = req.body || {}
+  if (typeof username !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: 'username and password required', code: 'invalid_input' })
+  }
+  const user = authenticate(username, password)
+  if (!user) return res.status(401).json({ error: 'invalid username or password', code: 'invalid_credentials' })
+  res.json(startSession(res, req, user))
+})
+
+router.post('/auth/logout', requireAuth, (req, res) => {
+  const header = String(req.headers?.authorization || '')
+  const cookie = String(req.headers?.cookie || '')
+  const m = cookie.match(/(?:^|;|\s*)pitwall_sid=([^;]+)/)
+  const token = /^Bearer\s+/i.test(header)
+    ? header.replace(/^Bearer\s+/i, '').trim()
+    : (m ? decodeURIComponent(m[1]) : '')
+  if (token) revokeSession(token)
+  res.append('Set-Cookie', 'pitwall_sid=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
+  res.json({ ok: true })
+})
+
+router.get('/auth/me', requireAuth, (req, res) => res.json({ user: publicUser(req.authUser) }))
+
+router.patch('/me', requireAuth, (req, res) => {
+  const body = req.body || {}
+  const user = updateProfile(req.authUser.id, {
+    name: body.name, driver: body.driver, team: body.team,
+    xp: body.xp, bestStreak: body.bestStreak
+  })
+  if (!user) return res.status(404).json({ error: 'account not found' })
+  res.json({ ok: true, user: publicUser(user) })
+})
 
 router.get('/health', (_req, res) => res.json({ ok: true, app: 'pitwall', time: new Date().toISOString() }))
 

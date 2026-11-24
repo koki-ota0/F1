@@ -52,8 +52,9 @@ async function open(route) {
   const { win, errors, waitFor } = await open('/results')
   const hasArchive = await waitFor(() => /アーカイブ（2025）/.test(win.document.body.textContent) || /Archive \(2025\)/.test(win.document.body.textContent), 8000)
   ok('results: archive badge shown', !!hasArchive)
+  await waitFor(() => win.document.querySelectorAll('.round-card').length > 0, 12000)
   const txt = win.document.body.textContent
-  ok('results: 24 rounds rendered', (txt.match(/Rd\./g) || []).length >= 20)
+  ok('results: 23 rounds rendered', (win.document.querySelectorAll('.round-card').length) >= 23)
   ok('results: winner names present', /ランド・ノリス|Lando Norris/.test(txt))
   ok('results: no runtime errors', errors.length === 0)
 }
@@ -105,6 +106,37 @@ if (process.env.MOCK_F1 === '1') {
   const ready = await waitFor(() => /Lando Norris/.test(win.document.body.textContent), 12000)
   ok('standings-offline: archive rows rendered', !!ready)
   ok('standings-offline: season label shown', /シーズンを表示中|Showing .* season/.test(win.document.body.textContent))
+}
+
+// ---- accounts (username + password) and protected fan zone
+{
+  const uname = `qa_${Date.now().toString(36)}`
+  const reg = await fetch(`${base}/api/auth/register`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: uname, password: 'qa-pass-1', name: 'QA Fan' })
+  })
+  const regBody = await reg.json()
+  ok('auth: register returns a session token', reg.ok && !!regBody.token && regBody.user?.username === uname)
+  const me = await fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${regBody.token}` } })
+  const meBody = await me.json()
+  ok('auth: bearer token resolves the account', me.ok && meBody.user?.id === regBody.user?.id)
+  const noauth = await fetch(`${base}/api/auth/me`)
+  ok('auth: anonymous /me is rejected (401)', noauth.status === 401)
+  const bad = await fetch(`${base}/api/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: uname, password: 'wrong-password' })
+  })
+  ok('auth: wrong password is rejected', bad.status === 401)
+  const patched = await fetch(`${base}/api/me`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${regBody.token}` },
+    body: JSON.stringify({ driver: 'norris', team: 'mclaren', xp: 42 })
+  })
+  const patchedBody = await patched.json()
+  ok('auth: profile update persists', patched.ok && patchedBody.user?.profile?.xp === 42)
+
+  const { win, waitFor } = await open('/fan')
+  const locked = await waitFor(() => /ログインが必要|needs an account/.test(win.document.body.textContent), 6000)
+  ok('auth: /fan is gated without a session', !!locked)
 }
 
 console.log(`\n${pass}/${total} checks passed`)
