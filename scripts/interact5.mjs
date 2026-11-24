@@ -137,6 +137,32 @@ if (process.env.MOCK_F1 === '1') {
   const { win, waitFor } = await open('/fan')
   const locked = await waitFor(() => /ログインが必要|needs an account/.test(win.document.body.textContent), 6000)
   ok('auth: /fan is gated without a session', !!locked)
+
+  // predictions must be scored against the real result, never a simulation
+  const season = new Date().getFullYear()
+  const predRes = await fetch(`${base}/api/predictions`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${regBody.token}` },
+    body: JSON.stringify({ year: season, round: 1, p1: 'russell' })
+  })
+  const predBody = await predRes.json()
+  ok('predict: submission accepted', predRes.ok || predRes.status === 409)
+  const mineRes = await fetch(`${base}/api/predictions/mine`, { headers: { Authorization: `Bearer ${regBody.token}` } })
+  const mine = await mineRes.json()
+  const scored = (mine.predictions || []).find((p) => p.year === season && p.round === 1)
+  ok('predict: real result awarded points', !!scored?.score && scored.score.points >= 10)
+  ok('predict: accuracy is reported', typeof scored?.score?.accuracy === 'number')
+
+  const joinRes = await fetch(`${base}/api/leagues/top3-challenge/join`, {
+    method: 'POST', headers: { Authorization: `Bearer ${regBody.token}` }
+  })
+  ok('league: join accepted', joinRes.ok)
+  const scoreRes = await fetch(`${base}/api/leagues/top3-challenge/score`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${regBody.token}` },
+    body: JSON.stringify({ year: season, round: 1 })
+  })
+  const leagueBody = await scoreRes.json()
+  const meEntry = leagueBody.league?.entries.find((e) => e.userId === regBody.user?.id)
+  ok('league: member entry scored from the real result', scoreRes.ok && (meEntry?.points || 0) >= 2)
 }
 
 console.log(`\n${pass}/${total} checks passed`)

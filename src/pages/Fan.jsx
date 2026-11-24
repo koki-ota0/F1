@@ -4,7 +4,8 @@ import { useApi } from '../lib/api.js'
 import { SectionHead, Loading } from '../components/common.jsx'
 import { useFan } from '../components/FanProvider.jsx'
 import { fanLevel, fanLevelName } from '../lib/store.js'
-import { useAuth } from '../lib/auth.jsx'
+import { useAuth, authFetch } from '../lib/auth.jsx'
+import { assetUrl } from '../lib/asset.js'
 
 export default function Fan() {
   const { t, lang } = useLang()
@@ -15,6 +16,7 @@ export default function Fan() {
   const [driver, setDriver] = useState(fan.driver)
   const [team, setTeam] = useState(fan.team)
   const [saved, setSaved] = useState(false)
+  const [predStats, setPredStats] = useState(null)
 
   useEffect(() => { setName(fan.name); setDriver(fan.driver); setTeam(fan.team) }, [fan.name, fan.driver, fan.team])
 
@@ -26,6 +28,15 @@ export default function Fan() {
     setTeam((prev) => prev || user.profile?.team || '')
   }, [user?.id])
 
+  // prediction points live on the server once an account exists
+  useEffect(() => {
+    if (!user) { setPredStats(null); return }
+    authFetch(assetUrl('/api/predictions/mine'))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d) => d && setPredStats(d.totals))
+      .catch(() => {})
+  }, [user?.id])
+
   const save = async () => {
     update({ name, driver, team })
     try { await saveAccount({ name, driver, team, xp: quiz.xp, bestStreak: quiz.bestStreak }) } catch { /* offline */ }
@@ -34,7 +45,7 @@ export default function Fan() {
   }
 
   const myDriver = drivers?.find((d) => d.id === fan.driver) || null
-  const myPreds = preds.reduce((s, p) => s + (p.score || 0), 0)
+  const myPreds = predStats ? predStats.points : preds.reduce((s, p) => s + (p.score || 0), 0)
   const lv = fanLevel(quiz.xp)
 
   if (loading) return <div className="section container"><Loading /></div>

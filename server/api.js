@@ -14,6 +14,11 @@ import {
   cacheSize as f1CacheSize
 } from './f1data.js'
 import {
+  loadPreds, savePreds, loadLeagues, saveLeagues, joinLeague,
+  setEntryPicks, scoreLeague, standings
+} from './predictionStore.js'
+import { buildResultIndex, scorePicks, isValidPick, isRaceComplete } from './scoring.js'
+import {
   attachUser, requireAuth, rateLimit,
   createUser, authenticate, publicUser, issueSession, revokeSession,
   sessionCookie, updateProfile
@@ -27,6 +32,8 @@ const read = (name) => JSON.parse(fs.readFileSync(path.join(DATA_DIR, name), 'ut
 const teams = read('teams.json')
 const drivers = read('drivers.json')
 const calendar = read('calendar.json')
+// calendar.json is a season document ({season, races}); accept a bare array too.
+const CALENDAR_RACES = Array.isArray(calendar) ? calendar : (calendar?.races || [])
 const champions = read('champions.json')
 const records = read('records.json')
 const trivia = read('trivia.json')
@@ -386,17 +393,11 @@ async function getLive(year, sessionKey) {
   return { source: 'offline', sessionKey: key, note: 'live timing unavailable' }
 }
 
-// ---------- local prediction store (seeded demo + in-memory) ----------
-const predictions = [
-  { id: 'seed-1', name: 'ApexAce', points: 128, picks: 12, at: Date.now() - 86400000 * 6 },
-  { id: 'seed-2', name: 'PapayaPower', points: 117, picks: 11, at: Date.now() - 86400000 * 5 },
-  { id: 'seed-3', name: 'SuzukaSage', points: 96, picks: 10, at: Date.now() - 86400000 * 4 },
-  { id: 'seed-4', name: 'DRS_Judy', points: 81, picks: 9, at: Date.now() - 86400000 * 3 },
-  { id: 'seed-5', name: 'GridGai', points: 64, picks: 8, at: Date.now() - 86400000 * 2 }
-]
-
 const router = express.Router()
 router.use(attachUser)
+
+/** Async route wrapper: forward rejections to the Express error handler. */
+const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
 
 // ---------------------------------------------------------------------------
 // accounts (username + password; no email)
@@ -655,22 +656,225 @@ router.get('/grid', async (req, res) => {
   res.json(await getGrid(req.query.year))
 })
 
-router.get('/predictions', (_req, res) => {
-  res.json({ leaderboard: [...predictions].sort((a, b) => b.points - a.points) })
+// ---------------------------------------------------------------------------
+// predictions (real results only — never simulated)
+// ---------------------------------------------------------------------------
+async function classificationFor(year, round) {
+  try {
+    const d = await getRaceResult(Number(year), Number(round))
+    return Array.isArray(d?.classification) ? d.classification : []
+  } catch {
+    return []
+  }
+}
+
+/** Score every stored prediction whose race has a published result. */
+async function scorePendingPredictions() {
+  const db = loadPreds()
+  let changed = false
+  for (const p of db.preds) {
+    if (p.score || !isRaceComplete(p.year, p.round)) continue
+    const index = await buildResultIndex(p.year, p.round, {
+      classification: await classificationFor(p.year, p.round)
+    })
+    if (!index) continue
+    p.score = {
+      ...scorePicks(index.positions, p, index.flDriverId),
+      provider: index.provider,
+      source: index.source,
+      at: new Date().toISOString()
+    }
+    p.locked = true
+    changed = true
+  }
+  if (changed) savePreds(db)
+  return changed
+}
+
+function leaderboardFrom(db) {
+  const byUser = new Map()
+  for (const p of db.preds) {
+    const row = byUser.get(p.userId) || {
+      userId: p.userId, username: p.username, name: p.name,
+      points: 0, races: 0, pending: 0, accuracySum: 0, accRaces: 0,
+      hits: 0, known: 0, bestRound: null, lastScoredAt: null
+    }
+    if (p.score) {
+      row.points += p.score.points
+      row.races += 1
+      row.accuracySum += p.score.accuracy
+      row.accRaces += 1
+      row.hits += p.score.hits
+      row.known += p.score.known
+      row.lastScoredAt = p.score.at
+      if (!row.bestRound || p.score.points > row.bestRound.points) {
+        row.bestRound = { year: p.year, round: p.round, points: p.score.points, accuracy: p.score.accuracy }
+      }
+    } else {
+      row.pending += 1
+    }
+    byUser.set(p.userId, row)
+  }
+  return [...byUser.values()]
+    .map((r) => ({
+      ...r,
+      avgAccuracy: r.accRaces ? r.accuracySum / r.accRaces : 0,
+      hitRate: r.known ? r.hits / r.known : 0
+    }))
+    .sort((a, b) => b.points - a.points)
+}
+
+router.get('/predictions', ah(async (_req, res) => {
+  await scorePendingPredictions()
+  res.json({ leaderboard: leaderboardFrom(loadPreds()) })
+}))
+
+router.get('/predictions/mine', requireAuth, ah(async (req, res) => {
+  await scorePendingPredictions()
+  const db = loadPreds()
+  const mine = db.preds
+    .filter((p) => p.userId === req.authUser.id)
+    .sort((a, b) => b.year - a.year || b.round - a.round)
+  const scored = mine.filter((p) => p.score)
+  const totals = {
+    points: scored.reduce((sum, p) => sum + (p.score?.points || 0), 0),
+    races: scored.length,
+    avgAccuracy: scored.length ? scored.reduce((s, p) => s + p.score.accuracy, 0) / scored.length : 0,
+    hitRate: scored.length ? scored.reduce((s, p) => s + (p.score.hits / Math.max(1, p.score.known)), 0) / scored.length : 0,
+    pending: mine.length - scored.length
+  }
+  res.json({ predictions: mine, totals })
+}))
+
+router.post('/predictions', requireAuth, ah(async (req, res) => {
+  const { year, round, p1, p2, p3, fl } = req.body || {}
+  const y = Number(year), r = Number(round)
+  if (!y || !r) return res.status(400).json({ error: 'year and round required', code: 'invalid_input' })
+  const picks = { p1: p1 || null, p2: p2 || null, p3: p3 || null, fl: fl || null }
+  if (!picks.p1) return res.status(400).json({ error: 'pick a P1 first', code: 'invalid_picks' })
+  if (!isValidPick([picks.p1, picks.p2, picks.p3, picks.fl])) {
+    return res.status(400).json({ error: 'unknown driver', code: 'invalid_picks' })
+  }
+  const db = loadPreds()
+  const existing = db.preds.find((p) => p.userId === req.authUser.id && p.year === y && p.round === r)
+  if (existing?.locked) {
+    return res.status(409).json({ error: 'this race is already scored', code: 'race_locked' })
+  }
+  const race = CALENDAR_RACES.find((x) => Number(x.round) === r)
+  if (existing) {
+    Object.assign(existing, { ...picks, at: new Date().toISOString(), score: null, locked: false })
+  } else {
+    db.preds.push({
+      id: `p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+      userId: req.authUser.id,
+      username: req.authUser.username,
+      name: req.authUser.name || req.authUser.username,
+      year: y, round: r,
+      raceName: race ? (race.nameJa || race.name) : `${y} Rd.${r}`,
+      ...picks,
+      at: new Date().toISOString(),
+      score: null, locked: false
+    })
+  }
+  savePreds(db)
+  await scorePendingPredictions()
+  res.json({ ok: true, leaderboard: leaderboardFrom(loadPreds()) })
+}))
+
+/** Explicit "score this race" trigger (the UI can call it after a refresh). */
+router.post('/predictions/score', requireAuth, ah(async (req, res) => {
+  const y = Number(req.body?.year), r = Number(req.body?.round)
+  if (!y || !r) return res.status(400).json({ error: 'year and round required', code: 'invalid_input' })
+  await scorePendingPredictions()
+  const db = loadPreds()
+  const scored = db.preds.filter((p) => p.year === y && p.round === r && p.score)
+  res.json({ ok: true, scored: scored.length, leaderboard: leaderboardFrom(db) })
+}))
+
+// ---------------------------------------------------------------------------
+// prediction leagues (real results, shared across accounts)
+// ---------------------------------------------------------------------------
+async function scorePendingLeagues() {
+  const db = loadLeagues(drivers)
+  let changed = false
+  for (const league of db.leagues) {
+    for (const entry of league.entries) {
+      for (const key of Object.keys(entry.picks || {})) {
+        if (entry.byRound?.[key]) continue
+        const [y, r] = key.split(':').map(Number)
+        if (!isRaceComplete(y, r)) continue
+        const index = await buildResultIndex(y, r, { classification: await classificationFor(y, r) })
+        if (!index) continue
+        const scored = scorePicks(index.positions, entry.picks[key], index.flDriverId)
+        entry.byRound = { ...(entry.byRound || {}), [key]: { ...scored, provider: index.provider, at: new Date().toISOString() } }
+        entry.points = Object.values(entry.byRound).reduce((sum, s) => sum + (s?.points || 0), 0)
+        changed = true
+      }
+    }
+  }
+  if (changed) saveLeagues(db)
+  return changed
+}
+
+router.get('/leagues', ah(async (_req, res) => {
+  await scorePendingLeagues()
+  const db = loadLeagues(drivers)
+  res.json({
+    leagues: db.leagues.map((l) => ({
+      ...l,
+      entries: standings(l).map((e) => ({ ...e, last: Object.values(e.byRound || {}).slice(-1)[0] || null }))
+    }))
+  })
+}))
+
+router.post('/leagues/:id/join', requireAuth, (req, res) => {
+  const db = loadLeagues(drivers)
+  const league = joinLeague(db, req.params.id, req.authUser)
+  if (!league) return res.status(404).json({ error: 'league not found' })
+  // inherit the member's own predictions so past rounds count immediately
+  const predsDb = loadPreds()
+  const me = league.entries.find((e) => e.kind === 'user' && e.userId === req.authUser.id)
+  for (const p of predsDb.preds.filter((x) => x.userId === req.authUser.id)) {
+    me.picks = { ...(me.picks || {}), [`${p.year}:${p.round}`]: { p1: p.p1, p2: p.p2, p3: p.p3, fl: p.fl } }
+  }
+  saveLeagues(db)
+  res.json({ ok: true, league })
 })
 
-router.post('/predictions', (req, res) => {
-  const { name, points = 0, picks = 0 } = req.body || {}
-  if (!name || typeof name !== 'string') return res.status(400).json({ error: 'name required' })
-  const entry = { id: `u-${Date.now()}`, name: name.slice(0, 24), points: Number(points) || 0, picks: Number(picks) || 0, at: Date.now() }
-  predictions.push(entry)
-  res.json({ ok: true, entry, leaderboard: [...predictions].sort((a, b) => b.points - a.points) })
+router.post('/leagues/:id/picks', requireAuth, (req, res) => {
+  const { year, round, p1, p2, p3, fl } = req.body || {}
+  const y = Number(year), r = Number(round)
+  if (!y || !r) return res.status(400).json({ error: 'year and round required', code: 'invalid_input' })
+  const picks = { p1: p1 || null, p2: p2 || null, p3: p3 || null, fl: fl || null }
+  if (!picks.p1 && !picks.fl) return res.status(400).json({ error: 'pick a P1 or fastest lap', code: 'invalid_picks' })
+  if (!isValidPick([picks.p1, picks.p2, picks.p3, picks.fl])) {
+    return res.status(400).json({ error: 'unknown driver', code: 'invalid_picks' })
+  }
+  const db = loadLeagues(drivers)
+  const league = db.leagues.find((l) => l.id === req.params.id)
+  const entry = league?.entries.find((e) => e.kind === 'user' && e.userId === req.authUser.id)
+  if (!entry) return res.status(404).json({ error: 'join the league first', code: 'not_member' })
+  setEntryPicks(db, req.params.id, entry.id, `${y}:${r}`, picks)
+  res.json({ ok: true, picks })
 })
+
+router.post('/leagues/:id/score', requireAuth, ah(async (req, res) => {
+  const y = Number(req.body?.year), r = Number(req.body?.round)
+  if (!y || !r) return res.status(400).json({ error: 'year and round required', code: 'invalid_input' })
+  const index = await buildResultIndex(y, r, { classification: await classificationFor(y, r) })
+  if (!index) return res.status(404).json({ error: 'no published result yet', code: 'no_result' })
+  const db = loadLeagues(drivers)
+  const league = db.leagues.find((l) => l.id === req.params.id)
+  if (!league) return res.status(404).json({ error: 'league not found' })
+  scoreLeague(db, league, y, r, index, drivers)
+  saveLeagues(db)
+  res.json({ ok: true, league })
+}))
 
 // ---------- AI prediction ----------
 router.get('/ai-prediction', async (req, res) => {
   const round = Number(req.query.race)
-  const race = calendar.find((r) => r.round === round) || calendar[0]
+  const race = CALENDAR_RACES.find((r) => Number(r.round) === round) || CALENDAR_RACES[0]
   try {
     const result = await predictRaceWithAI({ drivers, teams, race })
     res.json({ ok: true, race: { round: race.round, name: race.name }, ...result, status: aiStatus() })
