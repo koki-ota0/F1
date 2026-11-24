@@ -413,3 +413,34 @@ UIは source に応じて「LIVE / CACHE / OFFLINE」バッジを表示。
 
 ### 20.3 QA
 - `interact5.mjs` に認証チェックを追加（登録→トークン、Bearer で /me、匿名401、誤パスワード401、プロフィール更新、`/fan` ガード）。計 22/22 PASS。
+
+
+---
+
+## §21. 予測リーグ v2（実結果採点, 2026-11-24）
+
+> ユーザーの指摘: 「予測リーグをよりアップデートして、実際の結果が反映されるようにポイントや予測との一致度の計算などまで詳細に設計して実装して、レースごとに予測があったらポイントが獲得できるようにして」。
+
+### 21.1 基本方針
+- 採点は**シミュレーションを一切使わない**。`server/scoring.js` が公式結果（OpenF1/Jolpica の classification → 同梱 results-<year>.json）から driverId→position の索引を作り、公開されている位置だけで加点する。
+- 1レース=1予測（アカウント単位、`server/data/predictions-v2.json`）。結果が公開されるとサーバーが自動採点し、`locked=true` で以後の差し替えを拒否（409）。
+- リーダーボードの「シードユーザーによる架空ポイント」は廃止（捏造データ排除）。
+
+### 21.2 配点（`scorePicks`）
+P1 exact 10 / podium 4 / top10 1 · P2 exact 8 / podium 3 · P3 exact 6 / podium 2 · FL exact 5 / top10 1 · 表彰台スイープ +5。最大34。
+- `known` = 位置が判明しているカテゴリ数、`exact` = 完全一致数 → `accuracy = exact/known`、`hits/known = hitRate`。
+- FLは「identity」判定: ファステストラップの本人判定は順位不要、top10 ゲージだけ位置情報を使う（同梱アーカイブはFL名しか無いため）。
+
+### 21.3 リーグ（`server/predictionStore.js`）
+- デフォルト3リーグ: front-runners(p1) / top3-challenge(top3+bonus) / fastest-lap(fl)。エントリーはアカウント＋決定論ボット（`hash(league:entry:round)` で生成、再現性あり）。
+- `GET /api/leagues` は拾い出し採点（未採点ラウンドを公開結果で自動採点）してから standings を返す。参加時に自分の既存予測を引き継ぐ。
+- `POST /api/leagues/:id/{join,picks,score}`。`/predictions` 系は `GET/POST`・`/predictions/mine`・`/predictions/score`。
+
+### 21.4 クライアント
+- Predict: APEX（任意）＋ 予測フォーム ＋ 自分の予測カード（状態バッジ・配点チップ・一致度・的中率・provider表示）＋ 集計行 ＋ リーダーボード。「実結果で採点」ボタン。
+- League: ラウンド選択 → 全参加リーグに一括登録 → リーグ別スコア/順位表（ポイント・開催数・直近一致度）。サーバー未接続時は localStorage のリーグに退化し、その旨を表示。
+- 静的ホストではアカウント必須なため `/predict` `/league` はログイン案内になる（§20）。
+
+### 21.5 QA
+- `interact5.mjs`: 認証6件に加え、実結果による採点（≥10pt）・accuracy 付与・リーグ加入/採点を追加 → **27/27 PASS**。
+- 既存の smoke / ui-audit / contrast-audit / width-audit / verify-2026 もすべてグリーン。

@@ -865,3 +865,23 @@ tr.is-dnf td, tr.is-dns td, tr.is-dsq td { opacity: .62; }
 }
 .winner-tile { display: flex; flex-direction: column; gap: 6px; padding: 14px; }
 .winner-tile .note { font-size: 12.5px; }
+
+/* ---------- predictions & leagues (real-result scoring) ---------- */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.stat-row .num { font-size: 24px; }
+.pred-list { display: flex; flex-direction: column; gap: 10px; }
+.pred-card { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.pred-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pred-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.tag.hit { background: rgba(39, 244, 210, .14); border-color: rgba(39, 244, 210, .4); color: #7ef7dd; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) {
+  .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-4 { grid-template-columns: 1fr; }
+}

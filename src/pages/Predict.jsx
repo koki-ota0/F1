@@ -1,19 +1,42 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLang } from '../lib/i18n.jsx'
-import { useApi, getJSON, getCalendar } from '../lib/api.js'
-import { SectionHead, Loading, EmptyState } from '../components/common.jsx'
+import { useApi, getCalendar } from '../lib/api.js'
+import { assetUrl } from '../lib/asset.js'
+import { SectionHead, Loading, EmptyState, Badge } from '../components/common.jsx'
 import { useFan } from '../components/FanProvider.jsx'
-import { simulateRace } from '../lib/sim.js'
+import { useAuth, authFetch } from '../lib/auth.jsx'
 import { predictRace, predictionTable } from '../lib/model.js'
-import { loadLearning, learnFromResults, biasMovers, resetLearning } from '../lib/learning.js'
-import { computeScore, nextRace, fmtDate, teamById } from '../lib/utils.js'
+
+import { nextRace, fmtDate, teamById } from '../lib/utils.js'
 import { load, save } from '../lib/store.js'
-import { Badge } from '../components/common.jsx'
+
+const EMPTY_TOTALS = { points: 0, races: 0, avgAccuracy: 0, hitRate: 0, pending: 0 }
+
+/** Breakdown chips: one per scoring category, real points from the result. */
+function Breakdown({ score }) {
+  const rows = [
+    ['P1', score?.breakdown?.p1],
+    ['P2', score?.breakdown?.p2],
+    ['P3', score?.breakdown?.p3],
+    ['FL', score?.breakdown?.fl],
+    ['+', score?.breakdown?.bonus]
+  ]
+  return (
+    <div className="pill-row">
+      {rows.map(([label, pts]) => (
+        <span className={`tag ${pts ? 'hit' : ''}`} key={label}>
+          {label} {pts ? `+${pts}` : '0'}
+        </span>
+      ))}
+    </div>
+  )
+}
 
 export default function Predict() {
   const { t, lang } = useLang()
   const { data: drivers, loading } = useApi('/api/drivers')
-  const { preds, addPred, clearPreds, setPreds, teams, fan } = useFan()
+  const { user } = useAuth()
+  const { preds: localPreds, teams, fan } = useFan()
   const [cal, setCal] = useState(null)
   const [raceRound, setRaceRound] = useState(null)
   const [p1, setP1] = useState('')
@@ -22,11 +45,14 @@ export default function Predict() {
   const [fl, setFl] = useState('')
   const [name, setName] = useState(() => load('pitwall.name', fan.name || ''))
   const [leaderboard, setLeaderboard] = useState([])
+  const [mine, setMine] = useState(null)
+  const [totals, setTotals] = useState(EMPTY_TOTALS)
+  const [serverMode, setServerMode] = useState(true)
   const [toast, setToast] = useState('')
-  const [scoring, setScoring] = useState(null)
+  const [busy, setBusy] = useState(false)
   const [ai, setAi] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
-  const [learn, setLearn] = useState(() => loadLearning())
+
 
   const races = cal?.races || []
   const race = useMemo(() => {
@@ -34,30 +60,51 @@ export default function Predict() {
     return races.find((r) => r.round === raceRound) || nr || null
   }, [races, raceRound])
 
+  const notify = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2600) }
+
+  const refresh = useCallback(async () => {
+    try {
+      const mineRes = await authFetch(assetUrl('/api/predictions/mine'))
+      if (!mineRes.ok) throw new Error('mine failed')
+      const mineData = await mineRes.json()
+      setMine(mineData.predictions || [])
+      setTotals(mineData.totals || EMPTY_TOTALS)
+      const lbRes = await authFetch(assetUrl('/api/predictions'))
+      const lbData = lbRes.ok ? await lbRes.json() : { leaderboard: [] }
+      setLeaderboard(lbData.leaderboard || [])
+      setServerMode(true)
+    } catch {
+      // no server (GitHub Pages) or offline: fall back to the local cache
+      setMine(localPreds || [])
+      setTotals({
+        points: localPreds.reduce((s, p) => s + (p.score || 0), 0),
+        races: localPreds.filter((p) => p.score != null).length,
+        pending: localPreds.filter((p) => p.score == null).length,
+        avgAccuracy: 0, hitRate: 0
+      })
+      setLeaderboard([])
+      setServerMode(false)
+    }
+  }, [localPreds])
+
   useEffect(() => { getCalendar(new Date().getFullYear()).then(setCal) }, [])
-  useEffect(() => { getJSON('/api/predictions').then((d) => setLeaderboard(d.leaderboard || [])).catch(() => {}) }, [])
   useEffect(() => { save('pitwall.name', name) }, [name])
-  useEffect(() => { setAi(null); setScoring(null) }, [raceRound])
+  useEffect(() => { setAi(null) }, [raceRound])
+  useEffect(() => { refresh() }, [refresh])
 
   const runAI = () => {
     if (!drivers || !race) return
     setAiLoading(true)
-    // let the spinner paint before the 1,500-iteration Monte Carlo runs
     setTimeout(() => {
-      try {
-        const bias = loadLearning().bias
-        setAi(predictRace(drivers, teams, race, { bias }))
-      } finally {
-        setAiLoading(false)
-      }
+      try { setAi(predictRace(drivers, teams, race)) }
+      finally { setAiLoading(false) }
     }, 40)
   }
 
   const applyAI = () => {
     if (!ai?.recommended) return
     setP1(ai.recommended.p1); setP2(ai.recommended.p2); setP3(ai.recommended.p3); setFl(ai.recommended.fl)
-    setToast(t('ai.applied'))
-    setTimeout(() => setToast(''), 2200)
+    notify(t('ai.applied'))
   }
 
   const aiRows = ai ? predictionTable(ai, 8).map((r) => ({
@@ -67,41 +114,63 @@ export default function Predict() {
   })) : []
 
   const dName = (id) => drivers?.find((d) => d.id === id)?.name || '—'
-  const canSubmit = race && p1 && p2 && p3 && fl && new Set([p1, p2, p3]).size === 3
+  const canSubmit = race && p1 && new Set([p1, p2, p3].filter(Boolean)).size === [p1, p2, p3].filter(Boolean).length
 
-  const submit = () => {
-    if (!canSubmit) return
-    addPred({ race: race.round, raceName: lang === 'ja' ? race.nameJa : race.name, name: name || 'YOU', p1, p2, p3, fl, score: null })
-    setToast(t('predict.submitDone'))
-    setTimeout(() => setToast(''), 2200)
+  const submit = async () => {
+    if (!canSubmit || !race || busy) return
+    setBusy(true)
+    try {
+      const res = await authFetch(assetUrl('/api/predictions'), {
+        method: 'POST',
+        body: JSON.stringify({ year: new Date().getFullYear(), round: race.round, p1, p2, p3, fl })
+      })
+      const d = await res.json().catch(() => ({}))
+      if (res.ok) {
+        notify(t('predict.submitDone'))
+        setP1(''); setP2(''); setP3(''); setFl('')
+        setLeaderboard(d.leaderboard || [])
+        await refresh()
+      } else if (res.status === 409) {
+        notify(t('predict.raceLocked'))
+      } else {
+        notify(t(`predict.error.${d.code || 'generic'}`))
+      }
+    } catch {
+      notify(t('auth.error.server'))
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const scoreAll = () => {
-    if (!drivers || !race) return
-    const { result } = simulateRace(drivers, teams, race.laps || 52)
-    let total = 0
-    const next = preds.map((p) => {
-      const score = computeScore(p, result)
-      total += score
-      return { ...p, score }
-    })
-    // persist scores + feed the local learning loop
-    setPreds(next)
-    setScoring({ result, total })
+  /** Ask the server to apply any published result to pending predictions. */
+  const scorePending = async () => {
+    const pending = (mine || []).filter((p) => !p.score)
+    if (!pending.length) { notify(t('predict.nothingToScore')); return }
+    setBusy(true)
+    let scored = 0
     try {
-      setLearn(learnFromResults(next, result))
-    } catch { /* learning is best-effort */ }
-    getJSON('/api/predictions').then((d) => setLeaderboard(d.leaderboard || [])).catch(() => {})
-    fetch('/api/predictions', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name || 'YOU', points: total, picks: preds.length })
-    }).then((r) => r.json()).then((d) => setLeaderboard(d.leaderboard || [])).catch(() => {})
+      for (const p of pending.slice(0, 8)) {
+        const res = await authFetch(assetUrl('/api/predictions/score'), {
+          method: 'POST',
+          body: JSON.stringify({ year: p.year, round: p.round })
+        })
+        if (res.ok) {
+          const d = await res.json()
+          scored += d.scored || 0
+        }
+      }
+      await refresh()
+      notify(`${t('predict.scoreNow')}: ${scored}`)
+    } catch {
+      notify(t('auth.error.server'))
+    } finally {
+      setBusy(false)
+    }
   }
 
   if (loading || !cal) return <div className="section container"><Loading /></div>
 
-  const sorted = [...preds].sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
-  const myTotal = preds.reduce((s, p) => s + (p.score || 0), 0)
+  const sorted = [...(mine || [])].sort((a, b) => b.year - a.year || b.round - a.round)
 
   return (
     <section className="section">
@@ -111,7 +180,7 @@ export default function Predict() {
         <div className="card" style={{ marginBottom: 22, borderColor: 'rgba(225,6,0,.35)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div>
-              <div className="eyebrow" style={{ fontFamily: 'var(--font-num)', letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--accent-2)', fontSize: 12, fontWeight: 700 }}>PITWALL APEX</div>
+              <div className="eyebrow">PITWALL APEX</div>
               <h3 style={{ fontFamily: 'var(--font-display)', margin: '6px 0 4px', fontSize: 21 }}>{t('ai.title')}</h3>
               <p className="note" style={{ margin: 0 }}>{t('ai.sub')}</p>
             </div>
@@ -153,48 +222,11 @@ export default function Predict() {
                     })}
                   </div>
                   <button className="btn sm" onClick={applyAI}>{t('ai.usePrediction')}</button>
-                  <div style={{ marginTop: 18 }}>
-                    <div className="note" style={{ fontWeight: 700, marginBottom: 8 }}>{t('ai.insight')}</div>
-                    {ai.insights.map((ins, i) => (
-                      <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 13.5, color: 'var(--muted)' }}>
-                        <span>{ins.icon}</span><span>{lang === 'ja' ? ins.text : ins.textEn}</span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             </>
           )}
           {!ai && !aiLoading && <p className="note" style={{ margin: '12px 0 0' }}>{t('ai.offlineNote')}</p>}
-
-          <hr className="divider" />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <h4 style={{ fontFamily: 'var(--font-display)', margin: 0, fontSize: 15, letterSpacing: '.06em' }}>🧠 {t('ai.learning')}</h4>
-            <button className="btn sm ghost" onClick={() => setLearn(resetLearning())}>{t('ai.resetLearning')}</button>
-          </div>
-          {learn.samples > 0 ? (
-            <div style={{ marginTop: 12 }}>
-              <div className="grid grid-3" style={{ gap: 12, marginBottom: 12 }}>
-                <div><div className="num" style={{ fontSize: 22 }}>{learn.samples}</div><div className="note">{t('ai.samples')}</div></div>
-                <div><div className="num" style={{ fontSize: 22 }}>{((learn.accuracy || 0) * 100).toFixed(0)}%</div><div className="note">{t('ai.accuracy')}</div></div>
-                <div><div className="num" style={{ fontSize: 22 }}>{(learn.mae || 0).toFixed(2)}</div><div className="note">{t('ai.mae')}</div></div>
-              </div>
-              <div className="note" style={{ fontWeight: 700, marginBottom: 8 }}>{t('ai.biasApplied')}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {biasMovers(learn).map(({ id, b }) => {
-                  const d = drivers?.find((x) => x.id === id)
-                  return (
-                    <div key={id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span>#{d?.number} {d?.name}</span>
-                      <span className="num" style={{ color: b >= 0 ? 'var(--ok)' : 'var(--accent-2)' }}>{b >= 0 ? '+' : ''}{Number(b).toFixed(2)}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          ) : (
-            <p className="note" style={{ marginTop: 12, marginBottom: 0 }}>{t('ai.noLearning')}</p>
-          )}
         </div>
 
         <div className="grid grid-2" style={{ alignItems: 'start' }}>
@@ -204,10 +236,6 @@ export default function Predict() {
               <select className="input" value={race?.round ?? ''} onChange={(e) => setRaceRound(Number(e.target.value))}>
                 {races.map((r) => <option key={r.round} value={r.round}>Rd.{r.round} {r.flag} {lang === 'ja' ? r.nameJa : r.name} · {fmtDate(r.date, lang)}</option>)}
               </select>
-            </div>
-            <div className="field">
-              <label>{t('predict.yourName')}</label>
-              <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={24} />
             </div>
             <div className="grid grid-2" style={{ gap: 12 }}>
               {[['P1', p1, setP1], ['P2', p2, setP2], ['P3', p3, setP3], [t('predict.fastestLap'), fl, setFl]].map(([label, val, set]) => (
@@ -222,38 +250,57 @@ export default function Predict() {
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-              <button className="btn primary" disabled={!canSubmit} onClick={submit}>{t('predict.submit')}</button>
-              {toast && <span className="badge ok" style={{ alignSelf: 'center' }}>{toast}</span>}
+            <div style={{ display: 'flex', gap: 10, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+              <button className="btn primary" disabled={!canSubmit || busy} onClick={submit}>{t('predict.submit')}</button>
+              {toast && <span className="badge ok">{toast}</span>}
             </div>
-            <p className="note" style={{ marginTop: 14 }}><b>{t('predict.scoring')}</b>: {t('predict.scoringDesc')}</p>
+            <p className="note" style={{ marginTop: 14, marginBottom: 0 }}>
+              <b>{t('predict.scoring')}</b>: {t('predict.scoringDesc')}
+            </p>
           </div>
 
           <div className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <h3 className="card-title" style={{ margin: 0 }}>{t('predict.myPicks')}</h3>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn sm" onClick={scoreAll} disabled={!preds.length || !drivers}>{t('predict.pointsEarned')}</button>
-                <button className="btn sm ghost" onClick={clearPreds} disabled={!preds.length}>{t('predict.clear')}</button>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button className="btn sm" onClick={scorePending} disabled={busy || !serverMode || !sorted.some((p) => !p.score)}>
+                  {t('predict.scoreNow')}
+                </button>
               </div>
             </div>
             <hr className="divider" />
-            {scoring && (
-              <p style={{ margin: '0 0 12px' }}>
-                <span className="badge gold">{t('predict.pointsEarned')}: {scoring.total} pts</span>
-              </p>
+            {totals && serverMode && (
+              <div className="stat-row">
+                <div><div className="num">{totals.points}</div><div className="note">{t('predict.totalPoints')}</div></div>
+                <div><div className="num">{totals.races}</div><div className="note">{t('predict.racesScored')}</div></div>
+                <div><div className="num">{(totals.avgAccuracy * 100).toFixed(0)}%</div><div className="note">{t('predict.avgAccuracy')}</div></div>
+                <div><div className="num">{(totals.hitRate * 100).toFixed(0)}%</div><div className="note">{t('predict.hitRate')}</div></div>
+              </div>
             )}
+            {!serverMode && <p className="note" style={{ marginBottom: 10 }}>{t('predict.localOnly')}</p>}
             {sorted.length ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="pred-list">
                 {sorted.map((p) => (
-                  <div key={p.id} style={{ border: '1px solid var(--line)', borderRadius: 12, padding: 10 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                      <b>Rd.{p.race} {p.raceName}</b>
-                      <span className="num" style={{ color: 'var(--accent-2)' }}>{p.score != null ? `${p.score} pts` : '—'}</span>
+                  <div className="pred-card" key={p.id}>
+                    <div className="pred-head">
+                      <b>Rd.{p.round} {p.raceName || ''}</b>
+                      {p.score ? (
+                        <span className="num" style={{ color: 'var(--accent-2)' }}>{p.score.points} pts</span>
+                      ) : <Badge kind="gold">{t('predict.pending')}</Badge>}
                     </div>
-                    <div className="note" style={{ marginTop: 4 }}>
+                    <div className="note">
                       P1 {dName(p.p1)} · P2 {dName(p.p2)} · P3 {dName(p.p3)} · FL {dName(p.fl)}
                     </div>
+                    {p.score && (
+                      <>
+                        <Breakdown score={p.score} />
+                        <div className="pred-meta">
+                          <span>{t('predict.accuracy')}: {(p.score.accuracy * 100).toFixed(0)}%</span>
+                          <span>{t('predict.hitRate')}: {p.score.hits}/{p.score.known}</span>
+                          <span className="note">{p.score.provider}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -262,19 +309,30 @@ export default function Predict() {
         </div>
 
         <div style={{ marginTop: 34 }}>
-          <SectionHead eyebrow="FAN LEAGUE" title={t('predict.leaderboard')} sub={`${t('predict.pointsEarned')}: ${myTotal} pts`} />
+          <SectionHead eyebrow="FAN LEAGUE" title={t('predict.leaderboard')} sub={`${t('predict.totalPoints')}: ${serverMode ? totals.points : localPreds.reduce((s, p) => s + (p.score || 0), 0)}`} />
           <div className="table-wrap">
             <table className="table">
-              <thead><tr><th>{t('standings.position')}</th><th>{t('predict.name')}</th><th>GP</th><th>{t('standings.points')}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{t('standings.position')}</th><th>{t('predict.name')}</th>
+                  <th>{t('predict.racesScored')}</th><th>{t('standings.points')}</th>
+                  <th>{t('predict.avgAccuracy')}</th><th>{t('predict.hitRate')}</th>
+                </tr>
+              </thead>
               <tbody>
                 {leaderboard.map((r, i) => (
-                  <tr key={r.id} className={r.name === (name || 'YOU') ? 'me' : ''}>
+                  <tr key={r.userId} className={r.username === user?.username ? 'me' : ''}>
                     <td className="num" style={{ color: i < 3 ? 'var(--accent-2)' : 'inherit' }}>{i + 1}</td>
-                    <td style={{ fontWeight: 700 }}>{r.name}</td>
-                    <td className="num">{r.picks}</td>
+                    <td style={{ fontWeight: 700 }}>{r.name}{r.username === user?.username ? ` · ${t('league.me')}` : ''}</td>
+                    <td className="num">{r.races}{r.pending ? ` (+${r.pending})` : ''}</td>
                     <td className="num" style={{ fontSize: 16 }}>{r.points}</td>
+                    <td className="num">{r.accRaces ? `${(r.avgAccuracy * 100).toFixed(0)}%` : '—'}</td>
+                    <td className="num">{r.known ? `${(r.hitRate * 100).toFixed(0)}%` : '—'}</td>
                   </tr>
                 ))}
+                {!leaderboard.length && (
+                  <tr><td colSpan={6} className="note" style={{ textAlign: 'center', padding: 18 }}>{t('predict.noLeaderboard')}</td></tr>
+                )}
               </tbody>
             </table>
           </div>
