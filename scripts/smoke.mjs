@@ -43,6 +43,11 @@ for (const route of routes) {
       window.matchMedia = window.matchMedia || ((q) => ({ matches: false, media: q, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }))
       window.scrollTo = () => {}
       window.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} }
+      // The Express host injects this in index.html; the static build sets false.
+      if (!('__PITWALL_API__' in window)) {
+        const m = htmlNoModule.match(/__PITWALL_API__=(true|false)/)
+        window.__PITWALL_API__ = m ? m[1] === 'true' : true
+      }
     }
   })
 
