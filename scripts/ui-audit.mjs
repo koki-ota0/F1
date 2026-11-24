@@ -67,7 +67,9 @@ const AUDIT = () => {
       const cr = contrast(fg, bg)
       if (cr < 3.4 && fs2 < 16 && !seen.has('c' + key)) { lowContrast.push(`${el.tagName} ${cs.fontSize} cr=${cr.toFixed(2)} "${el.textContent.trim().slice(0, 20)}"`); seen.add('c' + key) }
     }
-    if ((el.tagName === 'BUTTON' || el.tagName === 'A') && el.textContent.trim()) {
+    // inline links inside running text are exempt from the 38px tap rule
+    const inlineLink = el.classList?.contains('inline-link')
+    if (!inlineLink && (el.tagName === 'BUTTON' || el.tagName === 'A') && el.textContent.trim()) {
       const rr = rect(el)
       if (rr.h > 0 && rr.h < 38) smallTargets.push(`${el.tagName} "${el.textContent.trim().slice(0, 20)}" ${rr.w}x${rr.h}`)
     }

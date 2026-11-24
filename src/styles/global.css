@@ -41,7 +41,9 @@ body {
 
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
-button { font-family: inherit; cursor: pointer; }
+/* buttons are transparent by default, so they must not fall back to the UA's
+   black text on a dark theme */
+button { font-family: inherit; cursor: pointer; color: inherit; background: none; border: 0; }
 
 ::selection { background: var(--accent); color: #fff; }
 
@@ -51,7 +53,7 @@ button { font-family: inherit; cursor: pointer; }
 .section-sm { padding: 20px 0; }
 
 /* touch-friendly minimums (design system token) */
-:root { --tap: 44px; --tap-sm: 36px; }
+:root { --tap: 44px; --tap-sm: 40px; }
 
 h1, h2, h3, h4 { text-wrap: balance; }
 p, li, td, .note { text-wrap: pretty; overflow-wrap: break-word; }
@@ -220,6 +222,8 @@ body { -webkit-tap-highlight-color: rgba(225, 6, 0, 0.25); }
 }
 .card.hover:hover { transform: translateY(-4px); border-color: var(--line-2); box-shadow: var(--shadow); }
 .card .card-title { font-family: var(--font-display); font-weight: 700; letter-spacing: .06em; }
+button.card { width: 100%; align-items: flex-start; text-align: left; min-height: var(--tap); }
+button.card > div:first-child { line-height: 1.2; }
 
 .grid { display: grid; gap: 16px; }
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -295,10 +299,10 @@ body { -webkit-tap-highlight-color: rgba(225, 6, 0, 0.25); }
 .btn.primary { background: linear-gradient(90deg, var(--accent), #a80400); border-color: transparent; color: #fff; }
 .btn.primary:hover { filter: brightness(1.12); }
 .btn.ghost { background: transparent; }
-.btn.sm { min-height: 34px; padding: 7px 12px; font-size: 12.5px; }
+.btn.sm { min-height: 38px; padding: 7px 12px; font-size: 12.5px; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 a.tag, .tag.link { display: inline-flex; align-items: center; min-height: 30px; }
-.lang-toggle button { min-height: 34px; }
+.lang-toggle button { min-height: var(--tap-sm); padding: 0 10px; }
 
 /* ---------- forms ---------- */
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; min-width: 0; }
@@ -372,7 +376,8 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; min-width
   font-family: var(--font-display);
   font-size: 44px;
   font-weight: 800;
-  color: rgba(255,255,255,.09);
+  /* decorative watermark, kept subtle but not invisible */
+  color: rgba(255,255,255,.16);
   line-height: 1;
 }
 .dcard .dname { font-weight: 800; font-size: 17px; margin-top: 8px; }
@@ -385,10 +390,13 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; min-width
 .tcard .tbadge {
   width: 46px; height: 46px; border-radius: 12px;
   display: grid; place-items: center;
-  font-family: var(--font-display); font-weight: 800; color: #fff;
-  background: var(--team-color, var(--accent));
+  font-family: var(--font-display); font-weight: 800;
+  color: #fff;
+  background: var(--team-fill, var(--team-color, var(--accent)));
   font-size: 17px;
 }
+/* ink is chosen per team colour so light liveries stay readable */
+.tcard .tbadge { color: var(--on-team, #fff); }
 .tcard .tname { font-weight: 800; font-size: 16px; }
 .tcard .tbase { color: var(--muted); font-size: 12.5px; }
 
@@ -427,8 +435,8 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; min-width
   color: var(--muted);
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
-  padding: 4px 10px;
+  min-height: 38px;
+  padding: 6px 12px;
   border-radius: 8px;
 }
 .ticker-item:hover { color: var(--text); background: rgba(255,255,255,.06); }
@@ -459,7 +467,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; min-width
   font-size: 13px;
   padding: 4px 2px;
 }
-.footer .fgrid > div > a { display: flex; padding: 6px 0; }
+.footer .fgrid > div > a { display: flex; padding: 8px 0; min-height: 38px; }
 .footer a:hover { color: var(--text); }
 .footer .fbot a { min-height: 0; display: inline; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
 .footer .fbot { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }

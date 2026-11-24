@@ -2,12 +2,26 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 import { useFan } from './FanProvider.jsx'
+import { badgePalette } from '../lib/color.js'
 
 /**
  * Single portrait source: the bundled official-art crop
  * `public/images/drivers/<id>.jpg` (see README "Driver portraits"). Pass an
  * explicit `src` to override (e.g. a live headshot when a directory row exists).
  */
+/**
+ * Ink (near-black or white) that keeps >= 4.5:1 contrast on a team colour, so
+ * light liveries stay readable instead of rendering white-on-white.
+ */
+export function onColor(hex) {
+  return badgePalette(hex).ink
+}
+
+/** Fill + ink for the team badge, both guaranteed readable together. */
+export function badgeColors(hex) {
+  return badgePalette(hex)
+}
+
 export function DriverPhoto({ id, name, size = 72, src, fallbackId }) {
   const [failed, setFailed] = useState(false)
   const bundled = `${import.meta.env.BASE_URL}images/drivers/${fallbackId || id}.jpg`
@@ -47,7 +61,8 @@ export function DriverCard({ driver, team, compact = false }) {
         <div style={{ display: 'flex', gap: compact ? 8 : 12, alignItems: 'center' }}>
           <DriverPhoto id={driver.id} name={driver.name} size={compact ? 40 : 56} src={driver.photo} />
           <div>
-            <div className="dnum">{driver.number}</div>
+            {/* decorative watermark; the number is already in the card link text */}
+            <div className="dnum" aria-hidden="true">{driver.number}</div>
             <div className="dname">{driver.name}</div>
             <div className="dteam">{lang === 'ja' ? (team?.nameJa || team?.name) : team?.name} · {driver.flag} {lang === 'ja' ? driver.countryJa : driver.country}</div>
           </div>
@@ -75,7 +90,15 @@ export function DriverCard({ driver, team, compact = false }) {
 export function TeamCard({ team }) {
   const { t, lang } = useLang()
   return (
-    <Link to={`/teams/${team.id}`} className="card hover tcard" style={{ '--team-color': team.color }}>
+    <Link
+      to={`/teams/${team.id}`}
+      className="card hover tcard"
+      style={{
+        '--team-color': team.color,
+        '--team-fill': badgeColors(team.color).bg,
+        '--on-team': badgeColors(team.color).ink,
+      }}
+    >
       <div className="thead">
         <div className="tbadge">{(team.short || team.name).slice(0, 2).toUpperCase()}</div>
         <div>
