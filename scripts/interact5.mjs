@@ -1,8 +1,24 @@
 // v2.4 QA — results archive, driver photos, drawer nav.
 import { JSDOM, VirtualConsole } from 'jsdom'
 import { build } from 'esbuild'
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
+
+/**
+ * Throwaway credential for the account checks below.
+ *
+ * Generated per run instead of written into the source: these are QA accounts on
+ * a local/test server, and a hard-coded string in a test reads as a leaked
+ * password to secret scanners. Always contains letters and digits so it
+ * satisfies validatePassword().
+ */
+const qaPassword = () => {
+  const alphabet = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
+  const digits = '23456789'
+  const pick = (set, n) => Array.from(crypto.randomBytes(n)).map((b) => set[b % set.length]).join('')
+  return `${pick(alphabet, 8)}${pick(digits, 4)}`
+}
 
 const base = process.env.BASE || 'http://localhost:3000'
 const distAssets = path.join(process.cwd(), 'dist', 'assets')
@@ -111,9 +127,10 @@ if (process.env.MOCK_F1 === '1') {
 // ---- accounts (username + password) and protected fan zone
 {
   const uname = `qa_${Date.now().toString(36)}`
+  const pw = qaPassword()
   const reg = await fetch(`${base}/api/auth/register`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: uname, password: 'qa-pass-1', name: 'QA Fan' })
+    body: JSON.stringify({ username: uname, password: pw, name: 'QA Fan' })
   })
   const regBody = await reg.json()
   ok('auth: register returns a session token', reg.ok && !!regBody.token && regBody.user?.username === uname)
@@ -124,9 +141,14 @@ if (process.env.MOCK_F1 === '1') {
   ok('auth: anonymous /me is rejected (401)', noauth.status === 401)
   const bad = await fetch(`${base}/api/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: uname, password: 'wrong-password' })
+    body: JSON.stringify({ username: uname, password: `${pw}x` })
   })
   ok('auth: wrong password is rejected', bad.status === 401)
+  const good = await fetch(`${base}/api/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: uname, password: pw })
+  })
+  ok('auth: the generated password logs in', good.ok)
   const patched = await fetch(`${base}/api/me`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${regBody.token}` },
     body: JSON.stringify({ driver: 'norris', team: 'mclaren', xp: 42 })
@@ -143,7 +165,7 @@ if (process.env.MOCK_F1 === '1') {
   // filled form and gave the user nothing to act on.
   const badShape = await fetch(`${base}/api/auth/register`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: 'ab', password: 'qa-pass-1' })
+    body: JSON.stringify({ username: 'ab', password: pw })
   })
   const badShapeBody = await badShape.json()
   ok('auth: short username reports username_format (not invalid_input)',
@@ -151,7 +173,8 @@ if (process.env.MOCK_F1 === '1') {
 
   const badPw = await fetch(`${base}/api/auth/register`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: `qa_${Date.now().toString(36)}bb`, password: 'abcdefgh' })
+    // letters only: same shape as a real password minus the digits
+    body: JSON.stringify({ username: `qa_${Date.now().toString(36)}bb`, password: pw.replace(/[0-9]/g, 'z') })
   })
   const badPwBody = await badPw.json()
   ok('auth: all-letter password reports password_strength',
@@ -159,7 +182,7 @@ if (process.env.MOCK_F1 === '1') {
 
   const taken = await fetch(`${base}/api/auth/register`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: uname, password: 'qa-pass-1' })
+    body: JSON.stringify({ username: uname, password: pw })
   })
   const takenBody = await taken.json()
   ok('auth: duplicate username reports username_taken', taken.status === 400 && takenBody.code === 'username_taken')
