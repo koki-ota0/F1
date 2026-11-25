@@ -341,6 +341,28 @@ button.card > div:first-child { line-height: 1.2; }
 .badge.offline { color: var(--muted); }
 .badge.gold { color: #1a1a1a; background: var(--gold); border-color: var(--gold); }
 .badge.ok { color: var(--ok); border-color: rgba(61,220,132,.4); }
+/* inline form alert: a full sentence, so not the uppercase pill used for labels */
+.form-alert {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(225, 6, 0, .45);
+  background: rgba(225, 6, 0, .1);
+  color: #ffd9d7;
+  margin: 0 0 12px;
+}
+.form-alert.info {
+  border-color: rgba(245, 192, 68, .4);
+  background: rgba(245, 192, 68, .1);
+  color: var(--gold);
+}
+.input[aria-invalid="true"] { border-color: var(--accent-2); }
+.field .hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.field .hint.bad { color: #ffb3b0; }
 @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .35; transform: scale(.7);} }
 
 .tag {

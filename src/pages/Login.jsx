@@ -8,8 +8,12 @@ import { useAuth } from '../lib/auth.jsx'
  * Sign in / create account.
  *
  * Username + password only (no email). The server hashes with scrypt and
- * returns an opaque session token; a static host without our API answers 404,
- * which we surface as an honest "accounts need the server" message.
+ * returns an opaque session token.
+ *
+ * Failure handling matters here: a static host (GitHub Pages) has no API, so
+ * `POST /api/auth/*` comes back 405 with an HTML error page. That is a missing
+ * backend, not a malformed form — the page says so up front instead of sending
+ * the user back to "check your input" with nothing to fix.
  */
 export default function Login() {
   const { t } = useLang()
@@ -23,14 +27,28 @@ export default function Login() {
   const [showPw, setShowPw] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [errorField, setErrorField] = useState('')
   const [serverMissing, setServerMissing] = useState(false)
 
   const from = location.state?.from || '/fan'
+  // Baked static build = no Express API behind the page. We know this before
+  // the user types anything, so the limitation is stated immediately.
+  const staticHost = typeof window !== 'undefined' && window.__PITWALL_API__ === false
+  const serverOffline = serverMissing || staticHost
+
+  const usernameHints = t('auth.userHint') || ''
+  const passwordHints = t('auth.passHint') || ''
+
+  const fieldForCode = (code) => {
+    if (code.startsWith('username')) return 'username'
+    if (code.startsWith('password')) return 'password'
+    return ''
+  }
 
   const submit = async (e) => {
     e.preventDefault()
     if (busy) return
-    setBusy(true); setError(''); setServerMissing(false)
+    setBusy(true); setError(''); setErrorField(''); setServerMissing(false)
     try {
       const res = mode === 'login'
         ? await login(username.trim(), password)
@@ -39,13 +57,29 @@ export default function Login() {
         navigate(from, { replace: true })
         return
       }
-      if (res.status === 404) setServerMissing(true)
-      else setError(t(`auth.error.${res.code}`))
+      // A missing API is a deployment fact, not an input problem.
+      if (res.code === 'server_unavailable' || res.status === 404 || res.status === 405 || res.status === 501) {
+        setServerMissing(true)
+        return
+      }
+      setError(t(`auth.error.${res.code}`))
+      const field = fieldForCode(String(res.code))
+      setErrorField(field)
+      if (field) {
+        const el = document.getElementById(`auth-${field}`)
+        el?.focus?.()
+      }
     } catch {
       setError(t('auth.error.server'))
+      setServerMissing(true)
     } finally {
       setBusy(false)
     }
+  }
+
+  const switchMode = (next) => {
+    setMode(next)
+    setError(''); setErrorField(''); setServerMissing(false)
   }
 
   return (
@@ -55,15 +89,21 @@ export default function Login() {
 
         <div className="card" style={{ padding: 22 }}>
           <div className="tabs" style={{ marginBottom: 16 }}>
-            <button className={mode === 'login' ? 'on' : ''} onClick={() => { setMode('login'); setError('') }}>
+            <button className={mode === 'login' ? 'on' : ''} onClick={() => switchMode('login')}>
               {t('auth.login')}
             </button>
-            <button className={mode === 'register' ? 'on' : ''} onClick={() => { setMode('register'); setError('') }}>
+            <button className={mode === 'register' ? 'on' : ''} onClick={() => switchMode('register')}>
               {t('auth.register')}
             </button>
           </div>
 
-          <form onSubmit={submit} autoComplete={mode === 'login' ? 'on' : 'off'}>
+          {serverOffline && (
+            <p className="form-alert info" role="status">
+              {t('auth.serverRequired')}
+            </p>
+          )}
+
+          <form onSubmit={submit} autoComplete={mode === 'login' ? 'on' : 'off'} noValidate>
             <div className="field">
               <label htmlFor="auth-username">{t('auth.username')}</label>
               <input
@@ -73,8 +113,10 @@ export default function Login() {
                 onChange={(e) => setUsername(e.target.value)}
                 maxLength={20}
                 autoComplete="username"
+                aria-invalid={errorField === 'username' ? 'true' : undefined}
                 required
               />
+              {mode === 'register' && <div className="hint">{usernameHints}</div>}
             </div>
 
             {mode === 'register' && (
@@ -102,6 +144,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   maxLength={128}
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  aria-invalid={errorField === 'password' ? 'true' : undefined}
                   required
                 />
                 <button
@@ -113,18 +156,11 @@ export default function Login() {
                   {showPw ? '🙈' : '👁️'}
                 </button>
               </div>
-              {mode === 'register' && (
-                <div className="note" style={{ marginTop: 6 }}>
-                  8〜128文字・英字と数字を含む
-                </div>
-              )}
+              {mode === 'register' && <div className="hint">{passwordHints}</div>}
             </div>
 
-            {serverMissing && (
-              <p className="badge gold" style={{ marginBottom: 12 }}>{t('auth.serverRequired')}</p>
-            )}
             {error && (
-              <p className="badge warn" style={{ marginBottom: 12 }} role="alert">{error}</p>
+              <p className="form-alert" role="alert">{error}</p>
             )}
 
             <button className="btn primary" type="submit" disabled={busy || !username || !password}>
@@ -135,11 +171,11 @@ export default function Login() {
           <hr className="divider" />
           <p className="note" style={{ margin: 0 }}>
             {mode === 'login' ? (
-              <Link className="inline-link" to="/login" onClick={(e) => { e.preventDefault(); setMode('register') }}>
+              <Link className="inline-link" to="/login" onClick={(e) => { e.preventDefault(); switchMode('register') }}>
                 {t('auth.noAccount')}
               </Link>
             ) : (
-              <Link className="inline-link" to="/login" onClick={(e) => { e.preventDefault(); setMode('login') }}>
+              <Link className="inline-link" to="/login" onClick={(e) => { e.preventDefault(); switchMode('login') }}>
                 {t('auth.haveAccount')}
               </Link>
             )}

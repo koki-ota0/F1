@@ -38,6 +38,24 @@ export async function authFetch(path, opts = {}) {
   return res
 }
 
+/**
+ * Turn a failed auth response into a stable code for the UI.
+ *
+ * A static host (GitHub Pages) answers `POST /api/auth/*` with 405 + an HTML
+ * error page, and a missing API answers 404. Neither is "your input is wrong",
+ * so they must not fall back to `invalid_input` — that told users to fix a
+ * form that was already valid.
+ */
+async function failureCode(res) {
+  const body = await res.json().catch(() => null)
+  if (body?.code) return body.code
+  if (body?.error) return String(body.error)
+  if (res.status === 404 || res.status === 405 || res.status === 501) return 'server_unavailable'
+  if (res.status === 429) return 'rate_limited'
+  if (res.status >= 500) return 'server'
+  return 'invalid_input'
+}
+
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
@@ -73,8 +91,8 @@ export function AuthProvider({ children }) {
       method: 'POST',
       body: JSON.stringify({ username, password })
     })
+    if (!res.ok) return { ok: false, code: await failureCode(res), status: res.status }
     const d = await res.json().catch(() => ({}))
-    if (!res.ok) return { ok: false, code: d.code || 'invalid_credentials', status: res.status }
     localStorage.setItem(STORE_KEY, JSON.stringify({ token: d.token, user: d.user }))
     setUser(d.user)
     return { ok: true, user: d.user }
@@ -85,8 +103,8 @@ export function AuthProvider({ children }) {
       method: 'POST',
       body: JSON.stringify({ username, password, name })
     })
+    if (!res.ok) return { ok: false, code: await failureCode(res), status: res.status }
     const d = await res.json().catch(() => ({}))
-    if (!res.ok) return { ok: false, code: d.code || 'invalid_input', status: res.status }
     localStorage.setItem(STORE_KEY, JSON.stringify({ token: d.token, user: d.user }))
     setUser(d.user)
     return { ok: true, user: d.user }

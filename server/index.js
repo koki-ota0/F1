@@ -15,10 +15,32 @@ app.use(express.json({ limit: '256kb' }))
 app.use('/api', apiRouter)
 
 if (fs.existsSync(DIST)) {
+  // The static build marks itself API-less (`__PITWALL_API__=false`) so a Pages
+  // deployment never polls in the background. When the same dist is served by
+  // this Express app the API *is* there, so flip the flag at serve time —
+  // otherwise the client would keep claiming "no server" on a server host.
+  // Cached by mtime so `npm run build` takes effect without a restart (a stale
+  // index would point at hashed assets the new build deleted).
+  const INDEX = path.join(DIST, 'index.html')
+  let cached = { at: -1, html: '' }
+  const shell = () => {
+    const at = fs.statSync(INDEX).mtimeMs
+    if (at !== cached.at) {
+      cached = {
+        at,
+        html: fs.readFileSync(INDEX, 'utf8').replace('__PITWALL_API__=false', '__PITWALL_API__=true')
+      }
+    }
+    return cached.html
+  }
   app.use(express.static(DIST, { index: false, maxAge: '1h' }))
   // let the client know it is running against our Express API (enables polling)
   app.get('*', (_req, res) => {
-    res.sendFile(path.join(DIST, 'index.html'), (err) => err && res.status(500).send('client build missing'))
+    try {
+      res.type('html').send(shell())
+    } catch {
+      res.status(500).send('client build missing')
+    }
   })
 } else {
   app.get('/', (_req, res) => res.status(200).send('PITWALL API running. Build the client with `npm run build`.'))
