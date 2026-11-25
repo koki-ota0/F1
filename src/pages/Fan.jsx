@@ -4,7 +4,7 @@ import { useApi } from '../lib/api.js'
 import { SectionHead, Loading } from '../components/common.jsx'
 import { useFan } from '../components/FanProvider.jsx'
 import { fanLevel, fanLevelName } from '../lib/store.js'
-import { useAuth, authFetch } from '../lib/auth.jsx'
+import { useAuth, authFetch, authEnabled } from '../lib/auth.jsx'
 import { assetUrl } from '../lib/asset.js'
 
 export default function Fan() {
@@ -55,16 +55,25 @@ export default function Fan() {
       <div className="container">
         <SectionHead eyebrow="FAN ZONE" title={t('fan.title')} sub={t('fan.sub')} />
 
-        <div className="card" style={{ marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div>
-            <div className="eyebrow">{t('auth.loggedInAs')}</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, marginTop: 4 }}>@{user?.username}</div>
-            <div className="note" style={{ marginTop: 2 }}>
-              {t('auth.memberSince')}: {user?.createdAt ? user.createdAt.slice(0, 10) : '—'}
+        {/* Accounts are off on static hosts (§25): this page runs on the local
+            profile, so the account card only exists where accounts do. */}
+        {authEnabled && user && (
+          <div className="card" style={{ marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div>
+              <div className="eyebrow">{t('auth.loggedInAs')}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, marginTop: 4 }}>@{user.username}</div>
+              <div className="note" style={{ marginTop: 2 }}>
+                {t('auth.memberSince')}: {user.createdAt ? user.createdAt.slice(0, 10) : '—'}
+              </div>
             </div>
+            <button className="btn sm ghost" onClick={logout}>{t('auth.logout')}</button>
           </div>
-          <button className="btn sm ghost" onClick={logout}>{t('auth.logout')}</button>
-        </div>
+        )}
+        {!authEnabled && (
+          <p className="note" style={{ marginTop: -4 }}>
+            {t('auth.localProfileNote')}
+          </p>
+        )}
 
         <div className="grid grid-2" style={{ alignItems: 'start' }}>
           <div className="card">

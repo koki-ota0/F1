@@ -14,6 +14,21 @@ import { useLang } from './i18n.jsx'
  */
 const STORE_KEY = 'pitwall.auth'
 
+/**
+ * Accounts need the Express API (scrypt hashing, sessions, users.json).
+ * A static host (GitHub Pages) has no `/api/auth/*`, so signing in there can
+ * never work — the UI is switched off instead, and the offline features
+ * (fan profile, predictions, leagues) stay on their localStorage paths.
+ *
+ * Nothing is removed: run the server-backed deployment and accounts come back.
+ * `VITE_AUTH_DISABLED=1` force-disables them even when an API is present.
+ */
+export const authEnabled = (() => {
+  if (typeof window === 'undefined') return true
+  if (import.meta.env.VITE_AUTH_DISABLED === '1') return false
+  return window.__PITWALL_API__ !== false
+})()
+
 function storedSession() {
   try {
     const raw = localStorage.getItem(STORE_KEY)
@@ -131,7 +146,10 @@ export function AuthProvider({ children }) {
     return { ok: !!res.ok, user: d.user }
   }, [])
 
-  const value = useMemo(() => ({ user, loading, login, register, logout, updateProfile }), [user, loading, login, register, logout, updateProfile])
+  const value = useMemo(
+    () => ({ user, loading, authEnabled, login, register, logout, updateProfile }),
+    [user, loading, login, register, logout, updateProfile]
+  )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
@@ -145,6 +163,9 @@ export function useAuth() {
 export function RequireAuth({ children }) {
   const { user, loading } = useAuth()
   const { t } = useLang()
+  // No account backend (static host): never wall off a page that works offline.
+  // /fan, /predict and /league all have localStorage paths.
+  if (!authEnabled) return children
   if (loading) {
     return <div className="section container"><div className="state"><div className="skeleton" style={{ width: 200, height: 20 }} /></div></div>
   }

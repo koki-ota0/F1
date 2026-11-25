@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 import { SectionHead } from '../components/common.jsx'
-import { useAuth } from '../lib/auth.jsx'
+import { useAuth, authEnabled } from '../lib/auth.jsx'
 
 /**
  * Sign in / create account.
@@ -31,10 +31,7 @@ export default function Login() {
   const [serverMissing, setServerMissing] = useState(false)
 
   const from = location.state?.from || '/fan'
-  // Baked static build = no Express API behind the page. We know this before
-  // the user types anything, so the limitation is stated immediately.
-  const staticHost = typeof window !== 'undefined' && window.__PITWALL_API__ === false
-  const serverOffline = serverMissing || staticHost
+  const serverOffline = serverMissing || !authEnabled
 
   const usernameHints = t('auth.userHint') || ''
   const passwordHints = t('auth.passHint') || ''
@@ -80,6 +77,30 @@ export default function Login() {
   const switchMode = (next) => {
     setMode(next)
     setError(''); setErrorField(''); setServerMissing(false)
+  }
+
+  // Accounts are switched off on static hosts (§25). Say so once, clearly,
+  // and point at what still works without an account.
+  if (!authEnabled) {
+    return (
+      <section className="section">
+        <div className="container" style={{ maxWidth: 560 }}>
+          <SectionHead eyebrow="PITWALL ACCOUNT" title={t('auth.disabledTitle')} sub={t('auth.disabledSub')} />
+          <div className="card" style={{ padding: 22 }}>
+            <p className="note" style={{ marginTop: 0 }}>{t('auth.disabledBody')}</p>
+            <ul className="note" style={{ paddingLeft: 18, lineHeight: 1.9 }}>
+              <li>{t('auth.disabledItemFan')}</li>
+              <li>{t('auth.disabledItemPredict')}</li>
+              <li>{t('auth.disabledItemLeague')}</li>
+            </ul>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+              <Link className="btn primary" to="/fan">{t('auth.goFan')}</Link>
+              <Link className="btn ghost" to="/predict">{t('auth.goPredict')}</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (
