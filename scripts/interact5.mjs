@@ -138,6 +138,32 @@ if (process.env.MOCK_F1 === '1') {
   const locked = await waitFor(() => /ログインが必要|needs an account/.test(win.document.body.textContent), 6000)
   ok('auth: /fan is gated without a session', !!locked)
 
+  // Validation failures must name the actual problem. They used to be collapsed
+  // into `invalid_input`, which showed "check your input" for a correctly
+  // filled form and gave the user nothing to act on.
+  const badShape = await fetch(`${base}/api/auth/register`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'ab', password: 'qa-pass-1' })
+  })
+  const badShapeBody = await badShape.json()
+  ok('auth: short username reports username_format (not invalid_input)',
+    badShape.status === 400 && badShapeBody.code === 'username_format')
+
+  const badPw = await fetch(`${base}/api/auth/register`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: `qa_${Date.now().toString(36)}bb`, password: 'abcdefgh' })
+  })
+  const badPwBody = await badPw.json()
+  ok('auth: all-letter password reports password_strength',
+    badPw.status === 400 && badPwBody.code === 'password_strength')
+
+  const taken = await fetch(`${base}/api/auth/register`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: uname, password: 'qa-pass-1' })
+  })
+  const takenBody = await taken.json()
+  ok('auth: duplicate username reports username_taken', taken.status === 400 && takenBody.code === 'username_taken')
+
   // predictions must be scored against the real result, never a simulation
   const season = new Date().getFullYear()
   const predRes = await fetch(`${base}/api/predictions`, {

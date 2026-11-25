@@ -420,7 +420,13 @@ router.post('/auth/register', registerLimiter, (req, res) => {
   const { username, password, name } = req.body || {}
   const result = createUser({ username, password, name })
   if (!result.ok) {
-    return res.status(400).json({ error: result.error, code: result.code || 'invalid_input' })
+    // Pass the specific reason through as `code` (username_format,
+    // password_length, …). Collapsing every validation failure into
+    // 'invalid_input' left the client unable to say what was wrong.
+    return res.status(400).json({
+      error: result.error,
+      code: result.code || result.error || 'invalid_input'
+    })
   }
   res.status(201).json(startSession(res, req, result.user))
 })

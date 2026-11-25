@@ -295,7 +295,9 @@ export function rateLimit({ windowMs = 15 * 60 * 1000, max = 12, key: keyFn } = 
       if (rec.count > max) {
         const retry = Math.ceil((rec.reset - now) / 1000)
         res.set('Retry-After', String(retry))
-        return res.status(429).json({ error: 'too many attempts, try later', retry })
+        // `code` keeps the client's localised message honest: a 429 is a
+        // throttle, not a bad input, and must not read as "check your input".
+        return res.status(429).json({ error: 'too many attempts, try later', code: 'rate_limited', retry })
       }
     }
     next()
