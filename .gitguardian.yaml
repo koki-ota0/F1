@@ -1,0 +1,15 @@
+# GitGuardian / secret-scanner configuration.
+#
+# QA scripts must never carry literal credentials: `scripts/interact5.mjs`
+# generates throwaway account passwords at runtime (crypto.randomBytes) instead.
+# If a scanner still reports one of its generated values, it came from a test
+# run log — not from a real account, and not from this repository's source.
+version: 2
+secret:
+  ignored-paths:
+    - "scripts/interact5.mjs"
+    - "qa/**"
+  ignored-matches:
+    # placeholder shown in README/docs env examples
+    - name: LLM key placeholder
+      match: sk-\.\.\.
