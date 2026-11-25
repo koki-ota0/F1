@@ -11,6 +11,8 @@ const entry = fs.readdirSync(distAssets).find((f) => f.endsWith('.js') && !f.inc
 await build({ entryPoints: [path.join(distAssets, entry)], bundle: true, format: 'iife', platform: 'browser', target: 'es2020', outfile: '/tmp/pitwall.verify.js', logLevel: 'silent' })
 const bundle = fs.readFileSync('/tmp/pitwall.verify.js', 'utf8')
 
+const apiFlagOf = (html) => /__PITWALL_API__=(true|false)/.exec(html)?.[1]
+
 let pass = 0, total = 0
 function ok(name, cond, extra = '') {
   total++
@@ -22,9 +24,13 @@ async function open(route) {
   const vc = new VirtualConsole()
   vc.on('jsdomError', (e) => errors.push(String(e.detail?.stack || e.detail || e.message || e)))
   const html = await (await fetch(base + route)).text()
+  const apiFlag = /__PITWALL_API__=(true|false)/.exec(html)?.[1]
   const dom = new JSDOM(html.replace(/<script type="module"[^>]*><\/script>/, ''), {
     url: base + route, runScripts: 'dangerously', pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(window) {
+      // the build reads this before React mounts; without it jsdom assumes a
+      // server-backed host and the account UI would never be switched off
+      window.__PITWALL_API__ = apiFlag === 'true'
       window.fetch = (url, opts) => fetch(new URL(url, base).href, opts)
       window.AbortController = AbortController
       window.matchMedia = window.matchMedia || ((q) => ({ matches: false, media: q, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }))
@@ -103,10 +109,15 @@ async function open(route) {
 
 // ---- race results: full classification available, no "bundled" banner
 {
+  // A static host has no /api/results; the page still opens the baked copy
+  // through the client fallback, so only the direct API probe is server-only.
+  const apiHost = apiFlagOf(await (await fetch(base + '/login')).text()) === 'true'
+  if (apiHost) {
   const srv = await (await fetch(`${base}/api/results?year=2026&round=21`)).json()
   const rows = srv.classification || []
   ok('results: Rd.21 classification served', rows.length >= 20, 'rows=' + rows.length)
   ok('results: Rd.21 winner is Verstappen', rows[0]?.number === 3, JSON.stringify(rows[0]))
+  }
 
   // the baked fallback must carry a classification for every finished round
   const baked = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'server', 'data', 'results-2026.json'), 'utf8'))
@@ -134,6 +145,36 @@ async function open(route) {
   })()
   ok('results: full classification opens from the card', typeof opened === 'number' && opened >= 20, String(opened))
   ok('results: no runtime errors', errors.length === 0)
+}
+
+// ---- accounts are on for a server host, off for a static host (§25)
+{
+  const isStatic = apiFlagOf(await (await fetch(base + '/login')).text()) === 'false'
+
+  const { win, waitFor } = await open('/login')
+  await waitFor(() => win.document.querySelector('.card'), 8000)
+  const body = win.document.body.textContent
+  const hasForm = !!win.document.querySelector('#auth-username')
+  if (isStatic) {
+    ok('static host: /login explains accounts are off', /アカウント機能をオフ|Accounts are turned off/.test(body))
+    ok('static host: no sign-in form', !hasForm)
+    ok('static host: header shows no login chip', !win.document.querySelector('.nav .user-chip'))
+    for (const route of ['/fan', '/predict', '/league']) {
+      const r = await open(route)
+      await r.waitFor(() => (r.win.document.querySelector('main')?.textContent.length || 0) > 300, 9000)
+      // scope to <main>: the drawer also links to /login, and the lock glyph in
+      // the nav is not a login wall
+      const txt = r.win.document.querySelector('main')?.textContent || ''
+      ok(`static host: ${route} not walled off by login`,
+        !/ログインが必要|needs an account/.test(txt), txt.slice(0, 60))
+    }
+  } else {
+    ok('server host: /login renders the form', hasForm)
+    ok('server host: header shows the login chip', !!win.document.querySelector('.nav .user-chip'))
+    const r = await open('/fan')
+    const locked = await r.waitFor(() => /ログインが必要|needs an account/.test(r.win.document.body.textContent), 8000)
+    ok('server host: /fan still gated', !!locked)
+  }
 }
 
 console.log(`\n${pass}/${total} checks passed`)

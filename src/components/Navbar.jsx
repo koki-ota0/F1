@@ -3,7 +3,7 @@ import { NavLink, Link, useLocation } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 import { useFan } from './FanProvider.jsx'
 import { useRefresh } from './RefreshProvider.jsx'
-import { useAuth } from '../lib/auth.jsx'
+import { useAuth, authEnabled } from '../lib/auth.jsx'
 
 /**
  * PITWALL top bar.
@@ -73,7 +73,7 @@ export default function Navbar() {
             <button className={lang === 'ja' ? 'on' : ''} onClick={() => setLang('ja')} aria-pressed={lang === 'ja'}>日本語</button>
             <button className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')} aria-pressed={lang === 'en'}>EN</button>
           </div>
-          {user ? (
+          {!authEnabled ? null : user ? (
             <Link to="/fan" className="user-chip" title={t('auth.loggedInAs')}>@{user.username}</Link>
           ) : (
             <Link to="/login" className="user-chip">{t('auth.login')}</Link>
@@ -142,7 +142,7 @@ export default function Navbar() {
 
         <div className="drawer-foot">
           <span>{t('common.tagline')}</span>
-          {user && (
+          {authEnabled && user && (
             <button className="btn sm ghost" onClick={() => { setOpen(false); logout() }}>{t('auth.logout')}</button>
           )}
           <span className="note">© 2026 PITWALL</span>
