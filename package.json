@@ -10,12 +10,13 @@
     "prebuild": "node scripts/sync-bundle.mjs",
     "postbuild": "node scripts/postbuild.mjs",
     "qa:browser": "node scripts/browser-qa.mjs",
-    "qa:build": "vite build && node scripts/smoke.mjs && node scripts/interact5.mjs",
+    "qa:build": "node scripts/secret-audit.mjs && vite build && node scripts/smoke.mjs && node scripts/interact5.mjs",
     "mock:openf1": "node scripts/mock-openf1.mjs 4180",
     "gen:2026": "node scripts/gen-2026-snapshot.mjs && npm run bundle",
     "build": "vite build",
     "start": "node server/index.js",
-    "serve": "npm run build && node server/index.js"
+    "serve": "npm run build && node server/index.js",
+    "qa:secrets": "node scripts/secret-audit.mjs"
   },
   "dependencies": {
     "express": "^4.21.2",
